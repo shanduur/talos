@@ -76,106 +76,138 @@ FROM ${PKG_CA_CERTIFICATES} AS pkg-ca-certificates
 
 FROM --platform=amd64 ${PKG_APPARMOR} AS pkg-apparmor-amd64
 FROM --platform=arm64 ${PKG_APPARMOR} AS pkg-apparmor-arm64
+FROM --platform=riscv64 ${PKG_APPARMOR} AS pkg-apparmor-riscv64
 
 FROM --platform=amd64 ${PKG_CRYPTSETUP} AS pkg-cryptsetup-amd64
 FROM --platform=arm64 ${PKG_CRYPTSETUP} AS pkg-cryptsetup-arm64
+FROM --platform=riscv64 ${PKG_CRYPTSETUP} AS pkg-cryptsetup-riscv64
 
 FROM --platform=amd64 ${PKG_CONTAINERD} AS pkg-containerd-amd64
 FROM --platform=arm64 ${PKG_CONTAINERD} AS pkg-containerd-arm64
+FROM --platform=riscv64 ${PKG_CONTAINERD} AS pkg-containerd-riscv64
 
 FROM --platform=amd64 ${PKG_DOSFSTOOLS} AS pkg-dosfstools-amd64
 FROM --platform=arm64 ${PKG_DOSFSTOOLS} AS pkg-dosfstools-arm64
+FROM --platform=riscv64 ${PKG_DOSFSTOOLS} AS pkg-dosfstools-riscv64
 
 FROM --platform=amd64 ${PKG_E2FSPROGS} AS pkg-e2fsprogs-amd64
 FROM --platform=arm64 ${PKG_E2FSPROGS} AS pkg-e2fsprogs-arm64
+FROM --platform=riscv64 ${PKG_E2FSPROGS} AS pkg-e2fsprogs-riscv64
 
 FROM --platform=amd64 ${PKG_SYSTEMD_UDEVD} AS pkg-systemd-udevd-amd64
 FROM --platform=arm64 ${PKG_SYSTEMD_UDEVD} AS pkg-systemd-udevd-arm64
+FROM --platform=riscv64 ${PKG_SYSTEMD_UDEVD} AS pkg-systemd-udevd-riscv64
 
 FROM --platform=amd64 ${PKG_LIBCAP} AS pkg-libcap-amd64
 FROM --platform=arm64 ${PKG_LIBCAP} AS pkg-libcap-arm64
+FROM --platform=riscv64 ${PKG_LIBCAP} AS pkg-libcap-riscv64
 
 FROM ${PKG_GRUB} AS pkg-grub
 FROM --platform=amd64 ${PKG_GRUB} AS pkg-grub-amd64
 FROM --platform=arm64 ${PKG_GRUB} AS pkg-grub-arm64
+FROM --platform=riscv64 ${PKG_GRUB} AS pkg-grub-riscv64
 
 FROM ${PKG_SD_BOOT} AS pkg-sd-boot
 FROM --platform=amd64 ${PKG_SD_BOOT} AS pkg-sd-boot-amd64
 FROM --platform=arm64 ${PKG_SD_BOOT} AS pkg-sd-boot-arm64
+FROM --platform=riscv64 ${PKG_SD_BOOT} AS pkg-sd-boot-riscv64
 
 FROM --platform=amd64 ${PKG_IPTABLES} AS pkg-iptables-amd64
 FROM --platform=arm64 ${PKG_IPTABLES} AS pkg-iptables-arm64
+FROM --platform=riscv64 ${PKG_IPTABLES} AS pkg-iptables-riscv64
 
 FROM --platform=amd64 ${PKG_IPXE} AS pkg-ipxe-amd64
 FROM --platform=arm64 ${PKG_IPXE} AS pkg-ipxe-arm64
+FROM --platform=riscv64 ${PKG_IPXE} AS pkg-ipxe-riscv64
 
 FROM --platform=amd64 ${PKG_LIBATTR} AS pkg-libattr-amd64
 FROM --platform=arm64 ${PKG_LIBATTR} AS pkg-libattr-arm64
+FROM --platform=riscv64 ${PKG_LIBATTR} AS pkg-libattr-riscv64
 
 FROM --platform=amd64 ${PKG_LIBINIH} AS pkg-libinih-amd64
 FROM --platform=arm64 ${PKG_LIBINIH} AS pkg-libinih-arm64
+FROM --platform=riscv64 ${PKG_LIBINIH} AS pkg-libinih-riscv64
 
 FROM --platform=amd64 ${PKG_LIBJSON_C} AS pkg-libjson-c-amd64
 FROM --platform=arm64 ${PKG_LIBJSON_C} AS pkg-libjson-c-arm64
+FROM --platform=riscv64 ${PKG_LIBJSON_C} AS pkg-libjson-c-riscv64
 
 FROM --platform=amd64 ${PKG_LIBMNL} AS pkg-libmnl-amd64
 FROM --platform=arm64 ${PKG_LIBMNL} AS pkg-libmnl-arm64
+FROM --platform=riscv64 ${PKG_LIBMNL} AS pkg-libmnl-riscv64
 
 FROM --platform=amd64 ${PKG_LIBNFTNL} AS pkg-libnftnl-amd64
 FROM --platform=arm64 ${PKG_LIBNFTNL} AS pkg-libnftnl-arm64
+FROM --platform=riscv64 ${PKG_LIBNFTNL} AS pkg-libnftnl-riscv64
 
 FROM --platform=amd64 ${PKG_LIBPOPT} AS pkg-libpopt-amd64
 FROM --platform=arm64 ${PKG_LIBPOPT} AS pkg-libpopt-arm64
+FROM --platform=riscv64 ${PKG_LIBPOPT} AS pkg-libpopt-riscv64
 
 FROM --platform=amd64 ${PKG_LIBURCU} AS pkg-liburcu-amd64
 FROM --platform=arm64 ${PKG_LIBURCU} AS pkg-liburcu-arm64
+FROM --platform=riscv64 ${PKG_LIBURCU} AS pkg-liburcu-riscv64
 
 FROM --platform=amd64 ${PKG_LIBSEPOL} AS pkg-libsepol-amd64
 FROM --platform=arm64 ${PKG_LIBSEPOL} AS pkg-libsepol-arm64
+FROM --platform=riscv64 ${PKG_LIBSEPOL} AS pkg-libsepol-riscv64
 
 FROM --platform=amd64 ${PKG_LIBSELINUX} AS pkg-libselinux-amd64
 FROM --platform=arm64 ${PKG_LIBSELINUX} AS pkg-libselinux-arm64
+FROM --platform=riscv64 ${PKG_LIBSELINUX} AS pkg-libselinux-riscv64
 
 FROM --platform=amd64 ${PKG_PCRE2} AS pkg-pcre2-amd64
 FROM --platform=arm64 ${PKG_PCRE2} AS pkg-pcre2-arm64
+FROM --platform=riscv64 ${PKG_PCRE2} AS pkg-pcre2-riscv64
 
 FROM --platform=amd64 ${PKG_OPENSSL} AS pkg-openssl-amd64
 FROM --platform=arm64 ${PKG_OPENSSL} AS pkg-openssl-arm64
+FROM --platform=riscv64 ${PKG_OPENSSL} AS pkg-openssl-riscv64
 
 # linux-firmware is not arch-specific
 FROM --platform=amd64 ${PKG_LINUX_FIRMWARE} AS pkg-linux-firmware
 
 FROM --platform=amd64 ${PKG_LVM2} AS pkg-lvm2-amd64
 FROM --platform=arm64 ${PKG_LVM2} AS pkg-lvm2-arm64
+FROM --platform=riscv64 ${PKG_LVM2} AS pkg-lvm2-riscv64
 
 FROM --platform=amd64 ${PKG_LIBAIO} AS pkg-libaio-amd64
 FROM --platform=arm64 ${PKG_LIBAIO} AS pkg-libaio-arm64
+FROM --platform=riscv64 ${PKG_LIBAIO} AS pkg-libaio-riscv64
 
 FROM --platform=amd64 ${PKG_MUSL} AS pkg-musl-amd64
 FROM --platform=arm64 ${PKG_MUSL} AS pkg-musl-arm64
+FROM --platform=riscv64 ${PKG_MUSL} AS pkg-musl-riscv64
 
 FROM --platform=amd64 ${PKG_RUNC} AS pkg-runc-amd64
 FROM --platform=arm64 ${PKG_RUNC} AS pkg-runc-arm64
+FROM --platform=riscv64 ${PKG_RUNC} AS pkg-runc-riscv64
 
 FROM --platform=amd64 ${PKG_XFSPROGS} AS pkg-xfsprogs-amd64
 FROM --platform=arm64 ${PKG_XFSPROGS} AS pkg-xfsprogs-arm64
+FROM --platform=riscv64 ${PKG_XFSPROGS} AS pkg-xfsprogs-riscv64
 
 FROM ${PKG_UTIL_LINUX} AS pkg-util-linux
 FROM --platform=amd64 ${PKG_UTIL_LINUX} AS pkg-util-linux-amd64
 FROM --platform=arm64 ${PKG_UTIL_LINUX} AS pkg-util-linux-arm64
+FROM --platform=riscv64 ${PKG_UTIL_LINUX} AS pkg-util-linux-riscv64
 
 FROM --platform=amd64 ${PKG_KMOD} AS pkg-kmod-amd64
 FROM --platform=arm64 ${PKG_KMOD} AS pkg-kmod-arm64
+FROM --platform=riscv64 ${PKG_KMOD} AS pkg-kmod-riscv64
 
 FROM --platform=amd64 ${PKG_CNI} AS pkg-cni-amd64
 FROM --platform=arm64 ${PKG_CNI} AS pkg-cni-arm64
+FROM --platform=riscv64 ${PKG_CNI} AS pkg-cni-riscv64
 
 FROM --platform=amd64 ${PKG_FLANNEL_CNI} AS pkg-flannel-cni-amd64
 FROM --platform=arm64 ${PKG_FLANNEL_CNI} AS pkg-flannel-cni-arm64
+FROM --platform=riscv64 ${PKG_FLANNEL_CNI} AS pkg-flannel-cni-riscv64
 
 FROM ${PKG_KERNEL} AS pkg-kernel
 FROM --platform=amd64 ${PKG_KERNEL} AS pkg-kernel-amd64
 FROM --platform=arm64 ${PKG_KERNEL} AS pkg-kernel-arm64
+FROM --platform=riscv64 ${PKG_KERNEL} AS pkg-kernel-riscv64
 
 FROM ${PKG_CPIO} AS pkg-cpio
 FROM ${PKG_DOSFSTOOLS} AS pkg-dosfstools
@@ -520,6 +552,13 @@ WORKDIR /src/internal/app/init
 ARG GO_BUILDFLAGS
 ARG GO_LDFLAGS
 RUN --mount=type=cache,target=/.cache,id=talos/.cache GOOS=linux GOARCH=arm64 go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS}" -o /init
+RUN chmod +x /init
+
+FROM base AS init-build-riscv64
+WORKDIR /src/internal/app/init
+ARG GO_BUILDFLAGS
+ARG GO_LDFLAGS
+RUN --mount=type=cache,target=/.cache,id=talos/.cache GOOS=linux GOARCH=riscv64 go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS}" -o /init
 RUN chmod +x /init
 
 FROM init-build-${TARGETARCH} AS init-build
@@ -886,6 +925,87 @@ RUN <<END
     ln -s /etc/ssl /rootfs/etc/ca-certificates
 END
 
+FROM build AS rootfs-base-riscv64
+COPY --link --from=pkg-fhs / /rootfs
+COPY --link --from=pkg-apparmor-riscv64 / /rootfs
+COPY --link --from=pkg-cni-stripped-riscv64 / /rootfs
+COPY --link --from=pkg-flannel-cni-riscv64 / /rootfs
+COPY --link --from=pkg-cryptsetup-riscv64 / /rootfs
+COPY --link --exclude=usr/bin/ctr --from=pkg-containerd-riscv64 / /rootfs
+COPY --link --from=pkg-dosfstools-riscv64 / /rootfs
+COPY --link --from=pkg-e2fsprogs-riscv64 / /rootfs
+COPY --link --exclude=usr/share --from=pkg-systemd-udevd-riscv64 / /rootfs
+COPY --link --from=pkg-systemd-udevd-riscv64 /usr/share/spdx/systemd.spdx.json /rootfs/usr/share/spdx/systemd.spdx.json
+COPY --link --from=pkg-libcap-riscv64 / /rootfs
+COPY --link --exclude=usr/share --from=pkg-iptables-riscv64 / /rootfs
+COPY --link --from=pkg-iptables-riscv64 /usr/share/spdx/iptables.spdx.json /rootfs/usr/share/spdx/iptables.spdx.json
+COPY --link --from=pkg-libattr-riscv64 / /rootfs
+COPY --link --from=pkg-libinih-riscv64 / /rootfs
+COPY --link --from=pkg-libjson-c-riscv64 / /rootfs
+COPY --link --from=pkg-libmnl-riscv64 / /rootfs
+COPY --link --from=pkg-libnftnl-riscv64 / /rootfs
+COPY --link --from=pkg-libpopt-riscv64 / /rootfs
+COPY --link --from=pkg-liburcu-riscv64 / /rootfs
+COPY --link --from=pkg-libsepol-riscv64 / /rootfs
+COPY --link --from=pkg-libselinux-riscv64 / /rootfs
+COPY --link --from=pkg-pcre2-riscv64 / /rootfs
+COPY --link --from=pkg-openssl-riscv64 / /rootfs
+COPY --link --from=pkg-lvm2-riscv64 / /rootfs
+COPY --link --from=pkg-libaio-riscv64 / /rootfs
+COPY --link --from=pkg-musl-riscv64 / /rootfs
+COPY --link --from=pkg-runc-riscv64 / /rootfs
+COPY --link --from=pkg-xfsprogs-riscv64 / /rootfs
+COPY --link --from=pkg-util-linux-riscv64 /usr/lib/libblkid.* /rootfs/usr/lib/
+COPY --link --from=pkg-util-linux-riscv64 /usr/lib/libuuid.* /rootfs/usr/lib/
+COPY --link --from=pkg-util-linux-riscv64 /usr/lib/libmount.* /rootfs/usr/lib/
+COPY --link --from=pkg-util-linux-riscv64 /usr/share/spdx/util-linux.spdx.json /rootfs/usr/share/spdx/util-linux.spdx.json
+COPY --link --from=pkg-kmod-riscv64 /usr/lib/libkmod.* /rootfs/usr/lib/
+COPY --link --from=pkg-kmod-riscv64 /usr/bin/kmod /rootfs/usr/bin/modprobe
+COPY --link --from=pkg-kmod-riscv64 /usr/share/spdx/kmod.spdx.json /rootfs/usr/share/spdx/kmod.spdx.json
+COPY --link --from=modules-riscv64 /usr/lib/modules /rootfs/usr/lib/modules
+COPY --link --from=machined-build-riscv64 /machined /rootfs/usr/bin/init
+
+# this is a no-op as it copies from a scratch image when WITH_DEBUG_SHELL is not set
+COPY --link --from=pkg-debug-tools-riscv64 * /rootfs/
+
+RUN <<END
+    # the orderly_poweroff call by the kernel will call '/sbin/poweroff'
+    ln /rootfs/usr/bin/init /rootfs/usr/bin/poweroff
+    chmod +x /rootfs/usr/bin/poweroff
+    # some extensions like qemu-guest agent will call '/sbin/shutdown'
+    ln /rootfs/usr/bin/init /rootfs/usr/bin/shutdown
+    chmod +x /rootfs/usr/bin/shutdown
+    ln /rootfs/usr/bin/init /rootfs/usr/bin/dashboard
+    chmod +x /rootfs/usr/bin/dashboard
+END
+# NB: We run the cleanup step before creating extra directories, files, and
+# symlinks to avoid accidentally cleaning them up.
+COPY ./hack/cleanup.sh /usr/bin/cleanup.sh
+RUN <<END
+    cleanup.sh /rootfs
+    mkdir -pv /rootfs/{boot/EFI,etc/{iscsi,nvme,cri/conf.d/hosts},usr/lib/firmware,usr/etc,usr/local/share,usr/share/zoneinfo/Etc,mnt,system,opt,.extra}
+    mkdir -pv /rootfs/{etc/kubernetes/manifests,etc/cni/net.d,etc/ssl/certs,usr/libexec/kubernetes,/usr/local/lib/kubelet/credentialproviders,etc/selinux/targeted/contexts/files}
+    mkdir -pv /rootfs/opt/{containerd/bin,containerd/lib}
+END
+COPY --chmod=0644 hack/zoneinfo/Etc/UTC /rootfs/usr/share/zoneinfo/Etc/UTC
+COPY --chmod=0644 hack/nfsmount.conf /rootfs/etc/nfsmount.conf
+COPY --chmod=0644 hack/containerd.toml /rootfs/etc/containerd/config.toml
+COPY --chmod=0644 hack/cri-containerd.toml /rootfs/etc/cri/containerd.toml
+COPY --chmod=0644 hack/cri-plugin.part /rootfs/etc/cri/conf.d/00-base.part
+COPY --chmod=0644 hack/udevd/99-default.link /rootfs/usr/lib/systemd/network/
+COPY --chmod=0644 hack/udevd/90-selinux.rules /rootfs/usr/lib/udev/rules.d/
+COPY --chmod=0644 hack/lvm.conf /rootfs/etc/lvm/lvm.conf
+COPY --chmod=0644 --from=base /src/pkg/machinery/version/os-release /rootfs/etc/os-release
+RUN <<END
+    ln -s /usr/share/zoneinfo/Etc/UTC /rootfs/etc/localtime
+    touch /rootfs/etc/{extensions.yaml,resolv.conf,hosts,machine-id,cri/conf.d/cri.toml,cri/conf.d/01-registries.part,cri/conf.d/20-customization.part,cri/conf.d/base-spec.json,ssl/certs/ca-certificates.crt,selinux/targeted/contexts/files/file_contexts,iscsi/initiatorname.iscsi,nvme/{hostid,hostnqn}}
+    ln -s ca-certificates.crt /rootfs/etc/ssl/certs/ca-certificates
+    ln -s /etc/ssl /rootfs/etc/pki
+    ln -s /etc/ssl /rootfs/usr/share/ca-certificates
+    ln -s /etc/ssl /rootfs/usr/local/share/ca-certificates
+    ln -s /etc/ssl /rootfs/etc/ca-certificates
+END
+
 FROM build-go AS build-sbom
 ARG SOURCE_DATE_EPOCH
 ENV SYFT_FORMAT_SPDX_JSON_CREATED_TIME=${SOURCE_DATE_EPOCH}
@@ -995,11 +1115,23 @@ COPY --from=selinux-generate /policy/file_contexts /file_contexts
 COPY ./hack/labeled-squashfs.sh /
 RUN fakeroot /labeled-squashfs.sh /rootfs /rootfs.sqsh /file_contexts ${ZSTD_COMPRESSION_LEVEL}
 
+FROM rootfs-base-riscv64 AS rootfs-squashfs-riscv64
+RUN rm -rf /rootfs/usr/share/spdx/*
+COPY --from=sbom-riscv64 / /rootfs/usr/share/spdx/
+ARG ZSTD_COMPRESSION_LEVEL
+COPY --from=selinux-generate /policy/file_contexts /file_contexts
+COPY ./hack/labeled-squashfs.sh /
+RUN fakeroot /labeled-squashfs.sh /rootfs /rootfs.sqsh /file_contexts ${ZSTD_COMPRESSION_LEVEL}
+
+
 FROM scratch AS squashfs-arm64
 COPY --from=rootfs-squashfs-arm64 /rootfs.sqsh /
 
 FROM scratch AS squashfs-amd64
 COPY --from=rootfs-squashfs-amd64 /rootfs.sqsh /
+
+FROM scratch AS squashfs-riscv64
+COPY --from=rootfs-squashfs-riscv64 /rootfs.sqsh /
 
 FROM scratch AS rootfs
 COPY --from=rootfs-base /rootfs /
@@ -1025,6 +1157,20 @@ WORKDIR /initramfs
 ARG ZSTD_COMPRESSION_LEVEL
 COPY --from=squashfs-amd64 /rootfs.sqsh .
 COPY --from=init-build-amd64 /init .
+RUN find . -print0 \
+    | xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
+RUN set -o pipefail \
+    && find . 2>/dev/null \
+    | LC_ALL=c sort \
+    | cpio --reproducible -H newc -o \
+    | zstd -c -T0 -${ZSTD_COMPRESSION_LEVEL} \
+    > /initramfs.xz
+
+FROM build AS initramfs-archive-riscv64
+WORKDIR /initramfs
+ARG ZSTD_COMPRESSION_LEVEL
+COPY --from=squashfs-riscv64 /rootfs.sqsh .
+COPY --from=init-build-riscv64 /init .
 RUN find . -print0 \
     | xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
 RUN set -o pipefail \

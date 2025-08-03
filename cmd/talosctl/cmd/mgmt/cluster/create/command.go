@@ -64,6 +64,7 @@ type commonOps struct {
 	skipK8sNodeReadinessCheck bool
 	withJSONLogs              bool
 	wireguardCIDR             string
+	arch                      string
 
 	// IPv6 networking is suported only on qemu, but it doesn't make sense to separate the logic
 	networkIPv6 bool
