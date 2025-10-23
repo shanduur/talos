@@ -88,7 +88,7 @@ type ProvisioningSpec struct {
 	//        "2.5GiB"
 	//  schema:
 	//    type: string
-	ProvisioningMinSize ByteSize `yaml:"minSize,omitempty"`
+	ProvisioningMinSize Size `yaml:"minSize,omitempty"`
 	//  description: |
 	//    The maximum size of the volume, if not specified the volume can grow to the size of the
 	//    disk.
@@ -99,7 +99,7 @@ type ProvisioningSpec struct {
 	//        "50GiB"
 	//  schema:
 	//    type: string
-	ProvisioningMaxSize ByteSize `yaml:"maxSize,omitempty"`
+	ProvisioningMaxSize Size `yaml:"maxSize,omitempty"`
 }
 
 // DiskSelector selects a disk for the volume.
@@ -135,7 +135,7 @@ func exampleVolumeConfigEphemeralV1Alpha1() *VolumeConfigV1Alpha1 {
 		DiskSelectorSpec: DiskSelector{
 			Match: cel.MustExpression(cel.ParseBooleanExpression(`disk.transport == "nvme"`, celenv.DiskLocator())),
 		},
-		ProvisioningMaxSize: MustByteSize("50GiB"),
+		ProvisioningMaxSize: MustSize("50GiB"),
 	}
 
 	return cfg

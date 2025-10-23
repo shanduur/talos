@@ -42,14 +42,14 @@ func (suite *UserVolumeConfigSuite) TestReconcileUserVolumesSwapVolumes() {
 	uv1 := blockcfg.NewUserVolumeConfigV1Alpha1()
 	uv1.MetaName = "data1"
 	suite.Require().NoError(uv1.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`system_disk`)))
-	uv1.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustByteSize("10GiB")
-	uv1.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("100GiB")
+	uv1.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustSize("10GiB")
+	uv1.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("100GiB")
 	uv1.FilesystemSpec.FilesystemType = block.FilesystemTypeXFS
 
 	uv2 := blockcfg.NewUserVolumeConfigV1Alpha1()
 	uv2.MetaName = "data2"
 	suite.Require().NoError(uv2.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`!system_disk`)))
-	uv2.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("1TiB")
+	uv2.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("1TiB")
 	uv2.EncryptionSpec = blockcfg.EncryptionSpec{
 		EncryptionProvider: block.EncryptionProviderLUKS2,
 		EncryptionKeys: []blockcfg.EncryptionKey{
@@ -67,7 +67,7 @@ func (suite *UserVolumeConfigSuite) TestReconcileUserVolumesSwapVolumes() {
 	sv1 := blockcfg.NewSwapVolumeConfigV1Alpha1()
 	sv1.MetaName = "swap"
 	suite.Require().NoError(sv1.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`disk.transport == "nvme"`)))
-	sv1.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("2GiB")
+	sv1.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("2GiB")
 
 	ctr, err := container.New(uv1, uv2, sv1)
 	suite.Require().NoError(err)
@@ -177,13 +177,13 @@ func (suite *UserVolumeConfigSuite) TestReconcileRawVolumes() {
 	rv1 := blockcfg.NewRawVolumeConfigV1Alpha1()
 	rv1.MetaName = "data1"
 	suite.Require().NoError(rv1.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`system_disk`)))
-	rv1.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustByteSize("10GiB")
-	rv1.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("100GiB")
+	rv1.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustSize("10GiB")
+	rv1.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("100GiB")
 
 	rv2 := blockcfg.NewRawVolumeConfigV1Alpha1()
 	rv2.MetaName = "data2"
 	suite.Require().NoError(rv2.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`!system_disk`)))
-	rv2.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("1TiB")
+	rv2.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("1TiB")
 	rv2.EncryptionSpec = blockcfg.EncryptionSpec{
 		EncryptionProvider: block.EncryptionProviderLUKS2,
 		EncryptionKeys: []blockcfg.EncryptionKey{

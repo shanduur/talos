@@ -643,14 +643,14 @@ func (ProvisioningSpec) Doc() *encoder.Doc {
 			},
 			{
 				Name:        "minSize",
-				Type:        "ByteSize",
+				Type:        "Size",
 				Note:        "",
 				Description: "The minimum size of the volume.\n\nSize is specified in bytes, but can be expressed in human readable format, e.g. 100MB.",
 				Comments:    [3]string{"" /* encoder.HeadComment */, "The minimum size of the volume." /* encoder.LineComment */, "" /* encoder.FootComment */},
 			},
 			{
 				Name:        "maxSize",
-				Type:        "ByteSize",
+				Type:        "Size",
 				Note:        "",
 				Description: "The maximum size of the volume, if not specified the volume can grow to the size of the\ndisk.\n\nSize is specified in bytes, but can be expressed in human readable format, e.g. 100MB.",
 				Comments:    [3]string{"" /* encoder.HeadComment */, "The maximum size of the volume, if not specified the volume can grow to the size of the" /* encoder.LineComment */, "" /* encoder.FootComment */},

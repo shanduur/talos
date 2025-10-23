@@ -509,8 +509,8 @@ func (suite *VolumesSuite) TestUserVolumes() {
 		doc.ProvisioningSpec.DiskSelectorSpec.Match = cel.MustExpression(
 			cel.ParseBooleanExpression(fmt.Sprintf("'%s' in disk.symlinks", disk.TypedSpec().Symlinks[0]), celenv.DiskLocator()),
 		)
-		doc.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustByteSize("100MiB")
-		doc.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("1GiB")
+		doc.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustSize("100MiB")
+		doc.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("1GiB")
 
 		return doc
 	})
@@ -691,8 +691,8 @@ func (suite *VolumesSuite) TestRawVolumes() {
 		doc.ProvisioningSpec.DiskSelectorSpec.Match = cel.MustExpression(
 			cel.ParseBooleanExpression(fmt.Sprintf("'%s' in disk.symlinks", disk.TypedSpec().Symlinks[0]), celenv.DiskLocator()),
 		)
-		doc.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustByteSize("100MiB")
-		doc.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("500MiB")
+		doc.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustSize("100MiB")
+		doc.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("500MiB")
 
 		return doc
 	})
@@ -816,8 +816,8 @@ func (suite *VolumesSuite) TestExistingVolumes() {
 	userVolumeDoc.ProvisioningSpec.DiskSelectorSpec.Match = cel.MustExpression(
 		cel.ParseBooleanExpression(fmt.Sprintf("'%s' in disk.symlinks", disk.TypedSpec().Symlinks[0]), celenv.DiskLocator()),
 	)
-	userVolumeDoc.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustByteSize("100MiB")
-	userVolumeDoc.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("1GiB")
+	userVolumeDoc.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustSize("100MiB")
+	userVolumeDoc.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("1GiB")
 
 	// create user volumes
 	suite.PatchMachineConfig(ctx, userVolumeDoc)
@@ -1011,8 +1011,8 @@ func (suite *VolumesSuite) TestSwapOnOff() {
 			},
 		},
 	}
-	doc.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustByteSize("100MiB")
-	doc.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustByteSize("500MiB")
+	doc.ProvisioningSpec.ProvisioningMinSize = blockcfg.MustSize("100MiB")
+	doc.ProvisioningSpec.ProvisioningMaxSize = blockcfg.MustSize("500MiB")
 
 	// create user volumes
 	suite.PatchMachineConfig(ctx, doc)

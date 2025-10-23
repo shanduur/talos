@@ -13,32 +13,29 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config/types/block"
 )
 
-func TestByteSizeUnmarshal(t *testing.T) {
+func TestPercentageSizeUnmarshal(t *testing.T) {
 	t.Parallel()
 
 	for _, test := range []struct {
-		in string
-
+		in   string
 		want uint64
 	}{
 		{in: "", want: 0},
-		{in: "1048576", want: 1048576},
-		{in: "2.5GiB", want: 2684354560},
-		{in: "2.5GB", want: 2500000000},
-		{in: "2.5G", want: 2500000000},
-		{in: "1MiB", want: 1048576},
+		{in: "100%", want: 100},
+		{in: "33.4%", want: 33},
+		{in: "33.4124%", want: 33},
 	} {
 		t.Run(test.in, func(t *testing.T) {
 			t.Parallel()
 
-			var bs block.ByteSize
+			var ps block.PercentageSize
 
-			require.NoError(t, bs.UnmarshalText([]byte(test.in)))
+			require.NoError(t, ps.UnmarshalText([]byte(test.in)))
 
-			assert.Equal(t, test.want, bs.Value())
-			assert.Equal(t, test.want, bs.RelativeValue(100))
+			assert.Equal(t, test.want, ps.Value())
+			assert.Equal(t, test.want, ps.RelativeValue(100))
 
-			out, err := bs.MarshalText()
+			out, err := ps.MarshalText()
 			require.NoError(t, err)
 
 			assert.Equal(t, test.in, string(out))
