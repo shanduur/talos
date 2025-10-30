@@ -59,8 +59,8 @@ func TestVolumeConfigMarshalUnmarshal(t *testing.T) {
 				c := block.NewVolumeConfigV1Alpha1()
 				c.MetaName = constants.EphemeralPartitionLabel
 
-				c.ProvisioningSpec.ProvisioningMaxSize = block.MustByteSize("2.5TiB")
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMaxSize = block.MustSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 
 				return c
 			},
@@ -163,8 +163,8 @@ func TestVolumeConfigValidate(t *testing.T) {
 				c := block.NewVolumeConfigV1Alpha1()
 				c.MetaName = constants.EphemeralPartitionLabel
 
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("2.5TiB")
-				c.ProvisioningSpec.ProvisioningMaxSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMaxSize = block.MustSize("10GiB")
 
 				return c
 			},
@@ -178,8 +178,8 @@ func TestVolumeConfigValidate(t *testing.T) {
 				c := block.NewVolumeConfigV1Alpha1()
 				c.MetaName = constants.StatePartitionLabel
 
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("2.5GiB")
-				c.ProvisioningSpec.ProvisioningMaxSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("2.5GiB")
+				c.ProvisioningSpec.ProvisioningMaxSize = block.MustSize("10GiB")
 
 				return c
 			},
@@ -251,8 +251,8 @@ func TestVolumeConfigValidate(t *testing.T) {
 				c.MetaName = constants.EphemeralPartitionLabel
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`disk.size > 120u * GiB`)))
-				c.ProvisioningSpec.ProvisioningMaxSize = block.MustByteSize("2.5TiB")
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMaxSize = block.MustSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 
 				return c
 			},

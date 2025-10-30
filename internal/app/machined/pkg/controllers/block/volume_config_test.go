@@ -296,7 +296,7 @@ func (suite *VolumeConfigSuite) TestReconcileExtraEPHEMERALConfig() {
 					Match: cel.MustExpression(cel.ParseBooleanExpression(`disk.transport == "nvme"`, celenv.DiskLocator())),
 				},
 				ProvisioningGrow:    pointer.To(false),
-				ProvisioningMaxSize: blockcfg.MustByteSize("2.5TiB"),
+				ProvisioningMaxSize: blockcfg.MustSize("2.5TiB"),
 			},
 			EncryptionSpec: blockcfg.EncryptionSpec{
 				EncryptionProvider: block.EncryptionProviderLUKS2,

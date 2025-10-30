@@ -32,6 +32,8 @@ type VolumeProvisioningConfig interface {
 	Grow() optional.Optional[bool]
 	MinSize() optional.Optional[uint64]
 	MaxSize() optional.Optional[uint64]
+	RelativeMinSize(uint64) optional.Optional[uint64]
+	RelativeMaxSize(uint64) optional.Optional[uint64]
 }
 
 // WrapVolumesConfigList wraps a list of VolumeConfig providing access by name.
@@ -78,6 +80,14 @@ func (emptyVolumeConfig) MinSize() optional.Optional[uint64] {
 }
 
 func (emptyVolumeConfig) MaxSize() optional.Optional[uint64] {
+	return optional.None[uint64]()
+}
+
+func (emptyVolumeConfig) RelativeMinSize(_ uint64) optional.Optional[uint64] {
+	return optional.None[uint64]()
+}
+
+func (emptyVolumeConfig) RelativeMaxSize(_ uint64) optional.Optional[uint64] {
 	return optional.None[uint64]()
 }
 

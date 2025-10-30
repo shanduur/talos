@@ -39,8 +39,8 @@ func TestUserVolumeConfigMarshalUnmarshal(t *testing.T) {
 				c.MetaName = "ceph-data"
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`disk.transport == "nvme" && !system_disk`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
-				c.ProvisioningSpec.ProvisioningMaxSize = block.MustByteSize("100GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMaxSize = block.MustSize("100GiB")
 				c.FilesystemSpec.FilesystemType = blockres.FilesystemTypeXFS
 
 				return c
@@ -54,7 +54,7 @@ func TestUserVolumeConfigMarshalUnmarshal(t *testing.T) {
 				c.MetaName = "secret-store"
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`!system_disk`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.EncryptionSpec.EncryptionProvider = blockres.EncryptionProviderLUKS2
 				c.EncryptionSpec.EncryptionCipher = "aes-xts-plain64"
 				c.EncryptionSpec.EncryptionKeys = []block.EncryptionKey{
@@ -81,7 +81,7 @@ func TestUserVolumeConfigMarshalUnmarshal(t *testing.T) {
 				c.MetaName = "secret-store"
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`!system_disk`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.FilesystemSpec.FilesystemType = blockres.FilesystemTypeXFS
 				c.FilesystemSpec.ProjectQuotaSupportConfig = pointer.To(true)
 
@@ -136,7 +136,7 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c := block.NewUserVolumeConfigV1Alpha1()
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`disk.size > 1u`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("2.5TiB")
 
 				return c
 			},
@@ -151,7 +151,7 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = strings.Repeat("X", 35)
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`disk.size > 1u`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("2.5TiB")
 
 				return c
 			},
@@ -166,7 +166,7 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = "some/name"
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`disk.size > 1u`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("2.5TiB")
 
 				return c
 			},
@@ -194,8 +194,8 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c := block.NewUserVolumeConfigV1Alpha1()
 				c.MetaName = constants.EphemeralPartitionLabel
 
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("2.5TiB")
-				c.ProvisioningSpec.ProvisioningMaxSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMaxSize = block.MustSize("10GiB")
 
 				return c
 			},
@@ -210,8 +210,8 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = constants.EphemeralPartitionLabel
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`disk.size > 120u * GiB`)))
-				c.ProvisioningSpec.ProvisioningMaxSize = block.MustByteSize("2.5TiB")
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMaxSize = block.MustSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.FilesystemSpec.FilesystemType = blockres.FilesystemTypeISO9660
 
 				return c
@@ -227,7 +227,7 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = constants.EphemeralPartitionLabel
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`system_disk`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.EncryptionSpec.EncryptionKeys = []block.EncryptionKey{
 					{
 						KeySlot: 0,
@@ -248,7 +248,7 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = constants.EphemeralPartitionLabel
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`system_disk`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.EncryptionSpec.EncryptionProvider = blockres.EncryptionProviderLUKS2
 
 				return c
@@ -264,7 +264,7 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = constants.EphemeralPartitionLabel
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`system_disk`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.EncryptionSpec.EncryptionProvider = blockres.EncryptionProviderLUKS2
 				c.EncryptionSpec.EncryptionKeys = []block.EncryptionKey{
 					{
@@ -293,7 +293,7 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = constants.EphemeralPartitionLabel
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`system_disk`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.FilesystemSpec.FilesystemType = blockres.FilesystemTypeEXT4
 				c.FilesystemSpec.ProjectQuotaSupportConfig = pointer.To(true)
 
@@ -310,8 +310,8 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = constants.EphemeralPartitionLabel
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`disk.size > 120u * GiB`)))
-				c.ProvisioningSpec.ProvisioningMaxSize = block.MustByteSize("2.5TiB")
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMaxSize = block.MustSize("2.5TiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.FilesystemSpec.FilesystemType = blockres.FilesystemTypeEXT4
 
 				return c
@@ -325,7 +325,7 @@ func TestUserVolumeConfigValidate(t *testing.T) {
 				c.MetaName = constants.EphemeralPartitionLabel
 
 				require.NoError(t, c.ProvisioningSpec.DiskSelectorSpec.Match.UnmarshalText([]byte(`system_disk`)))
-				c.ProvisioningSpec.ProvisioningMinSize = block.MustByteSize("10GiB")
+				c.ProvisioningSpec.ProvisioningMinSize = block.MustSize("10GiB")
 				c.EncryptionSpec.EncryptionProvider = blockres.EncryptionProviderLUKS2
 				c.EncryptionSpec.EncryptionCipher = "aes-xts-plain64"
 				c.EncryptionSpec.EncryptionKeys = []block.EncryptionKey{
