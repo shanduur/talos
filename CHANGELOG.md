@@ -1,3 +1,258 @@
+## [Talos 1.12.0-beta.1](https://github.com/siderolabs/talos/releases/tag/v1.12.0-beta.1) (2025-11-28)
+
+Welcome to the v1.12.0-beta.1 release of Talos!  
+*This is a pre-release of Talos*
+
+
+
+Please try out the release binaries and report any issues at
+https://github.com/siderolabs/talos/issues.
+
+### API Server Cipher Suites
+
+The Kubernetes API server in Talos has been updated to use a more secure set of TLS cipher suites by default.
+This is in line with a set of best practices documented in CIS 1.12 benchmark.
+
+You can still expand the list of supported cipher suites via the `cluster.apiServer.extraArgs."tls-cipher-suites"` machine configuration field if needed.
+
+
+### New User Volume type - bind
+
+New field in UserVolumeConfig - `volumeType` that defaults to `partition`, but can be set to `directory`.
+When set to `directory`, provisioning and filesystem operations are skipped and a directory is created under `/var/mnt/<name>`.
+
+The `directory` type enables lightweight storage volumes backed by a host directory, instead of requiring a full block device partition.
+
+When `volumeType = "directory"`:
+- A directory is created at `/var/mnt/<metadata.name>`;
+- `provisioning`, `filesystem` and `encryption` are prohibited.
+
+Note: this mode does not provide filesystem-level isolation and inherits the EPHEMERAL partition capacity limits.
+It should not be used for workloads requiring predictable storage quotas.
+
+
+### Disk Encryption
+
+Talos versions prior to v1.12 used the state of PCR 7 and signed policies locked to PCR 11 for TPM based disk encryption.
+
+Talos now supports configuring which PCRs states are to be used for TPM based disk encryption via the `options.pcrs`
+field in the `tpm` section of the disk encryption configuration.
+
+If user doesn't specify any options Talos defaults to using PCR 7 for backwards compatibility with existing installations.
+
+This change was made to improve compatibility with systems that may have varying states in PCR 7 due to UEFI Secure Boot configurations
+and users may wish to disable locking to PCR 7 state entirely.
+
+Signed PCR policies will still be bound to PCR 11.
+
+The currently used PCR's can be seen with `talosctl get volumestatus <volume> -o yaml` command.
+
+
+### New User Volume type - disk
+
+`volumeType` in UserVolumeConfig can be set to `disk`.
+When set to `disk`, a full block device is used for the volume.
+
+When `volumeType = "disk"`:
+- Size specific settings are not allowed in the provisioning block (`minSize`, `maxSize`, `grow`).
+
+
+### Embedded Config
+
+Talos Linux now supports [embedding the machine configuration](https://www.talos.dev/v1.12/talos-guides/configuration/acquire/) directly into the boot image.
+
+
+### etcd
+
+etcd container image is now pulled from `registry.k8s.io/etcd` instead of `gcr.io/etcd-development/etcd`.
+
+
+### Ethernet Configuration
+
+The Ethernet configuration now includes a `wakeOnLAN` field to enable Wake-on-LAN (WOL) support.
+This field can be set to enable WOL and specify the desired WOL modes.
+
+
+### Extra Binaries
+
+Talos Linux now ships with `nft` binary in the rootfs to support CNIs which shell out to `nft` command.
+
+
+### Feature Lock
+
+Talos now ignores the following machine configuration fields:
+
+- `machine.features.rbac` (locked to true)
+- `machine.features.apidCheckExtKeyUsage` (locked to true)
+- `cluster.apiServer.disablePodSecurityPolicy` (locked to false)
+
+These fields were removed from the default machine configuration schema in v1.12 and are now always set to the locked values above.
+
+
+### Talos force reboot
+
+Talos now supports a "force" reboot mode, which allows skipping the graceful userland termination.
+It can be used in situations where a userland service (e.g. the kubelet) gets stuck during graceful shutdown, causing the regular reboot flow to fail.
+
+In addition, `talosctl` was updated to support this feature via `talosctl reboot --mode force`.
+
+
+### GRUB
+
+Talos Linux introduces new machine configuration option `.machine.install.grubUseUKICmdline` to control whether GRUB should use the kernel command line
+provided by the boot assets (UKI) or to use the command line constructed by Talos itself (legacy behavior).
+
+This option defaults to `true` for new installations, which means that GRUB will use the command line from the UKI, making it easier to customize kernel parameters via boot asset generation.
+For existing installations upgrading to v1.12, this option will default to `false` to preserve the legacy behavior.
+
+
+### Kernel Log
+
+The kernel log (dmesg) is now also available as the service log named `kernel` (`talosctl logs kernel`).
+
+
+### Kernel Module
+
+Talos now supports optionally disabling kernel module signature verification by setting `module.sig_enforce=0` kernel parameter.
+By default module signature verification is enabled (`module.sig_enforce=1`).
+When using Factory or Imager supply as `-module.sig_enfore module.sig_enforce=0` kernel parameters to disable module signature enforcement.
+
+
+### Kernel Security Posture Profile (KSPP)
+
+Talos now enables a stricter set of KSPP sysctl settings by default.
+The list of overridden settings is available with `talosctl get kernelparamstatus` command.
+
+
+### Encrypted Volumes
+
+Talos Linux now consistently provides mapped names for encrypted volumes in the format `/dev/mapper/luks2-<volume-id>`.
+This change should not affect system or user volumes, but might allow easier identification of encrypted volumes,
+and specifically for raw encrypted volumes.
+
+
+### Network Configuration
+
+The network configuration under `.machine.network` (with the exception of KubeSpan) has been deprecated, but it is still supported for backwards compatibility.
+New configuration documents were created to replace it, they will be documented in the future.
+
+
+### CRI Registry Configuration
+
+The CRI registry configuration in v1apha1 legacy machine configuration under `.machine.registries` is now deprecated, but still supported for backwards compatibility.
+New configuration documents `RegistryMirrorConfig`, `RegistryAuthConfig` and `RegistryTLSConfig` should be used instead.
+
+
+### talosctl image cache-serve
+
+`talosctl` includes new subcommand `image cache-serve`.
+It allows serving the created OCI image registry over HTTP/HTTPS.
+It is a read-only registry, meaning images cannot be pushed to it, but the backing storage can be updated by re-running the `cache-create` command;
+
+Additionally `talosctl image cache-create` has some changes:
+  * new flag `--layout`: `oci` (_default_), `flat`:
+    * `oci` preserves current behavior;
+    * `flat` does not repack artifact layer, but moves it to a destination directory, allowing it to be served by `talosctl image cache-serve`;
+  * changed flag `--platform`: now can accept multiple os/arch combinations:
+    * comma separated (`--platform=linux/amd64,linux/arm64`);
+    * multiple instances (`--platform=linux/amd64 --platform=linux/arm64`);
+
+
+### UEFI Boot
+
+When using UEFI boot with systemd-boot as bootloader (on new installs of Talos from 1.10+ onwards), Talos will now not touch the UEFI boot order.
+Talos 1.11 made a fix to create UEFI boot entry and set the boot order as first entry, but this behavior caused issues on some systems.
+To avoid further issues, Talos will now only create the UEFI boot entry if it does not exist, but will not modify the boot order.
+
+
+### Component Updates
+
+Linux: 6.17.9
+Kubernetes: 1.35.0-alpha.3
+CNI Plugins: 1.8.0
+cryptsetup: 2.8.1
+LVM2: 2_03_37
+systemd-udevd: 257.8
+runc: 1.3.2
+CoreDNS: 1.13.1
+etcd: 3.6.6
+Flannel: 0.27.4
+Flannel CNI plugin: v1.8.0-flannel2
+runc: 1.3.3
+containerd: 2.1.5
+
+Talos is built with Go 1.25.4.
+
+
+### Contributors
+
+* Mateusz Urbanek
+* Andrey Smirnov
+* Bryan Lee
+* Laura Brehm
+* Noel Georgi
+* Birger Johan Nordølum
+* Lennard Klein
+* Skye Soss
+
+### Changes
+<details><summary>23 commits</summary>
+<p>
+
+* [`736f32a80`](https://github.com/siderolabs/talos/commit/736f32a8077aea0f4a72f3545571882b9d79207c) chore: disable k8s integration tests for 1GiB worker nodes
+* [`d9de616c4`](https://github.com/siderolabs/talos/commit/d9de616c48056fc079e693439d4c91a85e154222) chore(ci): skip multipath extension tests
+* [`57d6683cd`](https://github.com/siderolabs/talos/commit/57d6683cde0195194acf6880ee85c406216fecc1) chore: update pkgs and tools version
+* [`949323ab5`](https://github.com/siderolabs/talos/commit/949323ab51bf5cb95922af7169b698d333c5c9ab) feat: present kernel log as `talosctl logs kernel`
+* [`7531fcbc7`](https://github.com/siderolabs/talos/commit/7531fcbc76f3e59e2e8af823d72ffad2cfcaa40a) test: fix flaky LinkSpec/Wireguard test
+* [`1dbc64d69`](https://github.com/siderolabs/talos/commit/1dbc64d698f6654e8f8ca5baa13ae9d56745fe6a) fix: simplify OOM expression
+* [`0ffb1d857`](https://github.com/siderolabs/talos/commit/0ffb1d8577c9b4da0850a36e80708122b93de303) fix: trim trailing dots from certificate SANs
+* [`9a2f6d9c9`](https://github.com/siderolabs/talos/commit/9a2f6d9c9ec5670a12fb033935661f70a80da503) fix: support specifying patch file without '@' symbol
+* [`582b0feab`](https://github.com/siderolabs/talos/commit/582b0feab2845d3265cdc852adac78a723953408) fix: assign value of multicast setting properly
+* [`16aa6ac47`](https://github.com/siderolabs/talos/commit/16aa6ac471d98b5cdea11d7a4d22ea1048cbd2ce) feat: update etcd to 3.6.6
+* [`4396f09c8`](https://github.com/siderolabs/talos/commit/4396f09c8c82ca15b7c09dde8ff1c69a1fe32b08) docs: add API Server Cipher Suites changelog
+* [`fdf6fe8e6`](https://github.com/siderolabs/talos/commit/fdf6fe8e6299d620abb3f5c23dcab3cb38fb9367) feat: update TLS cipher suites for API server
+* [`139cce3b4`](https://github.com/siderolabs/talos/commit/139cce3b45a7643144aac3042d2bf291e097199d) fix: add CA subject to generated certificate
+* [`9b294af22`](https://github.com/siderolabs/talos/commit/9b294af225677a87524491ebd2f21106931dead1) feat: generate mirrors patch
+* [`15465f0c5`](https://github.com/siderolabs/talos/commit/15465f0c513ed46886c9f4179c996368843a2daf) fix: add more resilient move
+* [`b4147e3a1`](https://github.com/siderolabs/talos/commit/b4147e3a17eebc775cc8ae6087ded6fced11a261) feat: extend flags of cache-cert-gen
+* [`72d3d1c9f`](https://github.com/siderolabs/talos/commit/72d3d1c9f53e9b62c189a6369a3060aee4c98d9c) chore: remove spammy 'clean up unused volumes' logs
+* [`d6c78de84`](https://github.com/siderolabs/talos/commit/d6c78de84745f27f3051c971451339e760c71397) feat: support TALOS_HOME env var
+* [`4040e0814`](https://github.com/siderolabs/talos/commit/4040e0814fc186b2f4e1a2c25520ac08c4d07633) feat: implement multicast setting
+* [`eb636dc1f`](https://github.com/siderolabs/talos/commit/eb636dc1f96d1739f1858c4bf825cedc3e0d11e2) feat: add multicast to linkconfig
+* [`e34e458c4`](https://github.com/siderolabs/talos/commit/e34e458c4b141ace9604a49b890b2714a59a614e) feat: update dependencies
+* [`36152d278`](https://github.com/siderolabs/talos/commit/36152d2787f0cbf3b2efda9c30596f991a811022) fix: add riscv64 talosctl to release artifacts
+* [`aebbbaf27`](https://github.com/siderolabs/talos/commit/aebbbaf2746956dc5f88cce6a95061ba447bb36a) feat: support relative voume size
+</p>
+</details>
+
+### Changes from siderolabs/pkgs
+<details><summary>6 commits</summary>
+<p>
+
+* [`cd63cf9`](https://github.com/siderolabs/pkgs/commit/cd63cf95ae8e7ffccdb9ffb6a161aa5eb18cae19) fix: regenerate configs
+* [`ce742ba`](https://github.com/siderolabs/pkgs/commit/ce742bac034b36650d12a3660a79d7f2bd8b9655) fix: add missing kernel config entries
+* [`ac40721`](https://github.com/siderolabs/pkgs/commit/ac40721c90acb4efbe150e561f89ec19e2ab4f14) chore: update dependencies
+* [`e653477`](https://github.com/siderolabs/pkgs/commit/e653477bf6aa0bb662a8a2c9f58d7ecac5bfa797) feat: enable gpio-fan module
+* [`60c9013`](https://github.com/siderolabs/pkgs/commit/60c9013cca45d26da5d0f777364a78d0c5713d9a) chore: use ubuntu mirrors
+* [`6ad371f`](https://github.com/siderolabs/pkgs/commit/6ad371f69503b1ca7fc39835143435c5ce011cf7) feat: update dependencies
+</p>
+</details>
+
+### Changes from siderolabs/tools
+<details><summary>1 commit</summary>
+<p>
+
+* [`188885e`](https://github.com/siderolabs/tools/commit/188885e6b3b85a2d56fd41f20db06a835ab7cce3) feat: update dependencies
+</p>
+</details>
+
+### Dependency Changes
+
+* **github.com/siderolabs/pkgs**   v1.12.0 -> v1.12.0-6-gcd63cf9
+* **github.com/siderolabs/tools**  v1.12.0 -> v1.12.0-1-g188885e
+
+Previous release can be found at [v1.12.0-beta.0](https://github.com/siderolabs/talos/releases/tag/v1.12.0-beta.0)
+
 ## [Talos 1.12.0-beta.0](https://github.com/siderolabs/talos/releases/tag/v1.12.0-beta.0) (2025-11-14)
 
 Welcome to the v1.12.0-beta.0 release of Talos!  
