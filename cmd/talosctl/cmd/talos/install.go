@@ -30,9 +30,6 @@ var installCmd = &cobra.Command{
 	Short: "Install Talos to disk on the target node",
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
-	// TODO: This API is not available in maintenance mode, and once the system is fully running, installation is not relevant.
-	// Requires https://github.com/siderolabs/talos/issues/12702
-	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return WithClientMaintenance(nil, func(ctx context.Context, c *client.Client) error {
 			return installInternal(ctx, c, args[0])

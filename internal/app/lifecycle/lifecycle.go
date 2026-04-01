@@ -19,9 +19,11 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
 	"github.com/siderolabs/talos/internal/app/machined/pkg/system/pid"
 	"github.com/siderolabs/talos/internal/pkg/install"
+	"github.com/siderolabs/talos/pkg/grpc/middleware/authz"
 	"github.com/siderolabs/talos/pkg/machinery/api/machine"
 	blockres "github.com/siderolabs/talos/pkg/machinery/resources/block"
 	crires "github.com/siderolabs/talos/pkg/machinery/resources/cri"
+	"github.com/siderolabs/talos/pkg/machinery/role"
 )
 
 // Service implements machine.LifecycleService.
@@ -51,11 +53,18 @@ func (s *Service) Install(req *machine.LifecycleServiceInstallRequest, ss grpc.S
 		return status.Error(codes.Unimplemented, "API is not implemented in agent mode")
 	}
 
+	ctx := ss.Context()
+
+	roles := authz.GetRoles(ctx)
+	inMaintenance := !s.runtime.ConfigCompleteForBoot()
+
+	if !inMaintenance && !roles.Includes(role.Admin) {
+		return authz.ErrNotAuthorized
+	}
+
 	if err := s.checkSupported(runtime.Upgrade); err != nil {
 		return err
 	}
-
-	ctx := ss.Context()
 
 	if !s.lock.TryLock() {
 		return status.Error(codes.FailedPrecondition, "another installation/upgrade is already in progress")

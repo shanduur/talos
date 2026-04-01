@@ -28,8 +28,10 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
 	"github.com/siderolabs/talos/internal/pkg/containers/image"
 	"github.com/siderolabs/talos/internal/pkg/containers/image/progress"
+	"github.com/siderolabs/talos/pkg/grpc/middleware/authz"
 	"github.com/siderolabs/talos/pkg/machinery/api/machine"
 	"github.com/siderolabs/talos/pkg/machinery/resources/cri"
+	"github.com/siderolabs/talos/pkg/machinery/role"
 )
 
 // Service implements machine.ImageService.
@@ -86,7 +88,16 @@ func (svc *Service) List(req *machine.ImageServiceListRequest, srv grpc.ServerSt
 
 // Pull an image into the containerd.
 func (svc *Service) Pull(req *machine.ImageServicePullRequest, srv grpc.ServerStreamingServer[machine.ImageServicePullResponse]) error {
-	ctx, _, client, err := ctrhelper.ContainerdInstanceHelper(srv.Context(), req.GetContainerd())
+	ctx := srv.Context()
+
+	roles := authz.GetRoles(ctx)
+	inMaintenance := !svc.controller.Runtime().ConfigCompleteForBoot()
+
+	if !inMaintenance && !roles.Includes(role.Admin) {
+		return authz.ErrNotAuthorized
+	}
+
+	ctx, _, client, err := ctrhelper.ContainerdInstanceHelper(ctx, req.GetContainerd())
 	if err != nil {
 		return err
 	}

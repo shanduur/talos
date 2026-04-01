@@ -43,13 +43,21 @@ var rules = map[string]role.Set{
 
 	"/machine.ImageService/Import": role.MakeSet(role.Admin),
 	"/machine.ImageService/List":   role.MakeSet(role.Admin, role.Operator, role.Reader),
-	"/machine.ImageService/Pull":   role.MakeSet(role.Admin, role.Operator),
+	"/machine.ImageService/Pull": role.MakeSet(
+		role.Admin, role.Operator,
+		// for maintenance only, verified in the handler
+		role.Reader,
+	),
 	"/machine.ImageService/Remove": role.MakeSet(role.Admin),
 	"/machine.ImageService/Verify": role.MakeSet(role.Admin, role.Operator, role.Reader, role.ImageVerifier),
 
 	"/machine.DebugService/ContainerRun": role.MakeSet(role.Admin),
 
-	"/machine.LifecycleService/Install": role.MakeSet(role.Admin),
+	"/machine.LifecycleService/Install": role.MakeSet(
+		role.Admin,
+		// for maintenance only, verified in the handler
+		role.Reader,
+	),
 	"/machine.LifecycleService/Upgrade": role.MakeSet(role.Admin),
 
 	"/machine.MachineService/ApplyConfiguration": role.MakeSet(
