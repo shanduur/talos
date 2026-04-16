@@ -119,6 +119,7 @@ func (suite *HostDNSConfigSuite) TestLegacyConfigForwardKubeDNSIPv4() {
 	suite.Create(cfg)
 
 	hostDNSAddr := netip.MustParseAddr(constants.HostDNSAddress)
+	hostDNSAddrV6 := netip.MustParseAddr(constants.HostDNSAddressV6)
 
 	ctest.AssertResource(suite, network.HostDNSConfigID, func(r *network.HostDNSConfig, asrt *assert.Assertions) {
 		asrt.True(r.TypedSpec().Enabled)
@@ -126,29 +127,40 @@ func (suite *HostDNSConfigSuite) TestLegacyConfigForwardKubeDNSIPv4() {
 			[]netip.AddrPort{
 				netip.MustParseAddrPort("127.0.0.53:53"),
 				netip.AddrPortFrom(hostDNSAddr, 53),
+				netip.AddrPortFrom(hostDNSAddrV6, 53),
 			},
 			r.TypedSpec().ListenAddresses,
 		)
 		asrt.Equal(hostDNSAddr, r.TypedSpec().ServiceHostDNSAddress)
+		asrt.Equal(hostDNSAddrV6, r.TypedSpec().ServiceHostDNSAddressV6)
 	})
 
-	addrPrefix := netip.PrefixFrom(hostDNSAddr, hostDNSAddr.BitLen())
+	for _, addrPrefix := range []netip.Prefix{
+		netip.PrefixFrom(hostDNSAddr, hostDNSAddr.BitLen()),
+		netip.PrefixFrom(hostDNSAddrV6, hostDNSAddrV6.BitLen()),
+	} {
+		ctest.AssertResource(
+			suite,
+			network.LayeredID(network.ConfigOperator, network.AddressID("lo", addrPrefix)),
+			func(r *network.AddressSpec, asrt *assert.Assertions) {
+				spec := r.TypedSpec()
 
-	ctest.AssertResource(
-		suite,
-		network.LayeredID(network.ConfigOperator, network.AddressID("lo", addrPrefix)),
-		func(r *network.AddressSpec, asrt *assert.Assertions) {
-			spec := r.TypedSpec()
+				if addrPrefix.Addr().Is6() {
+					asrt.Equal(nethelpers.FamilyInet6, spec.Family)
+					asrt.Equal(nethelpers.ScopeGlobal, spec.Scope)
+				} else {
+					asrt.Equal(nethelpers.FamilyInet4, spec.Family)
+					asrt.Equal(nethelpers.ScopeHost, spec.Scope)
+				}
 
-			asrt.Equal(addrPrefix, spec.Address)
-			asrt.Equal("lo", spec.LinkName)
-			asrt.Equal(nethelpers.FamilyInet4, spec.Family)
-			asrt.Equal(nethelpers.ScopeHost, spec.Scope)
-			asrt.Equal(nethelpers.AddressFlags(nethelpers.AddressPermanent), spec.Flags)
-			asrt.Equal(network.ConfigOperator, spec.ConfigLayer)
-		},
-		rtestutils.WithNamespace(network.ConfigNamespaceName),
-	)
+				asrt.Equal(addrPrefix, spec.Address)
+				asrt.Equal("lo", spec.LinkName)
+				asrt.Equal(nethelpers.AddressFlags(nethelpers.AddressPermanent), spec.Flags)
+				asrt.Equal(network.ConfigOperator, spec.ConfigLayer)
+			},
+			rtestutils.WithNamespace(network.ConfigNamespaceName),
+		)
+	}
 }
 
 func (suite *HostDNSConfigSuite) TestLegacyConfigForwardKubeDNSIPv6Only() {
@@ -184,10 +196,14 @@ func (suite *HostDNSConfigSuite) TestLegacyConfigForwardKubeDNSIPv6Only() {
 	ctest.AssertResource(suite, network.HostDNSConfigID, func(r *network.HostDNSConfig, asrt *assert.Assertions) {
 		asrt.True(r.TypedSpec().Enabled)
 		asrt.Equal(
-			[]netip.AddrPort{netip.MustParseAddrPort("127.0.0.53:53")},
+			[]netip.AddrPort{
+				netip.MustParseAddrPort("127.0.0.53:53"),
+				netip.MustParseAddrPort("[" + constants.HostDNSAddressV6 + "]:53"),
+			},
 			r.TypedSpec().ListenAddresses,
 		)
 		asrt.Equal(netip.Addr{}, r.TypedSpec().ServiceHostDNSAddress)
+		asrt.Equal(netip.MustParseAddr(constants.HostDNSAddressV6), r.TypedSpec().ServiceHostDNSAddressV6)
 	})
 
 	ctest.AssertNoResource[*network.AddressSpec](

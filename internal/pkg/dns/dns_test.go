@@ -82,7 +82,7 @@ func TestDNS(t *testing.T) {
 		},
 	}
 
-	for _, dnsAddr := range []string{"127.0.0.1:10700"} {
+	for _, dnsAddr := range []string{"127.0.0.1:10700", "[::1]:10700"} {
 		for _, test := range tests {
 			t.Run(dnsAddr+"/"+test.name, func(t *testing.T) {
 				stop := newManager(t, test.nameservers...)
@@ -123,6 +123,14 @@ func TestDNSEmptyDestinations(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, dnssrv.RcodeServerFailure, r.Rcode, r)
 
+	r, err = dnssrv.Exchange(createQuery("google.com"), "[::1]:10700")
+	require.NoError(t, err)
+	require.Equal(t, dnssrv.RcodeServerFailure, r.Rcode, r)
+
+	r, err = dnssrv.Exchange(createQuery("google.com"), "[::1]:10700")
+	require.NoError(t, err)
+	require.Equal(t, dnssrv.RcodeServerFailure, r.Rcode, r)
+
 	stop()
 }
 
@@ -142,6 +150,8 @@ func Test_ServeBackground(t *testing.T) {
 	for _, err := range m.RunAll(slices.Values([]dns.AddressPair{
 		{Network: "udp", Addr: netip.MustParseAddrPort("127.0.0.1:10700")},
 		{Network: "udp", Addr: netip.MustParseAddrPort("127.0.0.1:10701")},
+		{Network: "udp", Addr: netip.MustParseAddrPort("[::1]:10700")},
+		{Network: "udp", Addr: netip.MustParseAddrPort("[::1]:10701")},
 	}), false) {
 		require.NoError(t, err)
 	}
@@ -189,6 +199,9 @@ func newManager(t *testing.T, nameservers ...string) func() {
 		{Network: "udp", Addr: netip.MustParseAddrPort("127.0.0.1:10700")},
 		{Network: "udp", Addr: netip.MustParseAddrPort("127.0.0.1:10701")},
 		{Network: "tcp", Addr: netip.MustParseAddrPort("127.0.0.1:10700")},
+		{Network: "udp", Addr: netip.MustParseAddrPort("[::1]:10700")},
+		{Network: "tcp", Addr: netip.MustParseAddrPort("[::1]:10700")},
+		{Network: "udp", Addr: netip.MustParseAddrPort("[::1]:10700")},
 	}), false) {
 		if err != nil && strings.Contains(err.Error(), "failed to set TCP_FASTOPEN") {
 			continue
@@ -200,6 +213,8 @@ func newManager(t *testing.T, nameservers ...string) func() {
 	for _, err := range m.RunAll(slices.Values([]dns.AddressPair{
 		{Network: "udp", Addr: netip.MustParseAddrPort("127.0.0.1:10700")},
 		{Network: "tcp", Addr: netip.MustParseAddrPort("127.0.0.1:10700")},
+		{Network: "udp", Addr: netip.MustParseAddrPort("[::1]:10700")},
+		{Network: "tcp", Addr: netip.MustParseAddrPort("[::1]:10700")},
 	}), false) {
 		if err != nil && strings.Contains(err.Error(), "failed to set TCP_FASTOPEN") {
 			continue

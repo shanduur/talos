@@ -23,6 +23,7 @@ import (
 
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/ctest"
 	netctrl "github.com/siderolabs/talos/internal/app/machined/pkg/controllers/network"
+	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
@@ -118,6 +119,40 @@ func (suite *AddressSpecSuite) TestLoopback() {
 	// torn down address should be removed immediately
 	suite.Assert().EventuallyWithT(func(collect *assert.CollectT) {
 		assertNoLinkAddress(assert.New(collect), "lo", "127.11.0.1/32")
+	}, 3*time.Second, 10*time.Millisecond)
+
+	suite.Destroy(loopback)
+}
+
+func (suite *AddressSpecSuite) TestIPV6ULA() {
+	loopback := network.NewAddressSpec(network.NamespaceName, "lo/"+constants.HostDNSAddressV6+"/128")
+	*loopback.TypedSpec() = network.AddressSpecSpec{
+		Address:     netip.MustParsePrefix(constants.HostDNSAddressV6 + "/128"),
+		LinkName:    "lo",
+		Family:      nethelpers.FamilyInet6,
+		Scope:       nethelpers.ScopeGlobal,
+		ConfigLayer: network.ConfigDefault,
+		Flags:       nethelpers.AddressFlags(nethelpers.AddressPermanent),
+	}
+
+	for _, res := range []resource.Resource{loopback} {
+		suite.Create(res)
+	}
+
+	suite.Assert().EventuallyWithT(func(collect *assert.CollectT) {
+		assertLinkAddress(assert.New(collect), "lo", constants.HostDNSAddressV6+"/128")
+	}, 3*time.Second, 10*time.Millisecond)
+
+	// teardown the address
+	_, err := suite.State().Teardown(suite.Ctx(), loopback.Metadata())
+	suite.Require().NoError(err)
+
+	_, err = suite.State().WatchFor(suite.Ctx(), loopback.Metadata(), state.WithFinalizerEmpty())
+	suite.Require().NoError(err)
+
+	// torn down address should be removed immediately
+	suite.Assert().EventuallyWithT(func(collect *assert.CollectT) {
+		assertNoLinkAddress(assert.New(collect), "lo", constants.HostDNSAddressV6+"/128")
 	}, 3*time.Second, 10*time.Millisecond)
 
 	suite.Destroy(loopback)
