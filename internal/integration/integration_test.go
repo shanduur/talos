@@ -34,15 +34,16 @@ var allSuites []suite.TestingSuite
 
 // Flag values.
 var (
-	failFast         bool
-	trustedBoot      bool
-	selinuxEnforcing bool
-	extensionsQEMU   bool
-	extensionsNvidia bool
-	verifyUKIBooted  bool
-	airgapped        bool
-	virtiofsd        bool
-	race             bool
+	failFast            bool
+	trustedBoot         bool
+	selinuxEnforcing    bool
+	extensionsQEMU      bool
+	extensionsNvidia    bool
+	verifyUKIBooted     bool
+	airgapped           bool
+	virtiofsd           bool
+	race                bool
+	skipEphemeralPolicy bool
 
 	talosConfig       string
 	endpoint          string
@@ -101,27 +102,28 @@ func TestIntegration(t *testing.T) {
 	for _, s := range allSuites {
 		if configuredSuite, ok := s.(base.ConfiguredSuite); ok {
 			configuredSuite.SetConfig(base.TalosSuite{
-				Endpoint:         endpoint,
-				K8sEndpoint:      k8sEndpoint,
-				Cluster:          cluster,
-				TalosConfig:      talosConfig,
-				Version:          expectedVersion,
-				GoVersion:        expectedGoVersion,
-				TalosctlPath:     talosctlPath,
-				KubectlPath:      kubectlPath,
-				HelmPath:         helmPath,
-				KubeStrPath:      kubeStrPath,
-				ExtensionsQEMU:   extensionsQEMU,
-				ExtensionsNvidia: extensionsNvidia,
-				TrustedBoot:      trustedBoot,
-				SelinuxEnforcing: selinuxEnforcing,
-				VerifyUKIBooted:  verifyUKIBooted,
-				TalosImage:       talosImage,
-				CSITestName:      csiTestName,
-				CSITestTimeout:   csiTestTimeout,
-				Airgapped:        airgapped,
-				Virtiofsd:        virtiofsd,
-				Race:             race,
+				Endpoint:            endpoint,
+				K8sEndpoint:         k8sEndpoint,
+				Cluster:             cluster,
+				TalosConfig:         talosConfig,
+				Version:             expectedVersion,
+				GoVersion:           expectedGoVersion,
+				TalosctlPath:        talosctlPath,
+				KubectlPath:         kubectlPath,
+				HelmPath:            helmPath,
+				KubeStrPath:         kubeStrPath,
+				ExtensionsQEMU:      extensionsQEMU,
+				ExtensionsNvidia:    extensionsNvidia,
+				TrustedBoot:         trustedBoot,
+				SelinuxEnforcing:    selinuxEnforcing,
+				VerifyUKIBooted:     verifyUKIBooted,
+				TalosImage:          talosImage,
+				CSITestName:         csiTestName,
+				CSITestTimeout:      csiTestTimeout,
+				Airgapped:           airgapped,
+				Virtiofsd:           virtiofsd,
+				Race:                race,
+				SkipEphemeralPolicy: skipEphemeralPolicy,
 			})
 		}
 
@@ -185,6 +187,8 @@ func init() {
 	flag.StringVar(&csiTestTimeout, "talos.csi.timeout", "15m", "CSI test timeout")
 	flag.BoolVar(&airgapped, "talos.airgapped", false, "Marker to skip tests that should not be run on airgapped talos cluster")
 	flag.BoolVar(&virtiofsd, "talos.virtiofsd", false, "Marker to skip tests that should not be run without virtiofsd")
+	flag.BoolVar(&skipEphemeralPolicy, "talos.skip-ephemeral-policy", false,
+		"Skip MountsSuite assertions for /var (EPHEMERAL); set when the cluster was deployed with VolumeConfig EPHEMERAL mount.secure=false")
 
 	flag.StringVar(&provision_test.DefaultSettings.CIDR, "talos.provision.cidr", provision_test.DefaultSettings.CIDR, "CIDR to use to provision clusters (provision tests only)")
 	flag.Var(&provision_test.DefaultSettings.RegistryMirrors, "talos.provision.registry-mirror", "registry mirrors to use (provision tests only)")

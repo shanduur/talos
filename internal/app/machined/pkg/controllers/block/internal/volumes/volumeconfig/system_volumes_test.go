@@ -448,6 +448,46 @@ func TestEphemeralVolumeTransformerWithExtraConfig(t *testing.T) {
 	})
 }
 
+func TestEphemeralVolumeSecure(t *testing.T) {
+	t.Parallel()
+
+	t.Run("default is secure", func(t *testing.T) {
+		t.Parallel()
+
+		transformer := volumeconfig.GetEphemeralVolumeTransformer(false)
+		resources, err := transformer(container.NewV1Alpha1(&baseCfg))
+		require.NoError(t, err)
+		require.Len(t, resources, 1)
+
+		testTransformFunc(t, resources[0].TransformFunc, func(t *testing.T, vc *block.VolumeConfig, err error) {
+			require.NoError(t, err)
+			assert.True(t, vc.TypedSpec().Mount.Secure, "EPHEMERAL should be secure by default")
+		})
+	})
+
+	t.Run("secure=false via VolumeConfig overrides default", func(t *testing.T) {
+		t.Parallel()
+
+		secureOff := false
+		ephemeralCfg := blockcfg.NewVolumeConfigV1Alpha1()
+		ephemeralCfg.MetaName = constants.EphemeralPartitionLabel
+		ephemeralCfg.MountSpec.MountSecure = &secureOff
+
+		cfg, err := container.New(baseCfg.DeepCopy(), ephemeralCfg)
+		require.NoError(t, err)
+
+		transformer := volumeconfig.GetEphemeralVolumeTransformer(false)
+		resources, err := transformer(cfg)
+		require.NoError(t, err)
+		require.Len(t, resources, 1)
+
+		testTransformFunc(t, resources[0].TransformFunc, func(t *testing.T, vc *block.VolumeConfig, err error) {
+			require.NoError(t, err)
+			assert.False(t, vc.TypedSpec().Mount.Secure, "EPHEMERAL Secure should be overridable via VolumeConfig")
+		})
+	})
+}
+
 func testTransformFunc(t *testing.T,
 	transformer func(vc *block.VolumeConfig) error,
 	checkFunc func(t *testing.T, vc *block.VolumeConfig, err error),

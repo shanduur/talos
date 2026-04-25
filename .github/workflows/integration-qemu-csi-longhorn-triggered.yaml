@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2026-04-27T17:59:00Z by kres e4dc583.
+# Generated on 2026-05-05T14:21:38Z by kres 1762ab2.
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -14,11 +14,23 @@ concurrency:
 name: integration-qemu-csi-longhorn-triggered
 jobs:
   default:
+    name: ${{ matrix.longhornEngine }}
     permissions:
       actions: read
     runs-on:
       group: large
     if: github.event.workflow_run.conclusion == 'success'
+    strategy:
+      matrix:
+        include:
+          - csi: longhorn
+            longhornEngine: v2
+          - csi: longhorn-v1
+            extraTestArgs: -talos.skip-ephemeral-policy
+            extraWorkerPatch: :@hack/test/patches/ephemeral-insecure.yaml
+            longhornEngine: v1
+      fail-fast: false
+      max-parallel: 2
     steps:
       - name: gather-system-info
         id: system-info
@@ -97,8 +109,8 @@ jobs:
           make kubelet-fat-patch
       - name: e2e-qemu-csi-longhorn
         env:
-          EXTRA_TEST_ARGS: -talos.csi=longhorn
-          GITHUB_STEP_NAME: ${{ github.job}}-e2e-qemu-csi-longhorn
+          EXTRA_TEST_ARGS: -talos.csi=${{ matrix.csi }} ${{ matrix.extraTestArgs }}
+          GITHUB_STEP_NAME: ${{ github.job}}-e2e-qemu-csi-longhorn-${{ matrix.longhornEngine }}
           IMAGE_REGISTRY: registry.dev.siderolabs.io
           QEMU_CPUS_WORKERS: "3"
           QEMU_EXTRA_DISKS: "1"
@@ -109,13 +121,13 @@ jobs:
           QEMU_WORKERS: "3"
           SHORT_INTEGRATION_TEST: "yes"
           WITH_CONFIG_PATCH_CONTROLPLANE: '@hack/test/patches/longhorn-cp.yaml'
-          WITH_CONFIG_PATCH_WORKER: '@_out/installer-extensions-patch.yaml:@_out/kubelet-fat-patch.yaml:@hack/test/patches/longhorn.yaml'
+          WITH_CONFIG_PATCH_WORKER: '@_out/installer-extensions-patch.yaml:@_out/kubelet-fat-patch.yaml:@hack/test/patches/longhorn.yaml${{ matrix.extraWorkerPatch }}'
         run: |
           sudo -E make e2e-qemu
       - name: save artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # version: v7.0.1
         with:
-          name: fio-integration-qemu-csi-longhorn
+          name: fio-integration-qemu-csi-longhorn-${{ matrix.longhornEngine }}
           path: |
             /tmp/fio-*.json
           retention-days: "180"
@@ -123,7 +135,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # version: v7.0.1
         with:
-          name: talos-logs-integration-qemu-csi-longhorn
+          name: talos-logs-integration-qemu-csi-longhorn-${{ matrix.longhornEngine }}
           path: |-
             /tmp/logs-*.tar.gz
             /tmp/support-*.zip

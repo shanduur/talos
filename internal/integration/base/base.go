@@ -66,6 +66,9 @@ type TalosSuite struct {
 	Virtiofsd bool
 	// Race informs test suites about race detector being enabled (e.g. for skipping incompatible tests)
 	Race bool
+	// SkipEphemeralPolicy disables MountsSuite's nosuid/nodev/noexec assertions
+	// for the EPHEMERAL (/var) mount point.
+	SkipEphemeralPolicy bool
 
 	discoveredNodes cluster.Info
 }

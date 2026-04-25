@@ -60,6 +60,9 @@
 
 (allow kernel_t modprobe_exec_t (file (execute)))
 (allow kernel_t udev_t (process (all))) ; including transition
+; modprobe_exec_t lives on rootfs squashfs (NOSUID); kernel_t is not
+; in service_p so this rule is required separately.
+(allow kernel_t udev_t (process2 (nosuid_transition)))
 
 (allow init_t modprobe_exec_t (file (execute)))
 (allow init_t udev_t (process (all))) ; including transition

@@ -7,11 +7,8 @@
 package k8s
 
 import (
-	"bytes"
 	"context"
 	_ "embed"
-	"strings"
-	"text/template"
 	"time"
 
 	"github.com/siderolabs/talos/internal/integration/base"
@@ -19,15 +16,6 @@ import (
 )
 
 var (
-	//go:embed testdata/longhorn-iscsi-volume.yaml
-	longHornISCSIVolumeManifest []byte
-
-	//go:embed testdata/longhorn-volumeattachment.yaml
-	longHornISCSIVolumeAttachmentManifestTemplate []byte
-
-	//go:embed testdata/pod-iscsi-volume.yaml
-	podWithISCSIVolumeTemplate []byte
-
 	//go:embed testdata/longhorn-v2-engine-values.yaml
 	longhornEngineV2Values []byte
 
@@ -38,7 +26,12 @@ var (
 	longhornNodeDiskPatch []byte
 )
 
-// LongHornSuite tests deploying Longhorn.
+// LongHornSuite tests deploying Longhorn with the v2 (SPDK) data engine.
+//
+// The v1 engine relies on exec'ing engine binaries the engine-image DaemonSet
+// drops under /var/lib/longhorn/engine-binaries/, which is incompatible with
+// noexec on /var (see LongHornV1Suite for the v1 path that opts out via the
+// ephemeral-insecure VolumeConfig patch).
 type LongHornSuite struct {
 	base.K8sSuite
 }
@@ -48,7 +41,7 @@ func (suite *LongHornSuite) SuiteName() string {
 	return "k8s.LongHornSuite"
 }
 
-// TestDeploy tests deploying Longhorn and running a simple test.
+// TestDeploy tests deploying Longhorn (v2 data engine) and running fio against it.
 func (suite *LongHornSuite) TestDeploy() {
 	if suite.Cluster == nil {
 		suite.T().Skip("without full cluster state reaching out to the node IP is not reliable")
@@ -100,124 +93,35 @@ func (suite *LongHornSuite) TestDeploy() {
 		suite.Require().NoError(suite.WaitForResource(ctx, "longhorn-system", "longhorn.io", "Node", "v1beta2", k8sNode.Name, "{.status.diskStatus.*.conditions[?(@.type==\"Schedulable\")].status}", "True"))
 
 		suite.PatchK8sObject(ctx, "longhorn-system", "longhorn.io", "Node", "v1beta2", k8sNode.Name, longhornNodeDiskPatch)
-	}
 
-	suite.Run("fio", func() {
-		suite.Require().NoError(suite.RunFIOTest(ctx, "longhorn", "10G"))
-	})
+		// Wait for the SPDK-managed nvme block disk to finish initializing
+		// before running fio: replica scheduling on this disk is what fio-v2
+		// exercises, and SPDK can take several seconds per node.
+		suite.Require().NoError(suite.WaitForResource(
+			ctx,
+			"longhorn-system",
+			"longhorn.io",
+			"Node",
+			"v1beta2",
+			k8sNode.Name,
+			"{.status.diskStatus.nvme.conditions[?(@.type==\"Ready\")].status}",
+			"True",
+		))
+		suite.Require().NoError(suite.WaitForResource(
+			ctx,
+			"longhorn-system",
+			"longhorn.io",
+			"Node",
+			"v1beta2",
+			k8sNode.Name,
+			"{.status.diskStatus.nvme.conditions[?(@.type==\"Schedulable\")].status}",
+			"True",
+		))
+	}
 
 	suite.Run("fio-v2", func() {
 		suite.Require().NoError(suite.RunFIOTest(ctx, "longhorn-v2", "10G"))
 	})
-
-	suite.Run("iscsi", func() {
-		suite.testDeployISCSI(ctx)
-	})
-}
-
-//nolint:gocyclo
-func (suite *LongHornSuite) testDeployISCSI(ctx context.Context) {
-	longHornISCSIVolumeManifestUnstructured := suite.ParseManifests(longHornISCSIVolumeManifest)
-
-	defer func() {
-		cleanUpCtx, cleanupCancel := context.WithTimeout(context.Background(), 2*time.Minute)
-		defer cleanupCancel()
-
-		suite.DeleteManifests(cleanUpCtx, longHornISCSIVolumeManifestUnstructured)
-	}()
-
-	suite.ApplyManifests(ctx, longHornISCSIVolumeManifestUnstructured)
-
-	tmpl, err := template.New("longhorn-iscsi-volumeattachment").Parse(string(longHornISCSIVolumeAttachmentManifestTemplate))
-	suite.Require().NoError(err)
-
-	var longHornISCSIVolumeAttachmentManifest bytes.Buffer
-
-	node := suite.RandomDiscoveredNodeInternalIP(machine.TypeWorker)
-
-	nodeInfo, err := suite.GetK8sNodeByInternalIP(ctx, node)
-	if err != nil {
-		suite.T().Fatalf("failed to get K8s node by internal IP: %v", err)
-	}
-
-	if err := tmpl.Execute(&longHornISCSIVolumeAttachmentManifest, struct {
-		NodeID string
-	}{
-		NodeID: nodeInfo.Name,
-	}); err != nil {
-		suite.T().Fatalf("failed to render Longhorn ISCSI volume manifest: %v", err)
-	}
-
-	longHornISCSIVolumeAttachmentManifestUnstructured := suite.ParseManifests(longHornISCSIVolumeAttachmentManifest.Bytes())
-
-	suite.ApplyManifests(ctx, longHornISCSIVolumeAttachmentManifestUnstructured)
-
-	if err := suite.WaitForResource(ctx, "longhorn-system", "longhorn.io", "Volume", "v1beta2", "iscsi", "{.status.robustness}", "healthy"); err != nil {
-		suite.T().Fatalf("failed to wait for LongHorn Engine to be Ready: %v", err)
-	}
-
-	if err := suite.WaitForResource(ctx, "longhorn-system", "longhorn.io", "Volume", "v1beta2", "iscsi", "{.status.state}", "attached"); err != nil {
-		suite.T().Fatalf("failed to wait for LongHorn Engine to be Ready: %v", err)
-	}
-
-	if err := suite.WaitForResource(ctx, "longhorn-system", "longhorn.io", "Engine", "v1beta2", "iscsi-e-0", "{.status.currentState}", "running"); err != nil {
-		suite.T().Fatalf("failed to wait for LongHorn Engine to be Ready: %v", err)
-	}
-
-	unstructured, err := suite.GetUnstructuredResource(ctx, "longhorn-system", "longhorn.io", "Engine", "v1beta2", "iscsi-e-0")
-	if err != nil {
-		suite.T().Fatalf("failed to get LongHorn Engine resource: %v", err)
-	}
-
-	var endpointData string
-
-	if status, ok := unstructured.Object["status"].(map[string]any); ok {
-		endpointData, ok = status["endpoint"].(string)
-		if !ok {
-			suite.T().Fatalf("failed to get LongHorn Engine endpoint")
-		}
-	}
-
-	tmpl, err = template.New("pod-iscsi-volume").Parse(string(podWithISCSIVolumeTemplate))
-	suite.Require().NoError(err)
-
-	// endpoint is of the form `iscsi://10.244.0.5:3260/iqn.2019-10.io.longhorn:iscsi/1`
-	// trim the iscsi:// prefix
-	endpointData = strings.TrimPrefix(endpointData, "iscsi://")
-	// trim the /1 suffix
-	endpointData = strings.TrimSuffix(endpointData, "/1")
-
-	targetPortal, IQN, ok := strings.Cut(endpointData, "/")
-	if !ok {
-		suite.T().Fatalf("failed to parse endpoint data from %s", endpointData)
-	}
-
-	var podWithISCSIVolume bytes.Buffer
-
-	if err := tmpl.Execute(&podWithISCSIVolume, struct {
-		NodeName     string
-		TargetPortal string
-		IQN          string
-	}{
-		NodeName:     nodeInfo.Name,
-		TargetPortal: targetPortal,
-		IQN:          IQN,
-	}); err != nil {
-		suite.T().Fatalf("failed to render pod with ISCSI volume manifest: %v", err)
-	}
-
-	podWithISCSIVolumeUnstructured := suite.ParseManifests(podWithISCSIVolume.Bytes())
-
-	defer func() {
-		cleanUpCtx, cleanupCancel := context.WithTimeout(context.Background(), time.Minute)
-		defer cleanupCancel()
-
-		suite.DeleteManifests(cleanUpCtx, podWithISCSIVolumeUnstructured)
-	}()
-
-	suite.ApplyManifests(ctx, podWithISCSIVolumeUnstructured)
-
-	suite.Require().NoError(suite.WaitForPodToBeRunning(ctx, 3*time.Minute, "default", "iscsipd"))
 }
 
 func init() {

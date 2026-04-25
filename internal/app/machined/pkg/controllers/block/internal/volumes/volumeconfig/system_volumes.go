@@ -61,6 +61,7 @@ func GetStateVolumeTransformer(encryptionMeta *runtime.MetaKey, inContainer, isA
 					FileMode:     0o700,
 					UID:          0,
 					GID:          0,
+					Secure:       true,
 				}).WriterFunc()
 		} else {
 			// STATE configuration should be always created, but it depends on the configuration presence
@@ -133,6 +134,7 @@ func GetEphemeralVolumeTransformer(inContainer bool) volumeConfigTransformer {
 						UID:                 0,
 						GID:                 0,
 						ProjectQuotaSupport: cfg.Machine().Features().DiskQuotaSupportEnabled(),
+						Secure:              extraVolumeConfig.Mount().Secure(),
 					}).
 					WithLocator(labelVolumeMatch(constants.EphemeralPartitionLabel)).
 					WithFunc(func(vcs *block.VolumeConfigSpec) error {
@@ -185,6 +187,7 @@ func GetOverlayVolumesTransformer(inContainer bool) func(configconfig.Config) ([
 						FileMode:     0o755,
 						UID:          0,
 						GID:          0,
+						Secure:       overlay.Secure,
 					}).WriterFunc(),
 			})
 		}
@@ -207,6 +210,7 @@ func manageStateNoConfig(encryptionMeta *runtime.MetaKey, isAgent bool) func(vc 
 			FileMode:     0o700,
 			UID:          0,
 			GID:          0,
+			Secure:       true,
 		}).WithLocator(match).
 		WithFunc(func(spec *block.VolumeConfigSpec) error {
 			if encryptionMeta != nil {
@@ -248,6 +252,7 @@ func manageStateConfigPresent(cfg configconfig.Config) func(vc *block.VolumeConf
 				FileMode:     0o700,
 				UID:          0,
 				GID:          0,
+				Secure:       true,
 			}).
 			WithProvisioning(block.ProvisioningSpec{
 				Wave: block.WaveSystemDisk,

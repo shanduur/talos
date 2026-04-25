@@ -101,6 +101,10 @@
 ; Allow init to manage processes
 (allow init_t service_p (fs_classes (rw)))
 (allow init_t service_p (process_classes (full)))
+; Service binaries exec from NOSUID mounts (rootfs squashfs, /sbin/init
+; bind into /system/libexec/<svc>/<svc>); init_t needs nosuid_transition
+; for every service_p member.
+(allow init_t service_p (process2 (nosuid_transition)))
 
 ; kernel cmdline
 (allow system_p proc_cmdline_t (fs_classes (ro)))
