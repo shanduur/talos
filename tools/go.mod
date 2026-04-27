@@ -18,6 +18,7 @@ tool (
 	github.com/siderolabs/importvet/cmd/importvet
 	github.com/siderolabs/talos/tools/docgen
 	github.com/siderolabs/talos/tools/gotagsrewrite
+	github.com/siderolabs/talos/tools/labeled-squashfs
 	github.com/siderolabs/talos/tools/structprotogen
 	golang.org/x/tools/cmd/goimports
 	golang.org/x/tools/cmd/stringer
@@ -32,6 +33,7 @@ tool (
 replace (
 	github.com/siderolabs/talos/tools/docgen => ./docgen
 	github.com/siderolabs/talos/tools/gotagsrewrite => ./gotagsrewrite
+	github.com/siderolabs/talos/tools/labeled-squashfs => ./labeled-squashfs
 	github.com/siderolabs/talos/tools/structprotogen => ./structprotogen
 )
 
@@ -476,6 +478,7 @@ require (
 	github.com/siderolabs/importvet v0.2.0 // indirect
 	github.com/siderolabs/talos/tools/docgen v0.0.0-20260504165749-1371596d750b // indirect
 	github.com/siderolabs/talos/tools/gotagsrewrite v0.0.0-20260504165749-1371596d750b // indirect
+	github.com/siderolabs/talos/tools/labeled-squashfs v0.0.0-00010101000000-000000000000 // indirect
 	github.com/siderolabs/talos/tools/structprotogen v0.0.0-20260504165749-1371596d750b // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/sivchari/containedctx v1.0.3 // indirect

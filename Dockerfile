@@ -494,6 +494,17 @@ FROM machined-build-${TARGETARCH} AS machined-build
 FROM scratch AS machined
 COPY --from=machined-build /machined /machined
 
+# The labeled-squashfs target builds a build-time helper that walks the rootfs,
+# resolves each path's SELinux context against file_contexts, and invokes
+# mksquashfs with the labels supplied as pseudo-file definitions. This avoids
+# needing fakeroot to fake security.selinux xattrs on the source tree.
+
+FROM base AS labeled-squashfs-build
+ARG GO_BUILDFLAGS
+ARG GO_LDFLAGS
+RUN --mount=type=cache,target=/.cache,id=talos/.cache go build ${GO_BUILDFLAGS} -ldflags "${GO_LDFLAGS}" -o /labeled-squashfs github.com/siderolabs/talos/tools/labeled-squashfs
+RUN chmod +x /labeled-squashfs
+
 # The talosctl targets build the talosctl binaries.
 
 FROM base AS talosctl-linux-amd64-build
@@ -963,16 +974,16 @@ RUN rm -rf /rootfs/usr/share/spdx/*
 COPY --from=sbom-arm64 / /rootfs/usr/share/spdx/
 ARG ZSTD_COMPRESSION_LEVEL
 COPY --from=selinux-generate /policy/file_contexts /file_contexts
-COPY ./hack/labeled-squashfs.sh /
-RUN fakeroot /labeled-squashfs.sh /rootfs /rootfs.sqsh /file_contexts ${ZSTD_COMPRESSION_LEVEL}
+RUN --mount=from=labeled-squashfs-build,source=/labeled-squashfs,target=/usr/local/bin/labeled-squashfs \
+    labeled-squashfs /rootfs /rootfs.sqsh /file_contexts ${ZSTD_COMPRESSION_LEVEL}
 
 FROM rootfs-base-amd64 AS rootfs-squashfs-amd64
 RUN rm -rf /rootfs/usr/share/spdx/*
 COPY --from=sbom-amd64 / /rootfs/usr/share/spdx/
 ARG ZSTD_COMPRESSION_LEVEL
 COPY --from=selinux-generate /policy/file_contexts /file_contexts
-COPY ./hack/labeled-squashfs.sh /
-RUN fakeroot /labeled-squashfs.sh /rootfs /rootfs.sqsh /file_contexts ${ZSTD_COMPRESSION_LEVEL}
+RUN --mount=from=labeled-squashfs-build,source=/labeled-squashfs,target=/usr/local/bin/labeled-squashfs \
+    labeled-squashfs /rootfs /rootfs.sqsh /file_contexts ${ZSTD_COMPRESSION_LEVEL}
 
 FROM scratch AS squashfs-arm64
 COPY --from=rootfs-squashfs-arm64 /rootfs.sqsh /
@@ -1264,6 +1275,8 @@ WORKDIR /src/pkg/machinery
 RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config ../../.golangci.yml
 COPY ./hack/cloud-image-uploader /src/hack/cloud-image-uploader
 WORKDIR /src/hack/cloud-image-uploader
+RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config ../../.golangci.yml
+WORKDIR /src/tools/labeled-squashfs
 RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config ../../.golangci.yml
 WORKDIR /src
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/siderolabs/importvet/cmd/importvet github.com/siderolabs/talos/...
