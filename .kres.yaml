@@ -619,15 +619,21 @@ spec:
         - integration/trusted-boot
         - integration/release-gate
       matrix:
-        maxParallel: 2
+        maxParallel: 3
         labelKeys: [variant]
         include:
           - variant: default
             withConfigPatch: "@hack/test/patches/image-verification.yaml"
+            withTrustedBootISO: "true"
             extraTestArgs: "-talos.trustedboot"
+          - variant: disk-image
+            withConfigPatch: "@hack/test/patches/image-verification.yaml"
+            extraTestArgs: "-talos.trustedboot"
+            withTrustedBootDiskImage: "true"
           - variant: enforcing
             withConfigPatch: "@hack/test/patches/image-verification.yaml"
             tagSuffixIn: -enforcing
+            withTrustedBootISO: "true"
             withEnforcing: "true"
             extraTestArgs: "-talos.trustedboot -talos.enforcing"
       steps:
@@ -644,13 +650,21 @@ spec:
             PLATFORM: linux/amd64,linux/arm64
             IMAGER_ARGS: "--extra-kernel-arg=console=ttyS0 --extra-kernel-arg=enforcing=1"
             IMAGE_REGISTRY: registry.dev.siderolabs.io
+        - name: image-secureboot-metal
+          conditions:
+            - matrix.withTrustedBootDiskImage
+          environment:
+            PLATFORM: linux/amd64,linux/arm64
+            IMAGER_ARGS: "--extra-kernel-arg=console=ttyS0"
+            IMAGE_REGISTRY: registry.dev.siderolabs.io
         - name: integration-trusted-boot
           command: e2e-qemu
           withSudo: true
           environment:
             GITHUB_STEP_NAME: ${{ github.job}}-integration-trusted-boot-${{ matrix.variant }}
             VIA_MAINTENANCE_MODE: true
-            WITH_TRUSTED_BOOT_ISO: true
+            WITH_TRUSTED_BOOT_ISO: ${{ matrix.withTrustedBootISO }}
+            WITH_TRUSTED_BOOT_DISK_IMAGE: ${{ matrix.withTrustedBootDiskImage }}
             WITH_CONFIG_PATCH: ${{ matrix.withConfigPatch }}
             TAG_SUFFIX_IN: ${{ matrix.tagSuffixIn }}
             WITH_ENFORCING: ${{ matrix.withEnforcing }}
