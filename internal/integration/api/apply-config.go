@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"slices"
 	"testing"
 	"time"
 
@@ -537,7 +538,7 @@ func (suite *ApplyConfigSuite) TestApplyDryRunDocuments() {
 	kmsg.MetaName = "omni-kmsg"
 	kmsg.KmsgLogURL.URL = ensure.Value(url.Parse("tcp://[fdae:41e4:649b:9303::1]:8092"))
 
-	cont, err := container.New(provider.RawV1Alpha1(), kmsg)
+	cont, err := container.New(slices.Concat(provider.Documents(), []configconfig.Document{kmsg})...)
 	suite.Require().NoErrorf(err, "failed to create container: %s", err)
 
 	cfgDataOut, err := cont.Bytes()

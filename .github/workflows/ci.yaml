@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2026-04-27T17:59:00Z by kres e4dc583.
+# Generated on 2026-04-29T12:24:24Z by kres 980313d.
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -1932,6 +1932,9 @@ jobs:
       - name: Fix artifact permissions
         run: |
           xargs -a _out/executable-artifacts -I {} chmod +x {}
+      - name: ci-temp-release-tag
+        run: |
+          make ci-temp-release-tag
       - name: image-aws
         env:
           IMAGE_REGISTRY: registry.dev.siderolabs.io
@@ -2006,6 +2009,9 @@ jobs:
       - name: Fix artifact permissions
         run: |
           xargs -a _out/executable-artifacts -I {} chmod +x {}
+      - name: ci-temp-release-tag
+        run: |
+          make ci-temp-release-tag
       - name: images-essential-enforcing
         env:
           IMAGE_REGISTRY: registry.dev.siderolabs.io

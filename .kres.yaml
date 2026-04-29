@@ -30,7 +30,7 @@ spec:
     - kernel
     - security
     - ci
-    - ^v1.13
+    - ^v1.14
   licenseChecks:
     - skipPaths:
         - .git/
@@ -825,6 +825,7 @@ spec:
             type: download
             artifactName: talos-artifacts
             artifactPath: _out
+        - name: ci-temp-release-tag
         - name: images-essential-enforcing
           command: images-essential
           environment:
@@ -1796,6 +1797,7 @@ spec:
             type: download
             artifactName: talos-artifacts
             artifactPath: _out
+        - name: ci-temp-release-tag
         - name: image-aws
           environment:
             PLATFORM: linux/amd64,linux/arm64
