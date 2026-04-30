@@ -11,12 +11,13 @@ import (
 	"github.com/siderolabs/gen/xslices"
 
 	"github.com/siderolabs/talos/pkg/machinery/config/config"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/resources/k8s"
 )
 
 // APIServerDefaultAuditPolicy is the default kube-apiserver audit policy.
-var APIServerDefaultAuditPolicy = Unstructured{
+var APIServerDefaultAuditPolicy = meta.Unstructured{
 	Object: map[string]any{
 		"apiVersion": "audit.k8s.io/v1",
 		"kind":       "Policy",

@@ -35,6 +35,9 @@ type Config interface { //nolint:interfacebloat
 	NetworkBlackholeRouteConfigs() []NetworkBlackholeRouteConfig
 	NetworkRoutingRuleConfigs() []NetworkRoutingRuleConfig
 
+	// - k8s:
+	K8sEtcdEncryptionConfig() K8sEtcdEncryptionConfig
+
 	// - block devices/storage:
 	Volumes() VolumesConfig
 	UserVolumeConfigs() []UserVolumeConfig

@@ -57,7 +57,10 @@ var genSecretsCmd = &cobra.Command{
 				return fmt.Errorf("failed to load controlplane config: %w", err)
 			}
 
-			secretsBundle = secrets.NewBundleFromConfig(secrets.NewFixedClock(time.Now()), cfg)
+			secretsBundle, err = secrets.NewBundleFromConfig(secrets.NewFixedClock(time.Now()), cfg)
+			if err != nil {
+				return fmt.Errorf("failed to create secrets bundle from controlplane config: %w", err)
+			}
 		default:
 			secretsBundle, err = secrets.NewBundle(secrets.NewFixedClock(time.Now()),
 				versionContract,

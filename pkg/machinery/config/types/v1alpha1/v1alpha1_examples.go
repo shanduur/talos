@@ -13,6 +13,7 @@ import (
 	"go.yaml.in/yaml/v4"
 
 	"github.com/siderolabs/talos/pkg/machinery/config/machine"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 )
 
@@ -193,8 +194,8 @@ func clusterNetworkExample() *ClusterNetworkConfig {
 	}
 }
 
-func resourcesConfigRequestsExample() Unstructured {
-	return Unstructured{
+func resourcesConfigRequestsExample() meta.Unstructured {
+	return meta.Unstructured{
 		Object: map[string]any{
 			"cpu":    1,
 			"memory": "1Gi",
@@ -202,8 +203,8 @@ func resourcesConfigRequestsExample() Unstructured {
 	}
 }
 
-func resourcesConfigLimitsExample() Unstructured {
-	return Unstructured{
+func resourcesConfigLimitsExample() meta.Unstructured {
+	return meta.Unstructured{
 		Object: map[string]any{
 			"cpu":    2,
 			"memory": "2500Mi",
@@ -313,7 +314,7 @@ func machineSeccompExample() []*MachineSeccompProfile {
 	return []*MachineSeccompProfile{
 		{
 			MachineSeccompProfileName: "audit.json",
-			MachineSeccompProfileValue: Unstructured{
+			MachineSeccompProfileValue: meta.Unstructured{
 				Object: map[string]any{
 					"defaultAction": "SCMP_ACT_LOG",
 				},
@@ -393,16 +394,16 @@ func kubeletNodeIPExample() *KubeletNodeIPConfig {
 	}
 }
 
-func kubeletExtraConfigExample() Unstructured {
-	return Unstructured{
+func kubeletExtraConfigExample() meta.Unstructured {
+	return meta.Unstructured{
 		Object: map[string]any{
 			"serverTLSBootstrap": true,
 		},
 	}
 }
 
-func kubeletCredentialProviderConfigExample() Unstructured {
-	return Unstructured{
+func kubeletCredentialProviderConfigExample() meta.Unstructured {
+	return meta.Unstructured{
 		Object: map[string]any{
 			"apiVersion": "kubelet.config.k8s.io/v1",
 			"kind":       "CredentialProviderConfig",
@@ -457,8 +458,8 @@ func machineKernelExample() *KernelConfig {
 	}
 }
 
-func machinePodsExample() []Unstructured {
-	return []Unstructured{
+func machinePodsExample() []meta.Unstructured {
+	return []meta.Unstructured{
 		{
 			Object: map[string]any{
 				"apiVersion": "v1",
@@ -483,7 +484,7 @@ func admissionControlConfigExample() []*AdmissionPluginConfig {
 	return []*AdmissionPluginConfig{
 		{
 			PluginName: "PodSecurity",
-			PluginConfiguration: Unstructured{
+			PluginConfiguration: meta.Unstructured{
 				Object: map[string]any{
 					"apiVersion": "pod-security.admission.config.k8s.io/v1alpha1",
 					"kind":       "PodSecurityConfiguration",
@@ -511,7 +512,7 @@ func authorizationConfigExample() []*AuthorizationConfigAuthorizerConfig {
 		{
 			AuthorizerType: "Webhook",
 			AuthorizerName: "webhook",
-			AuthorizerWebhook: Unstructured{
+			AuthorizerWebhook: meta.Unstructured{
 				Object: map[string]any{
 					"timeout":                    "3s",
 					"subjectAccessReviewVersion": "v1",
@@ -534,7 +535,7 @@ func authorizationConfigExample() []*AuthorizationConfigAuthorizerConfig {
 		{
 			AuthorizerType: "Webhook",
 			AuthorizerName: "in-cluster-authorizer",
-			AuthorizerWebhook: Unstructured{
+			AuthorizerWebhook: meta.Unstructured{
 				Object: map[string]any{
 					"timeout":                    "3s",
 					"subjectAccessReviewVersion": "v1",
@@ -561,8 +562,8 @@ func kubernetesTalosAPIAccessConfigExample() *KubernetesTalosAPIAccessConfig {
 	}
 }
 
-func machineBaseRuntimeSpecOverridesExample() Unstructured {
-	return Unstructured{
+func machineBaseRuntimeSpecOverridesExample() meta.Unstructured {
+	return meta.Unstructured{
 		Object: map[string]any{
 			"process": map[string]any{
 				"rlimits": []map[string]any{

@@ -60,6 +60,17 @@ Talos now supports HTTP network probes, allowing for monitoring of HTTP endpoint
 HTTP responses with status 200-399 are considered successful, while connection and transport errors are treated as failures.
 """
 
+    [notes.kubernetesmulti]
+        title = "Kubernetes Multi-document Configuration"
+        description = """\
+Talos introduces new multi-document Kubernetes configuration, which allows for more flexible and modular configuration of Kubernetes components.
+Talos still supports the old v1alpha1 config for backwards compatibility, but new features and fields will only be available in the new multi-document format.
+
+List of changes:
+
+- `.cluster.secretboxEncryptionSecret` field was removed from the v1alpha1 config, and full etcd encryption configuration is available with `KubeEtcdEncryptionConfig`.
+"""
+
 [make_deps]
 
     [make_deps.tools]

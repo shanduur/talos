@@ -20,7 +20,6 @@ import (
 	"github.com/siderolabs/gen/xslices"
 	"go.uber.org/zap"
 
-	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/k8s/internal/k8stemplates"
 	"github.com/siderolabs/talos/internal/pkg/selinux"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/resources/k8s"
@@ -66,6 +65,12 @@ func (ctrl *RenderSecretsStaticPodController) Inputs() []controller.Input {
 			Namespace: secrets.NamespaceName,
 			Type:      secrets.EtcdType,
 			ID:        optional.Some(secrets.EtcdID),
+			Kind:      controller.InputWeak,
+		},
+		{
+			Namespace: k8s.NamespaceName,
+			Type:      k8s.EtcdEncryptionConfigType,
+			ID:        optional.Some(k8s.EtcdEncryptionConfigID),
 			Kind:      controller.InputWeak,
 		},
 	}
@@ -140,11 +145,21 @@ func (ctrl *RenderSecretsStaticPodController) Run(ctx context.Context, r control
 			return fmt.Errorf("error getting secrets resource: %w", err)
 		}
 
+		etcdEncryptionConfig, err := safe.ReaderGetByID[*k8s.EtcdEncryptionConfig](ctx, r, k8s.EtcdEncryptionConfigID)
+		if err != nil {
+			if state.IsNotFoundError(err) {
+				continue
+			}
+
+			return fmt.Errorf("error getting etcd encryption config: %w", err)
+		}
+
 		rootEtcdSecrets := rootEtcdRes.TypedSpec()
 		rootK8sSecrets := rootK8sRes.TypedSpec()
 		etcdSecrets := etcdRes.TypedSpec()
 		k8sSecrets := secretsRes.TypedSpec()
 		k8sCerts := certsRes.TypedSpec()
+		etcdEncryption := etcdEncryptionConfig.TypedSpec()
 
 		serviceAccountKey, err := rootK8sSecrets.ServiceAccount.GetKey()
 		if err != nil {
@@ -229,7 +244,7 @@ func (ctrl *RenderSecretsStaticPodController) Run(ctx context.Context, r control
 					{
 						filename: "encryptionconfig.yaml",
 						contentFunc: func() ([]byte, error) {
-							return k8stemplates.Marshal(k8stemplates.APIServerEncryptionConfig(rootK8sSecrets))
+							return []byte(etcdEncryption.Configuration), nil
 						},
 					},
 				},

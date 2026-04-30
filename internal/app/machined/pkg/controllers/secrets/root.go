@@ -139,6 +139,12 @@ func NewRootKubernetesController() *RootKubernetesController {
 				k8sSecrets.BootstrapTokenID = cfgProvider.Cluster().Token().ID()
 				k8sSecrets.BootstrapTokenSecret = cfgProvider.Cluster().Token().Secret()
 
+				if etcdEncryptionConfig := cfgProvider.K8sEtcdEncryptionConfig(); etcdEncryptionConfig != nil {
+					k8sSecrets.EtcdEncryptionConfig = etcdEncryptionConfig.EtcdEncryptionConfig()
+				} else {
+					k8sSecrets.EtcdEncryptionConfig = nil
+				}
+
 				return nil
 			},
 		},

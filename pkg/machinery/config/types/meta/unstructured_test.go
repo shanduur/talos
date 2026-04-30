@@ -2,18 +2,20 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-package v1alpha1_test
+package meta_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 )
 
 func TestUnstructuredDeepCopy(t *testing.T) {
-	u := v1alpha1.Unstructured{
+	t.Parallel()
+
+	u := meta.Unstructured{
 		Object: map[string]any{
 			"strings": map[string]any{
 				"foo": "bar",

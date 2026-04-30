@@ -7,6 +7,8 @@ package v1alpha1
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 )
 
 // CPURequests implements the config.Resources interface.
@@ -51,7 +53,7 @@ func (r *ResourcesConfig) Validate() error {
 		return nil
 	}
 
-	checkKeys := func(resource Unstructured) error {
+	checkKeys := func(resource meta.Unstructured) error {
 		for key := range resource.Object {
 			switch key {
 			case "memory":
@@ -70,7 +72,7 @@ func (r *ResourcesConfig) Validate() error {
 	return checkKeys(r.Limits)
 }
 
-func convertResource(resources Unstructured, key string) string {
+func convertResource(resources meta.Unstructured, key string) string {
 	if resources.Object == nil {
 		return ""
 	}

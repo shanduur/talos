@@ -24,6 +24,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/cel/celenv"
 	"github.com/siderolabs/talos/pkg/machinery/config/config"
 	"github.com/siderolabs/talos/pkg/machinery/config/machine"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/block"
@@ -208,7 +209,7 @@ func (m *MachineConfig) Controlplane() config.MachineControlPlane {
 
 // Pods implements the config.Provider interface.
 func (m *MachineConfig) Pods() []map[string]any {
-	return xslices.Map(m.MachinePods, func(u Unstructured) map[string]any { return u.Object })
+	return xslices.Map(m.MachinePods, func(u meta.Unstructured) map[string]any { return u.Object })
 }
 
 // ControllerManager implements the config.Provider interface.

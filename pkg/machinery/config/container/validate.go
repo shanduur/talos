@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 
 	"github.com/siderolabs/talos/pkg/machinery/config"
+	"github.com/siderolabs/talos/pkg/machinery/config/machine"
 	"github.com/siderolabs/talos/pkg/machinery/config/validation"
 )
 
@@ -110,6 +111,8 @@ func (container *Container) RuntimeValidate(ctx context.Context, st state.State,
 // validateContainer validates the full configuration container.
 //
 // This validation is used to do validation which only makes sense for the full configuration (vs. individual documents).
+//
+//nolint:gocyclo
 func (container *Container) validateContainer(mode validation.RuntimeMode) error {
 	var errs error
 
@@ -127,6 +130,23 @@ func (container *Container) validateContainer(mode validation.RuntimeMode) error
 			if !hostDNSConfig.ForwardKubeDNSToHost() {
 				errs = multierror.Append(errs, fmt.Errorf("forwardKubeDNSToHost must be enabled in container mode"))
 			}
+		}
+	}
+
+	// control plane specific checks
+	if container.Machine() != nil && container.Machine().Type().IsControlPlane() {
+		hasLegacyEtcdEncryptionConfig := container.Cluster() != nil && (container.Cluster().SecretboxEncryptionSecret() != "" || container.Cluster().AESCBCEncryptionSecret() != "")
+		hasKubeEtcdEncryptionConfig := container.K8sEtcdEncryptionConfig() != nil
+
+		if !hasLegacyEtcdEncryptionConfig && !hasKubeEtcdEncryptionConfig {
+			errs = multierror.Append(errs, fmt.Errorf("etcd encryption config is required for control plane machines"))
+		}
+	}
+
+	// worker specific checks
+	if container.Machine() != nil && container.Machine().Type() == machine.TypeWorker {
+		if container.K8sEtcdEncryptionConfig() != nil {
+			errs = multierror.Append(errs, fmt.Errorf("etcd encryption config is not supported for worker machines"))
 		}
 	}
 

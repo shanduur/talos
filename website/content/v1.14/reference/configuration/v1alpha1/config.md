@@ -990,12 +990,6 @@ network:
 |`token` |string |The [bootstrap token](https://kubernetes.io/docs/reference/access-authn-authz/bootstrap-tokens/) used to join the cluster. <details><summary>Show example(s)</summary>Bootstrap token example (do not use in production!).:{{< highlight yaml >}}
 token: wlzjyw.bei2zfylhs2by0wd
 {{< /highlight >}}</details> | |
-|`aescbcEncryptionSecret` |string |A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).<br>Enables encryption with AESCBC. <details><summary>Show example(s)</summary>Decryption secret example (do not use in production!).:{{< highlight yaml >}}
-aescbcEncryptionSecret: z01mye6j16bspJYtTB/5SFX8j7Ph4JXxM2Xuu4vsBPM=
-{{< /highlight >}}</details> | |
-|`secretboxEncryptionSecret` |string |A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).<br>Enables encryption with secretbox.<br>Secretbox has precedence over AESCBC. <details><summary>Show example(s)</summary>Decryption secret example (do not use in production!).:{{< highlight yaml >}}
-secretboxEncryptionSecret: z01mye6j16bspJYtTB/5SFX8j7Ph4JXxM2Xuu4vsBPM=
-{{< /highlight >}}</details> | |
 |`ca` |PEMEncodedCertificateAndKey |The base64 encoded root certificate authority used by Kubernetes. <details><summary>Show example(s)</summary>ClusterCA example.:{{< highlight yaml >}}
 ca:
     crt: LS0tIEVYQU1QTEUgQ0VSVElGSUNBVEUgLS0t

@@ -214,3 +214,8 @@ func (contract *VersionContract) KubeSpanMultidocConfig() bool {
 func (contract *VersionContract) HostDNSMultidocConfig() bool {
 	return contract.Greater(TalosVersion1_13)
 }
+
+// MultidocKubernetesConfigSupported returns true if version of Talos should use multi-doc Kubernetes config.
+func (contract *VersionContract) MultidocKubernetesConfigSupported() bool {
+	return contract.Greater(TalosVersion1_13)
+}

@@ -435,6 +435,7 @@ description: Talos gRPC API reference.
     - [ControllerManagerConfigSpec.EnvironmentVariablesEntry](#talos.resource.definitions.k8s.ControllerManagerConfigSpec.EnvironmentVariablesEntry)
     - [ControllerManagerConfigSpec.ExtraArgsEntry](#talos.resource.definitions.k8s.ControllerManagerConfigSpec.ExtraArgsEntry)
     - [EndpointSpec](#talos.resource.definitions.k8s.EndpointSpec)
+    - [EtcdEncryptionConfigSpec](#talos.resource.definitions.k8s.EtcdEncryptionConfigSpec)
     - [ExtraManifest](#talos.resource.definitions.k8s.ExtraManifest)
     - [ExtraManifest.ExtraHeadersEntry](#talos.resource.definitions.k8s.ExtraManifest.ExtraHeadersEntry)
     - [ExtraManifestsConfigSpec](#talos.resource.definitions.k8s.ExtraManifestsConfigSpec)
@@ -7710,6 +7711,21 @@ EndpointSpec describes a list of endpoints to connect to.
 
 
 
+<a name="talos.resource.definitions.k8s.EtcdEncryptionConfigSpec"></a>
+
+### EtcdEncryptionConfigSpec
+EtcdEncryptionConfigSpec describes root Kubernetes secrets.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| configuration | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="talos.resource.definitions.k8s.ExtraManifest"></a>
 
 ### ExtraManifest
@@ -10564,6 +10580,7 @@ KubernetesRootSpec describes root Kubernetes secrets.
 | secretbox_encryption_secret | [string](#string) |  |  |
 | api_server_ips | [common.NetIP](#common.NetIP) | repeated |  |
 | accepted_c_as | [common.PEMEncodedCertificate](#common.PEMEncodedCertificate) | repeated |  |
+| etcd_encryption_config | [google.protobuf.Struct](#google.protobuf.Struct) |  |  |
 
 
 

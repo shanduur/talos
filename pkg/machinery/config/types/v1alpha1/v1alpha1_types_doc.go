@@ -348,20 +348,8 @@ func (ClusterConfig) Doc() *encoder.Doc {
 				Description: "The [bootstrap token](https://kubernetes.io/docs/reference/access-authn-authz/bootstrap-tokens/) used to join the cluster.",
 				Comments:    [3]string{"" /* encoder.HeadComment */, "The [bootstrap token](https://kubernetes.io/docs/reference/access-authn-authz/bootstrap-tokens/) used to join the cluster." /* encoder.LineComment */, "" /* encoder.FootComment */},
 			},
-			{
-				Name:        "aescbcEncryptionSecret",
-				Type:        "string",
-				Note:        "",
-				Description: "A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).\nEnables encryption with AESCBC.",
-				Comments:    [3]string{"" /* encoder.HeadComment */, "A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/)." /* encoder.LineComment */, "" /* encoder.FootComment */},
-			},
-			{
-				Name:        "secretboxEncryptionSecret",
-				Type:        "string",
-				Note:        "",
-				Description: "A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).\nEnables encryption with secretbox.\nSecretbox has precedence over AESCBC.",
-				Comments:    [3]string{"" /* encoder.HeadComment */, "A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/)." /* encoder.LineComment */, "" /* encoder.FootComment */},
-			},
+			{},
+			{},
 			{
 				Name:        "ca",
 				Type:        "PEMEncodedCertificateAndKey",
@@ -496,8 +484,6 @@ func (ClusterConfig) Doc() *encoder.Doc {
 	doc.Fields[2].AddExample("Setting controlplane endpoint address to 1.2.3.4 and port to 443 example.", clusterControlPlaneExample())
 	doc.Fields[4].AddExample("Configuring with flannel CNI and setting up subnets.", clusterNetworkExample())
 	doc.Fields[5].AddExample("Bootstrap token example (do not use in production!).", "wlzjyw.bei2zfylhs2by0wd")
-	doc.Fields[6].AddExample("Decryption secret example (do not use in production!).", "z01mye6j16bspJYtTB/5SFX8j7Ph4JXxM2Xuu4vsBPM=")
-	doc.Fields[7].AddExample("Decryption secret example (do not use in production!).", "z01mye6j16bspJYtTB/5SFX8j7Ph4JXxM2Xuu4vsBPM=")
 	doc.Fields[8].AddExample("ClusterCA example.", pemEncodedCertificateExample())
 	doc.Fields[10].AddExample("AggregatorCA example.", pemEncodedCertificateExample())
 	doc.Fields[11].AddExample("AggregatorCA example.", pemEncodedKeyExample())

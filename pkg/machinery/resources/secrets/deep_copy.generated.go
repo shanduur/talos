@@ -174,6 +174,12 @@ func (o KubernetesRootSpec) DeepCopy() KubernetesRootSpec {
 	if o.AggregatorCA != nil {
 		cp.AggregatorCA = o.AggregatorCA.DeepCopy()
 	}
+	if o.EtcdEncryptionConfig != nil {
+		cp.EtcdEncryptionConfig = make(map[string]any, len(o.EtcdEncryptionConfig))
+		for k2, v2 := range o.EtcdEncryptionConfig {
+			cp.EtcdEncryptionConfig[k2] = v2
+		}
+	}
 	return cp
 }
 

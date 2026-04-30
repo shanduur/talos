@@ -18,6 +18,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config/config"
 	"github.com/siderolabs/talos/pkg/machinery/config/configloader/internal/decoder"
 	"github.com/siderolabs/talos/pkg/machinery/config/internal/registry"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 )
 
@@ -77,7 +78,7 @@ func (m *KubeletConfig) Clone() config.Document {
 type MockUnstructured struct {
 	Meta
 
-	Pods []v1alpha1.Unstructured `yaml:"pods,omitempty"`
+	Pods []meta.Unstructured `yaml:"pods,omitempty"`
 }
 
 func (m *MockUnstructured) Clone() config.Document {

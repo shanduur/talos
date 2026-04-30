@@ -145,6 +145,7 @@ func NewState() (*State, error) {
 		&k8s.ConfigStatus{},
 		&k8s.ControllerManagerConfig{},
 		&k8s.Endpoint{},
+		&k8s.EtcdEncryptionConfig{},
 		&k8s.ExtraManifestsConfig{},
 		&k8s.KubeletConfig{},
 		&k8s.KubeletKubeconfig{},

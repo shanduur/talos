@@ -70,7 +70,8 @@ func TestNewBundleFromConfig(t *testing.T) {
 	cfg, err := input.Config(machine.TypeControlPlane)
 	require.NoError(t, err)
 
-	bundle2 := secrets.NewBundleFromConfig(bundle.Clock, cfg)
+	bundle2, err := secrets.NewBundleFromConfig(bundle.Clock, cfg)
+	require.NoError(t, err)
 
 	assert.Equal(t, bundle, bundle2)
 }

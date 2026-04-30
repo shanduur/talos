@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -150,8 +151,30 @@ func NewBundleFromKubernetesPKI(pkiDir, bootstrapToken string, versionContract *
 	return bundle, nil
 }
 
+// etcdEncryptionConfigReduced is a simplified version of kube-apiserver encryption config.
+//
+// We don't want to import k8s modules into machinery, and we only need to extract secrets
+// from some fixed set of data.
+type etcdEncryptionConfigReduced struct {
+	Resources []etcdEncryptionConfigResource `yaml:"resources"`
+}
+
+type etcdEncryptionConfigResource struct {
+	Resources []string                       `yaml:"resources"`
+	Providers []etcdEncryptionConfigProvider `yaml:"providers"`
+}
+
+type etcdEncryptionConfigProvider struct {
+	Secretbox *struct {
+		Keys []struct {
+			Name   string `yaml:"name"`
+			Secret string `yaml:"secret"`
+		} `yaml:"keys"`
+	} `yaml:"secretbox,omitempty"`
+}
+
 // NewBundleFromConfig creates secrets bundle using existing config.
-func NewBundleFromConfig(clock Clock, c config.Config) *Bundle {
+func NewBundleFromConfig(clock Clock, c config.Config) (*Bundle, error) {
 	certs := &Certs{
 		K8s:               c.Cluster().IssuingCA(),
 		K8sAggregator:     c.Cluster().AggregatorCA(),
@@ -181,13 +204,52 @@ func NewBundleFromConfig(clock Clock, c config.Config) *Bundle {
 		BootstrapToken:            bootstrapToken,
 	}
 
+	if encryptionConfig := c.K8sEtcdEncryptionConfig(); encryptionConfig != nil {
+		// encryption config is free-form, so we do our best to extract secrets back, but we can't do that
+		// with 100% depending on the structure of the config
+		root := encryptionConfig.EtcdEncryptionConfig()
+
+		marshaled, err := yaml.Marshal(root)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal encryption config: %w", err)
+		}
+
+		var reduced etcdEncryptionConfigReduced
+
+		err = yaml.Unmarshal(marshaled, &reduced)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal encryption config: %w", err)
+		}
+
+		// we look for the first block which encrypts secrets, and the first secretbox provider in it
+	outerLoop:
+		for _, resource := range reduced.Resources {
+			if !slices.Contains(resource.Resources, "secrets") {
+				continue
+			}
+
+			for _, provider := range resource.Providers {
+				if provider.Secretbox != nil {
+					for _, key := range provider.Secretbox.Keys {
+						secrets.SecretboxEncryptionSecret = key.Secret
+
+						break outerLoop
+					}
+				}
+
+				// if it's not the first provider, ignore it
+				break
+			}
+		}
+	}
+
 	return &Bundle{
 		Clock:      clock,
 		Cluster:    cluster,
 		Secrets:    secrets,
 		TrustdInfo: trustd,
 		Certs:      certs,
-	}
+	}, nil
 }
 
 // populate fills all the missing fields in the secrets bundle.

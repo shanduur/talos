@@ -16,6 +16,7 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/ctest"
 	k8sctrl "github.com/siderolabs/talos/internal/app/machined/pkg/controllers/k8s"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/resources/config"
@@ -58,7 +59,7 @@ func (suite *KubeletConfigSuite) TestReconcile() {
 								Type:        "tmpfs",
 							},
 						},
-						KubeletExtraConfig: v1alpha1.Unstructured{
+						KubeletExtraConfig: meta.Unstructured{
 							Object: map[string]any{
 								"serverTLSBootstrap": true,
 							},

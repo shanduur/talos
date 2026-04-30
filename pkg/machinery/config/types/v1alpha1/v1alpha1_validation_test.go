@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/siderolabs/talos/pkg/machinery/compatibility"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/config/validation"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
@@ -1445,7 +1446,7 @@ func TestValidate(t *testing.T) {
 						},
 					},
 					MachineKubelet: &v1alpha1.KubeletConfig{
-						KubeletExtraConfig: v1alpha1.Unstructured{
+						KubeletExtraConfig: meta.Unstructured{
 							Object: map[string]any{
 								"port": 345,
 							},
@@ -1833,7 +1834,7 @@ func TestValidate(t *testing.T) {
 					},
 					APIServerConfig: &v1alpha1.APIServerConfig{
 						ResourcesConfig: &v1alpha1.ResourcesConfig{
-							Requests: v1alpha1.Unstructured{
+							Requests: meta.Unstructured{
 								Object: map[string]any{
 									"cpu":      "1m",
 									"invalid1": "23",
@@ -1843,7 +1844,7 @@ func TestValidate(t *testing.T) {
 					},
 					ControllerManagerConfig: &v1alpha1.ControllerManagerConfig{
 						ResourcesConfig: &v1alpha1.ResourcesConfig{
-							Limits: v1alpha1.Unstructured{
+							Limits: meta.Unstructured{
 								Object: map[string]any{
 									"memory":   "1m",
 									"invalid2": "23",
@@ -1853,12 +1854,12 @@ func TestValidate(t *testing.T) {
 					},
 					SchedulerConfig: &v1alpha1.SchedulerConfig{
 						ResourcesConfig: &v1alpha1.ResourcesConfig{
-							Requests: v1alpha1.Unstructured{
+							Requests: meta.Unstructured{
 								Object: map[string]any{
 									"cpu": "1m",
 								},
 							},
-							Limits: v1alpha1.Unstructured{
+							Limits: meta.Unstructured{
 								Object: map[string]any{
 									"invalid3": "23",
 								},
@@ -1961,7 +1962,7 @@ func TestValidate(t *testing.T) {
 						Crt: []byte("foo"),
 						Key: []byte("bar"),
 					},
-					MachineBaseRuntimeSpecOverrides: v1alpha1.Unstructured{
+					MachineBaseRuntimeSpecOverrides: meta.Unstructured{
 						Object: map[string]any{
 							"process": map[string]any{
 								"rlimits": []map[string]any{

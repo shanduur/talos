@@ -107,6 +107,11 @@ message EndpointSpec {
   repeated string hosts = 2;
 }
 
+// EtcdEncryptionConfigSpec describes root Kubernetes secrets.
+message EtcdEncryptionConfigSpec {
+  string configuration = 1;
+}
+
 // ExtraManifest defines a single extra manifest to download.
 message ExtraManifest {
   string name = 1;

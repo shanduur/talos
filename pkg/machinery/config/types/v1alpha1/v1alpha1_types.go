@@ -36,6 +36,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config/config"
 	"github.com/siderolabs/talos/pkg/machinery/config/internal/registry"
 	"github.com/siderolabs/talos/pkg/machinery/config/merge"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 )
 
 func init() {
@@ -286,7 +287,7 @@ type MachineConfig struct {
 	//     type: array
 	//     items:
 	//       type: object
-	MachinePods []Unstructured `yaml:"pods,omitempty"`
+	MachinePods []meta.Unstructured `yaml:"pods,omitempty"`
 	// docgen:nodoc
 	//
 	// Deprecated: All fields within NetworkConfig are deprecated. Use multi-document network config types instead:
@@ -380,7 +381,7 @@ type MachineConfig struct {
 	//      value: machineBaseRuntimeSpecOverridesExample()
 	//  schema:
 	//    type: object
-	MachineBaseRuntimeSpecOverrides Unstructured `yaml:"baseRuntimeSpecOverrides,omitempty"`
+	MachineBaseRuntimeSpecOverrides meta.Unstructured `yaml:"baseRuntimeSpecOverrides,omitempty"`
 	//  description: |
 	//    Configures the node labels for the machine.
 	//
@@ -416,7 +417,7 @@ type MachineSeccompProfile struct {
 	//   The `value` field is used to provide the seccomp profile.
 	// schema:
 	//   type: object
-	MachineSeccompProfileValue Unstructured `yaml:"value"`
+	MachineSeccompProfileValue meta.Unstructured `yaml:"value"`
 }
 
 var (
@@ -458,20 +459,13 @@ type ClusterConfig struct {
 	//     - name: Bootstrap token example (do not use in production!).
 	//       value: '"wlzjyw.bei2zfylhs2by0wd"'
 	BootstrapToken string `yaml:"token,omitempty"`
-	//   description: |
-	//     A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).
-	//     Enables encryption with AESCBC.
-	//   examples:
-	//     - name: Decryption secret example (do not use in production!).
-	//       value: '"z01mye6j16bspJYtTB/5SFX8j7Ph4JXxM2Xuu4vsBPM="'
+	// docgen:nodoc
+	//
+	// Deprecated: Use `KubeEtcdEncryptionConfig` instead.
 	ClusterAESCBCEncryptionSecret string `yaml:"aescbcEncryptionSecret,omitempty"`
-	//   description: |
-	//     A key used for the [encryption of secret data at rest](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/).
-	//     Enables encryption with secretbox.
-	//     Secretbox has precedence over AESCBC.
-	//   examples:
-	//     - name: Decryption secret example (do not use in production!).
-	//       value: '"z01mye6j16bspJYtTB/5SFX8j7Ph4JXxM2Xuu4vsBPM="'
+	// docgen:nodoc
+	//
+	// Deprecated: Use `KubeEtcdEncryptionConfig` instead.
 	ClusterSecretboxEncryptionSecret string `yaml:"secretboxEncryptionSecret,omitempty"`
 	//   description: |
 	//     The base64 encoded root certificate authority used by Kubernetes.
@@ -727,14 +721,14 @@ type KubeletConfig struct {
 	//     - value: kubeletExtraConfigExample()
 	//   schema:
 	//     type: object
-	KubeletExtraConfig Unstructured `yaml:"extraConfig,omitempty"`
+	KubeletExtraConfig meta.Unstructured `yaml:"extraConfig,omitempty"`
 	//  description: |
 	//   The `KubeletCredentialProviderConfig` field is used to provide kubelet credential configuration.
 	//  examples:
 	//    - value: kubeletCredentialProviderConfigExample()
 	//  schema:
 	//    type: object
-	KubeletCredentialProviderConfig Unstructured `yaml:"credentialProviderConfig,omitempty"`
+	KubeletCredentialProviderConfig meta.Unstructured `yaml:"credentialProviderConfig,omitempty"`
 	//  description: |
 	//    Enable container runtime default Seccomp profile.
 	//  values:
@@ -1229,7 +1223,7 @@ type APIServerConfig struct {
 	//     - value: APIServerDefaultAuditPolicy
 	//   schema:
 	//     type: object
-	AuditPolicyConfig Unstructured `yaml:"auditPolicy,omitempty" merge:"replace"`
+	AuditPolicyConfig meta.Unstructured `yaml:"auditPolicy,omitempty" merge:"replace"`
 	//   description: |
 	//     Configure the API server resources.
 	//   schema:
@@ -1294,7 +1288,7 @@ type AdmissionPluginConfig struct {
 	//     configuration.
 	//   schema:
 	//     type: object
-	PluginConfiguration Unstructured `yaml:"configuration"`
+	PluginConfiguration meta.Unstructured `yaml:"configuration"`
 }
 
 // AuthorizationConfigAuthorizerConfigList represents the authorization config authorizer configuration list.
@@ -1314,7 +1308,7 @@ type AuthorizationConfigAuthorizerConfig struct {
 	//     webhook is the configuration for the webhook authorizer.
 	//   schema:
 	//     type: object
-	AuthorizerWebhook Unstructured `yaml:"webhook,omitempty"`
+	AuthorizerWebhook meta.Unstructured `yaml:"webhook,omitempty"`
 }
 
 var _ config.ControllerManager = (*ControllerManagerConfig)(nil)
@@ -1424,7 +1418,7 @@ type SchedulerConfig struct {
 	//     Specify custom kube-scheduler configuration.
 	//   schema:
 	//     type: object
-	SchedulerConfig Unstructured `yaml:"config,omitempty"`
+	SchedulerConfig meta.Unstructured `yaml:"config,omitempty"`
 }
 
 var _ config.Etcd = (*EtcdConfig)(nil)
@@ -1794,7 +1788,7 @@ type ResourcesConfig struct {
 	//       value: resourcesConfigRequestsExample()
 	//   schema:
 	//     type: object
-	Requests Unstructured `yaml:"requests,omitempty"`
+	Requests meta.Unstructured `yaml:"requests,omitempty"`
 	//   description: |
 	//     Limits configures the maximum cpu/memory resources a container can use.
 	//   examples:
@@ -1802,7 +1796,7 @@ type ResourcesConfig struct {
 	//       value: resourcesConfigLimitsExample()
 	//   schema:
 	//     type: object
-	Limits Unstructured `yaml:"limits,omitempty"`
+	Limits meta.Unstructured `yaml:"limits,omitempty"`
 }
 
 // FileMode represents file's permissions.

@@ -10,6 +10,7 @@ import (
 
 	"github.com/siderolabs/talos/pkg/machinery/config/config"
 	"github.com/siderolabs/talos/pkg/machinery/config/machine"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/network"
 	v1alpha1 "github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
@@ -108,7 +109,7 @@ func (in *Input) init() ([]config.Document, error) {
 		admissionControlConfig = append(admissionControlConfig,
 			&v1alpha1.AdmissionPluginConfig{
 				PluginName: "PodSecurity",
-				PluginConfiguration: v1alpha1.Unstructured{
+				PluginConfiguration: meta.Unstructured{
 					Object: map[string]any{
 						"apiVersion": "pod-security.admission.config.k8s.io/v1alpha1",
 						"kind":       "PodSecurityConfiguration",
@@ -131,7 +132,7 @@ func (in *Input) init() ([]config.Document, error) {
 		)
 	}
 
-	var auditPolicyConfig v1alpha1.Unstructured
+	var auditPolicyConfig meta.Unstructured
 
 	if in.Options.VersionContract.APIServerAuditPolicySupported() {
 		auditPolicyConfig = v1alpha1.APIServerDefaultAuditPolicy
@@ -200,10 +201,12 @@ func (in *Input) init() ([]config.Document, error) {
 		cluster.APIServerConfig.DisablePodSecurityPolicyConfig = new(true)
 	}
 
-	if in.Options.VersionContract.SecretboxEncryptionSupported() {
-		cluster.ClusterSecretboxEncryptionSecret = in.Options.SecretsBundle.Secrets.SecretboxEncryptionSecret
-	} else {
-		cluster.ClusterAESCBCEncryptionSecret = in.Options.SecretsBundle.Secrets.AESCBCEncryptionSecret
+	if !in.Options.VersionContract.MultidocKubernetesConfigSupported() {
+		if in.Options.VersionContract.SecretboxEncryptionSupported() {
+			cluster.ClusterSecretboxEncryptionSecret = in.Options.SecretsBundle.Secrets.SecretboxEncryptionSecret //nolint:staticcheck // legacy configuration
+		} else {
+			cluster.ClusterAESCBCEncryptionSecret = in.Options.SecretsBundle.Secrets.AESCBCEncryptionSecret //nolint:staticcheck // legacy configuration
+		}
 	}
 
 	v1alpha1Config.MachineConfig = machine
@@ -232,6 +235,10 @@ func (in *Input) init() ([]config.Document, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate network configs: %w", err)
 	}
+
+	documents = append(documents, extraDocuments...)
+
+	extraDocuments = in.generateKubernetesControlplaneConfigs()
 
 	documents = append(documents, extraDocuments...)
 

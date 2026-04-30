@@ -34,17 +34,62 @@ func TestTemplates(t *testing.T) {
 		{
 			name: "apiserver-encryption-secretbox",
 			obj: func() runtime.Object {
-				return k8stemplates.APIServerEncryptionConfig(&secrets.KubernetesRootSpec{
+				obj, err := k8stemplates.APIServerEncryptionConfig(&secrets.KubernetesRootSpec{
 					SecretboxEncryptionSecret: "/FYehPLp5F8POCNQRVDEUb7Hmt+KkV44e+fQL4HMexs=",
 				})
+				require.NoError(t, err)
+
+				return obj
 			},
 		},
 		{
 			name: "apiserver-encryption-aescbc",
 			obj: func() runtime.Object {
-				return k8stemplates.APIServerEncryptionConfig(&secrets.KubernetesRootSpec{
+				obj, err := k8stemplates.APIServerEncryptionConfig(&secrets.KubernetesRootSpec{
 					AESCBCEncryptionSecret: "/sFYehPLp5F8POCNQRVDEUb7Hmt+KkV44e+fQL4HMexs=",
 				})
+				require.NoError(t, err)
+
+				return obj
+			},
+		},
+		{
+			name: "apiserver-encryption-config",
+			obj: func() runtime.Object {
+				obj, err := k8stemplates.APIServerEncryptionConfig(&secrets.KubernetesRootSpec{
+					EtcdEncryptionConfig: map[string]any{
+						"resources": []any{
+							map[string]any{
+								"resources": []string{"secrets"},
+								"providers": []any{
+									map[string]any{
+										"secretbox": map[string]any{
+											"keys": []any{
+												map[string]any{
+													"name":   "key2",
+													"secret": "/FYehPLp5F8POCNQRVDEUb7Hmt+KkV44e+fQL4HMexs=",
+												},
+											},
+										},
+									},
+									map[string]any{
+										"aescbc": map[string]any{
+											"keys": []any{
+												map[string]any{
+													"name":   "key1",
+													"secret": "/sFYehPLp5F8POCNQRVDEUb7Hmt+KkV44e+fQL4HMexs=",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				})
+				require.NoError(t, err)
+
+				return obj
 			},
 		},
 		{

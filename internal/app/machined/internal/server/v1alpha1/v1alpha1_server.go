@@ -2355,7 +2355,10 @@ func (s *Server) GenerateClientConfiguration(ctx context.Context, in *machine.Ge
 
 	roles, _ := role.Parse(in.Roles)
 
-	secretsBundle := secrets.NewBundleFromConfig(secrets.NewFixedClock(time.Now()), s.Controller.Runtime().Config())
+	secretsBundle, err := secrets.NewBundleFromConfig(secrets.NewFixedClock(time.Now()), s.Controller.Runtime().Config())
+	if err != nil {
+		return nil, fmt.Errorf("error creating secrets bundle from config: %w", err)
+	}
 
 	cert, err := secretsBundle.GenerateTalosAPIClientCertificateWithTTL(roles, crtTTL)
 	if err != nil {

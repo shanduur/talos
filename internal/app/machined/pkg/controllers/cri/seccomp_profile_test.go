@@ -15,6 +15,7 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/cri"
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/ctest"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/resources/config"
 	criseccompresource "github.com/siderolabs/talos/pkg/machinery/resources/cri"
@@ -26,7 +27,7 @@ func (suite *CRISeccompProfileSuite) TestReconcileSeccompProfile() {
 			MachineSeccompProfiles: []*v1alpha1.MachineSeccompProfile{
 				{
 					MachineSeccompProfileName: "audit.json",
-					MachineSeccompProfileValue: v1alpha1.Unstructured{
+					MachineSeccompProfileValue: meta.Unstructured{
 						Object: map[string]any{
 							"defaultAction": "SCMP_ACT_LOG",
 						},
@@ -34,7 +35,7 @@ func (suite *CRISeccompProfileSuite) TestReconcileSeccompProfile() {
 				},
 				{
 					MachineSeccompProfileName: "deny.json",
-					MachineSeccompProfileValue: v1alpha1.Unstructured{
+					MachineSeccompProfileValue: meta.Unstructured{
 						Object: map[string]any{
 							"defaultAction": "SCMP_ACT_ERRNO",
 						},
@@ -91,7 +92,7 @@ func (suite *CRISeccompProfileSuite) TestReconcileSeccompProfile() {
 			MachineSeccompProfiles: []*v1alpha1.MachineSeccompProfile{
 				{
 					MachineSeccompProfileName: "audit.json",
-					MachineSeccompProfileValue: v1alpha1.Unstructured{
+					MachineSeccompProfileValue: meta.Unstructured{
 						Object: map[string]any{
 							"defaultAction": "SCMP_ACT_LOG",
 						},

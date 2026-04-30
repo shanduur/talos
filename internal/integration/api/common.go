@@ -14,6 +14,7 @@ import (
 
 	"github.com/siderolabs/talos/internal/integration/base"
 	"github.com/siderolabs/talos/pkg/machinery/config/machine"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 )
 
@@ -187,7 +188,7 @@ func (suite *CommonSuite) TestBaseOCISpec() {
 		suite.ctx, node, func(nodeCtx context.Context) error {
 			suite.PatchMachineConfig(nodeCtx, &v1alpha1.Config{
 				MachineConfig: &v1alpha1.MachineConfig{
-					MachineBaseRuntimeSpecOverrides: v1alpha1.Unstructured{
+					MachineBaseRuntimeSpecOverrides: meta.Unstructured{
 						Object: map[string]any{
 							"process": map[string]any{
 								"rlimits": []map[string]any{

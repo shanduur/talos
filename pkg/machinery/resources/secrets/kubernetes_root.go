@@ -48,6 +48,8 @@ type KubernetesRootSpec struct {
 	BootstrapTokenSecret string `yaml:"bootstrapTokenSecret" protobuf:"12"`
 
 	SecretboxEncryptionSecret string `yaml:"secretboxEncryptionSecret" protobuf:"13"`
+
+	EtcdEncryptionConfig map[string]any `yaml:"etcdEncryptionConfig" protobuf:"16"`
 }
 
 // NewKubernetesRoot initializes a KubernetesRoot resource.

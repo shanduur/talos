@@ -5,6 +5,8 @@
 package k8stemplates
 
 import (
+	"fmt"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	apiserverv1 "k8s.io/apiserver/pkg/apis/apiserver/v1"
@@ -13,7 +15,23 @@ import (
 )
 
 // APIServerEncryptionConfig returns the encryption configuration for the API server.
-func APIServerEncryptionConfig(rootK8sSecrets *secrets.KubernetesRootSpec) runtime.Object {
+func APIServerEncryptionConfig(rootK8sSecrets *secrets.KubernetesRootSpec) (runtime.Object, error) {
+	if cfg := rootK8sSecrets.EtcdEncryptionConfig; cfg != nil {
+		var obj apiserverv1.EncryptionConfiguration
+
+		if err := runtime.DefaultUnstructuredConverter.FromUnstructuredWithValidation(cfg, &obj, true); err != nil {
+			return nil, fmt.Errorf("error converting etcd encryption config: %w", err)
+		}
+
+		obj.TypeMeta = v1.TypeMeta{
+			Kind:       "EncryptionConfig",
+			APIVersion: apiserverv1.SchemeGroupVersion.Version,
+		}
+
+		return &obj, nil
+	}
+
+	// legacy path, pre-multidoc Kubernetes config, generated fixed configuration based on the secrets available.
 	obj := apiserverv1.EncryptionConfiguration{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "EncryptionConfig",
@@ -57,5 +75,5 @@ func APIServerEncryptionConfig(rootK8sSecrets *secrets.KubernetesRootSpec) runti
 		Identity: &apiserverv1.IdentityConfiguration{},
 	})
 
-	return &obj
+	return &obj, nil
 }

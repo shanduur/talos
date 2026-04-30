@@ -19,6 +19,7 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/ctest"
 	k8sctrl "github.com/siderolabs/talos/internal/app/machined/pkg/controllers/k8s"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/resources/config"
@@ -187,7 +188,7 @@ func (suite *K8sControlPlaneSuite) TestReconcileAdditionalAuthorizationConfigAut
 							{
 								AuthorizerType: "Webhook",
 								AuthorizerName: "webhook",
-								AuthorizerWebhook: v1alpha1.Unstructured{
+								AuthorizerWebhook: meta.Unstructured{
 									Object: map[string]any{
 										"timeout":                    "3s",
 										"subjectAccessReviewVersion": "v1",
@@ -257,7 +258,7 @@ func (suite *K8sControlPlaneSuite) TestReconcileAdditionalAuthorizationConfigAut
 							{
 								AuthorizerType: "Webhook",
 								AuthorizerName: "webhook",
-								AuthorizerWebhook: v1alpha1.Unstructured{
+								AuthorizerWebhook: meta.Unstructured{
 									Object: map[string]any{
 										"timeout":                    "3s",
 										"subjectAccessReviewVersion": "v1",
@@ -339,7 +340,7 @@ func (suite *K8sControlPlaneSuite) TestReconcileAdditionalAuthorizationConfigAut
 							{
 								AuthorizerType: "Webhook",
 								AuthorizerName: "webhook",
-								AuthorizerWebhook: v1alpha1.Unstructured{
+								AuthorizerWebhook: meta.Unstructured{
 									Object: map[string]any{
 										"timeout":                    "3s",
 										"subjectAccessReviewVersion": "v1",
@@ -621,13 +622,13 @@ func (suite *K8sControlPlaneSuite) TestReconcileResources() {
 					},
 					APIServerConfig: &v1alpha1.APIServerConfig{
 						ResourcesConfig: &v1alpha1.ResourcesConfig{
-							Requests: v1alpha1.Unstructured{
+							Requests: meta.Unstructured{
 								Object: map[string]any{
 									"cpu":    "100m",
 									"memory": "1Gi",
 								},
 							},
-							Limits: v1alpha1.Unstructured{
+							Limits: meta.Unstructured{
 								Object: map[string]any{
 									"cpu":    2,
 									"memory": "1500Mi",
@@ -637,13 +638,13 @@ func (suite *K8sControlPlaneSuite) TestReconcileResources() {
 					},
 					ControllerManagerConfig: &v1alpha1.ControllerManagerConfig{
 						ResourcesConfig: &v1alpha1.ResourcesConfig{
-							Requests: v1alpha1.Unstructured{
+							Requests: meta.Unstructured{
 								Object: map[string]any{
 									"cpu":    "50m",
 									"memory": "500Mi",
 								},
 							},
-							Limits: v1alpha1.Unstructured{
+							Limits: meta.Unstructured{
 								Object: map[string]any{
 									"cpu":    1,
 									"memory": "1000Mi",
@@ -653,13 +654,13 @@ func (suite *K8sControlPlaneSuite) TestReconcileResources() {
 					},
 					SchedulerConfig: &v1alpha1.SchedulerConfig{
 						ResourcesConfig: &v1alpha1.ResourcesConfig{
-							Requests: v1alpha1.Unstructured{
+							Requests: meta.Unstructured{
 								Object: map[string]any{
 									"cpu":    "150m",
 									"memory": "2Gi",
 								},
 							},
-							Limits: v1alpha1.Unstructured{
+							Limits: meta.Unstructured{
 								Object: map[string]any{
 									"cpu":    3,
 									"memory": "2000Mi",

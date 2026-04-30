@@ -255,6 +255,7 @@ func (ctrl *Controller) Run(ctx context.Context, drainer *runtime.Drainer) error
 		k8s.NewControlPlaneSchedulerController(),
 		&k8s.ControlPlaneStaticPodController{},
 		&k8s.EndpointController{},
+		&k8s.EtcdEncryptionConfigController{},
 		&k8s.ExtraManifestController{},
 		k8s.NewKubeletConfigController(),
 		&k8s.KubeletKubeconfigController{},

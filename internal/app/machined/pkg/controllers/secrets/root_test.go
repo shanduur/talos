@@ -81,6 +81,9 @@ func (suite *RootSuite) TestReconcileControlPlane() {
 				},
 				res.TypedSpec().AcceptedCAs,
 			)
+			asrt.Empty(res.TypedSpec().AESCBCEncryptionSecret)
+			asrt.Empty(res.TypedSpec().SecretboxEncryptionSecret)
+			asrt.NotEmpty(res.TypedSpec().EtcdEncryptionConfig)
 		},
 	)
 

@@ -16,6 +16,7 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/ctest"
 	filesctrl "github.com/siderolabs/talos/internal/app/machined/pkg/controllers/files"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/resources/config"
@@ -58,7 +59,7 @@ func (suite *CRIBaseRuntimeSpecSuite) TestOverrides() {
 				ConfigVersion: "v1alpha1",
 				MachineConfig: &v1alpha1.MachineConfig{
 					MachineType: "controlplane",
-					MachineBaseRuntimeSpecOverrides: v1alpha1.Unstructured{
+					MachineBaseRuntimeSpecOverrides: meta.Unstructured{
 						Object: map[string]any{
 							"process": map[string]any{
 								"rlimits": []map[string]any{
