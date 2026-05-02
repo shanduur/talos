@@ -21,6 +21,7 @@ import (
 	networkcfg "github.com/siderolabs/talos/pkg/machinery/config/types/network"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/config"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
@@ -38,10 +39,10 @@ func (suite *ResolverConfigSuite) TestDefaults() {
 			"default/resolvers",
 		}, func(r *network.ResolverSpec, asrt *assert.Assertions) {
 			asrt.Equal(
-				[]netip.Addr{
-					netip.MustParseAddr(constants.DefaultPrimaryResolver),
-					netip.MustParseAddr(constants.DefaultSecondaryResolver),
-				}, r.TypedSpec().DNSServers,
+				[]network.NameServerSpec{
+					{Addr: netip.MustParseAddr(constants.DefaultPrimaryResolver)},
+					{Addr: netip.MustParseAddr(constants.DefaultSecondaryResolver)},
+				}, r.TypedSpec().NameServers,
 			)
 			asrt.Empty(r.TypedSpec().SearchDomains)
 			asrt.Equal(network.ConfigDefault, r.TypedSpec().ConfigLayer)
@@ -87,10 +88,10 @@ func (suite *ResolverConfigSuite) TestWithHostnameStatus() {
 			"default/resolvers",
 		}, func(r *network.ResolverSpec, asrt *assert.Assertions) {
 			asrt.Equal(
-				[]netip.Addr{
-					netip.MustParseAddr(constants.DefaultPrimaryResolver),
-					netip.MustParseAddr(constants.DefaultSecondaryResolver),
-				}, r.TypedSpec().DNSServers,
+				[]network.NameServerSpec{
+					{Addr: netip.MustParseAddr(constants.DefaultPrimaryResolver)},
+					{Addr: netip.MustParseAddr(constants.DefaultSecondaryResolver)},
+				}, r.TypedSpec().NameServers,
 			)
 			asrt.Equal([]string{"example.org"}, r.TypedSpec().SearchDomains)
 			asrt.Equal(network.ConfigDefault, r.TypedSpec().ConfigLayer)
@@ -145,10 +146,10 @@ func (suite *ResolverConfigSuite) TestCmdline() {
 			"cmdline/resolvers",
 		}, func(r *network.ResolverSpec, asrt *assert.Assertions) {
 			asrt.Equal(
-				[]netip.Addr{
-					netip.MustParseAddr("10.0.0.1"),
-					netip.MustParseAddr("10.0.0.2"),
-				}, r.TypedSpec().DNSServers,
+				[]network.NameServerSpec{
+					{Addr: netip.MustParseAddr("10.0.0.1")},
+					{Addr: netip.MustParseAddr("10.0.0.2")},
+				}, r.TypedSpec().NameServers,
 			)
 			asrt.Empty(r.TypedSpec().SearchDomains)
 		},
@@ -185,16 +186,16 @@ func (suite *ResolverConfigSuite) TestMachineConfigurationLegacy() {
 
 	suite.Create(cfg)
 
-	ctest.AssertResources(
+	ctest.AssertResources( //nolint:dupl
 		suite,
 		[]string{
 			"configuration/resolvers",
 		}, func(r *network.ResolverSpec, asrt *assert.Assertions) {
 			asrt.Equal(
-				[]netip.Addr{
-					netip.MustParseAddr("2.2.2.2"),
-					netip.MustParseAddr("3.3.3.3"),
-				}, r.TypedSpec().DNSServers,
+				[]network.NameServerSpec{
+					{Addr: netip.MustParseAddr("2.2.2.2")},
+					{Addr: netip.MustParseAddr("3.3.3.3")},
+				}, r.TypedSpec().NameServers,
 			)
 
 			asrt.Equal(
@@ -237,16 +238,16 @@ func (suite *ResolverConfigSuite) TestMachineConfigurationNewStyle() {
 	cfg := config.NewMachineConfig(ctr)
 	suite.Create(cfg)
 
-	ctest.AssertResources(
+	ctest.AssertResources( //nolint:dupl
 		suite,
 		[]string{
 			"configuration/resolvers",
 		}, func(r *network.ResolverSpec, asrt *assert.Assertions) {
 			asrt.Equal(
-				[]netip.Addr{
-					netip.MustParseAddr("2.2.2.2"),
-					netip.MustParseAddr("3.3.3.3"),
-				}, r.TypedSpec().DNSServers,
+				[]network.NameServerSpec{
+					{Addr: netip.MustParseAddr("2.2.2.2")},
+					{Addr: netip.MustParseAddr("3.3.3.3")},
+				}, r.TypedSpec().NameServers,
 			)
 
 			asrt.Equal(
@@ -260,6 +261,47 @@ func (suite *ResolverConfigSuite) TestMachineConfigurationNewStyle() {
 	suite.Destroy(cfg)
 
 	ctest.AssertNoResource[*network.ResolverSpec](suite, "configuration/resolvers", rtestutils.WithNamespace(network.ConfigNamespaceName))
+}
+
+func (suite *ResolverConfigSuite) TestMachineConfigurationDNSOverTLS() {
+	suite.Require().NoError(suite.Runtime().RegisterController(&netctrl.ResolverConfigController{}))
+
+	rc := networkcfg.NewResolverConfigV1Alpha1()
+	rc.ResolverNameservers = []networkcfg.NameserverConfig{
+		{
+			Address:       networkcfg.Addr{Addr: netip.MustParseAddr("9.9.9.9")},
+			Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+			TLSServerName: "dns.quad9.net",
+		},
+		{
+			Address: networkcfg.Addr{Addr: netip.MustParseAddr("8.8.8.8")},
+		},
+	}
+
+	ctr, err := container.New(rc)
+	suite.Require().NoError(err)
+
+	cfg := config.NewMachineConfig(ctr)
+	suite.Create(cfg)
+
+	ctest.AssertResources(
+		suite,
+		[]string{
+			"configuration/resolvers",
+		}, func(r *network.ResolverSpec, asrt *assert.Assertions) {
+			asrt.Equal(
+				[]network.NameServerSpec{
+					{
+						Addr:          netip.MustParseAddr("9.9.9.9"),
+						Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+						TLSServerName: "dns.quad9.net",
+					},
+					{Addr: netip.MustParseAddr("8.8.8.8")},
+				}, r.TypedSpec().NameServers,
+			)
+		},
+		rtestutils.WithNamespace(network.ConfigNamespaceName),
+	)
 }
 
 func TestResolverConfigSuite(t *testing.T) {

@@ -190,6 +190,7 @@ func (suite *PlatformConfigApplySuite) TestResolvers() {
 	platformConfig.TypedSpec().Resolvers = []network.ResolverSpecSpec{
 		{
 			DNSServers:  []netip.Addr{netip.MustParseAddr("1.1.1.1")},
+			NameServers: []network.NameServerSpec{{Addr: netip.MustParseAddr("1.1.1.1")}},
 			ConfigLayer: network.ConfigPlatform,
 		},
 	}
@@ -200,7 +201,8 @@ func (suite *PlatformConfigApplySuite) TestResolvers() {
 	}, func(r *network.ResolverSpec, asrt *assert.Assertions) {
 		spec := r.TypedSpec()
 
-		asrt.Equal("[1.1.1.1]", fmt.Sprintf("%s", spec.DNSServers))
+		asrt.Equal("[1.1.1.1]", fmt.Sprintf("%s", spec.DNSServers)) //nolint:staticcheck
+		asrt.Equal([]network.NameServerSpec{{Addr: netip.MustParseAddr("1.1.1.1")}}, spec.NameServers)
 		asrt.Equal(network.ConfigPlatform, spec.ConfigLayer)
 	}, rtestutils.WithNamespace(network.ConfigNamespaceName))
 }

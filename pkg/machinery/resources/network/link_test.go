@@ -15,6 +15,8 @@ import (
 )
 
 func TestWireguardPeer(t *testing.T) {
+	t.Parallel()
+
 	key1 := "2t4fMmV1fBhI6RgoUzHp9BoWLT7oq0C/fOV17f7FqTI="
 	key2 := "zHyf80qsjQ1EfiXkjxaLf9K9VZ6YRwcXx8GrpXQ6/yQ="
 

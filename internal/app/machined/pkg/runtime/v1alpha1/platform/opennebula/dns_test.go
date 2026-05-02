@@ -103,7 +103,7 @@ NAME = "test"
 
 			var dnsStrs []string
 
-			for _, ip := range resolver.DNSServers {
+			for _, ip := range resolver.DNSServers { //nolint:staticcheck
 				dnsStrs = append(dnsStrs, ip.String())
 			}
 

@@ -279,6 +279,7 @@ func (ctrl *PlatformConfigApplyController) apply(ctx context.Context, r controll
 
 					*spec = newSpec.(network.ResolverSpecSpec) //nolint:forcetypeassert
 					spec.ConfigLayer = network.ConfigPlatform
+					spec.Convert() // convert deprecated fields for backward compatibility
 
 					return nil
 				}

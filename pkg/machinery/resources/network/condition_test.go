@@ -20,10 +20,10 @@ import (
 )
 
 func TestCondition(t *testing.T) {
+	t.Parallel()
+
 	ctx, ctxCancel := context.WithTimeout(t.Context(), time.Second)
 	t.Cleanup(ctxCancel)
-
-	t.Parallel()
 
 	for _, tt := range []struct {
 		Name     string

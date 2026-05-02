@@ -96,6 +96,13 @@ resolvers:
     - dnsServers:
         - 8.8.8.8
         - 8.8.4.4
+      nameServers:
+        - addr: 8.8.8.8
+          protocol: Do53
+          tlsServerName: ""
+        - addr: 8.8.4.4
+          protocol: Do53
+          tlsServerName: ""
       layer: platform
 timeServers: []
 operators: []

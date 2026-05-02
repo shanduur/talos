@@ -143,6 +143,12 @@ enum NethelpersConntrackState {
   CONNTRACK_STATE_INVALID = 1;
 }
 
+// NethelpersDNSProtocol is a kind of DNS protocol.
+enum NethelpersDNSProtocol {
+  DNS_PROTOCOL_DEFAULT = 0;
+  DNS_PROTOCOL_DNS_OVER_TLS = 1;
+}
+
 // NethelpersDuplex wraps ethtool.Duplex for YAML marshaling.
 enum NethelpersDuplex {
   HALF = 0;

@@ -113,9 +113,16 @@ type NetworkHostnameConfig interface {
 	AutoHostname() nethelpers.AutoHostnameKind
 }
 
+// NetworkResolver is a single instance of a DNS resolver configuration.
+type NetworkResolver struct {
+	Addr          netip.Addr
+	Protocol      nethelpers.DNSProtocol
+	TLSServerName string
+}
+
 // NetworkResolverConfig defines a resolver configuration.
 type NetworkResolverConfig interface {
-	Resolvers() []netip.Addr
+	Resolvers() []NetworkResolver
 	SearchDomains() []string
 	DisableSearchDomain() bool
 }

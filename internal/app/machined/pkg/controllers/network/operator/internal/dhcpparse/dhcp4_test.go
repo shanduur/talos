@@ -16,6 +16,7 @@ import (
 
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/network/operator/internal/dhcpparse"
 	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
+	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
 
 func TestParseDHCP4Ack(t *testing.T) {
@@ -179,11 +180,11 @@ func TestParseDHCP4Ack(t *testing.T) {
 		require.Len(t, specs.Resolvers, 1)
 		assert.Equal(
 			t,
-			[]netip.Addr{
-				must.Value(netip.ParseAddr("8.8.8.8"))(t),
-				must.Value(netip.ParseAddr("8.8.4.4"))(t),
+			[]network.NameServerSpec{
+				{Addr: must.Value(netip.ParseAddr("8.8.8.8"))(t)},
+				{Addr: must.Value(netip.ParseAddr("8.8.4.4"))(t)},
 			},
-			specs.Resolvers[0].DNSServers,
+			specs.Resolvers[0].NameServers,
 		)
 		assert.Equal(t, []string{"example.com"}, specs.Resolvers[0].SearchDomains,
 			"DomainName feeds the search list when DomainSearch is absent")
@@ -255,7 +256,7 @@ func TestParseDHCP4Ack(t *testing.T) {
 		specs := dhcpparse.ParseDHCP4Ack(ack, linkName, routeMetric, false)
 
 		require.Len(t, specs.Resolvers, 1)
-		assert.Empty(t, specs.Resolvers[0].DNSServers)
+		assert.Empty(t, specs.Resolvers[0].NameServers)
 		assert.Equal(t, []string{"example.com"}, specs.Resolvers[0].SearchDomains)
 	})
 

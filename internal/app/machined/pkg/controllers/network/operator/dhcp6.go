@@ -182,7 +182,9 @@ func (d *DHCP6) parseReply(reply *dhcpv6.Message) (leaseTime time.Duration) {
 
 		d.resolvers = []network.ResolverSpecSpec{
 			{
-				DNSServers:  xslices.Map(reply.Options.DNS(), convertIP),
+				NameServers: xslices.Map(reply.Options.DNS(), func(ip net.IP) network.NameServerSpec {
+					return network.NameServerSpec{Addr: convertIP(ip)}
+				}),
 				ConfigLayer: network.ConfigOperator,
 			},
 		}

@@ -15,6 +15,8 @@ import (
 )
 
 func TestHostnameSpecMarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	spec := network.HostnameSpecSpec{
 		Hostname:    "foo",
 		Domainname:  "example.com",

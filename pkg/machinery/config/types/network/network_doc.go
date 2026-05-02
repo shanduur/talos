@@ -1513,6 +1513,8 @@ func (ResolverConfigV1Alpha1) Doc() *encoder.Doc {
 
 	doc.AddExample("", exampleResolverConfigV1Alpha3())
 
+	doc.AddExample("", exampleResolverConfigV1Alpha4())
+
 	return doc
 }
 
@@ -1535,10 +1537,29 @@ func (NameserverConfig) Doc() *encoder.Doc {
 				Description: "The IP address of the nameserver.",
 				Comments:    [3]string{"" /* encoder.HeadComment */, "The IP address of the nameserver." /* encoder.LineComment */, "" /* encoder.FootComment */},
 			},
+			{
+				Name:        "protocol",
+				Type:        "DNSProtocol",
+				Note:        "",
+				Description: "A DNS protocol to use.\n\nThe default protocol is plain DNS (`Do53`) (DNS over TCP/UDP), but this can be set\nto `DoT` to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.\n\nNote: DNS over TLS requires a correct system clock to validate certificates.\nIf NTP is configured with hostnames that need to be resolved through DoT, the\nboot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the\nhardware clock, configure NTP servers by IP, or keep at least one plain-DNS\nfallback nameserver.",
+				Comments:    [3]string{"" /* encoder.HeadComment */, "A DNS protocol to use." /* encoder.LineComment */, "" /* encoder.FootComment */},
+				Values: []string{
+					"Do53",
+					"DoT",
+				},
+			},
+			{
+				Name:        "tlsServerName",
+				Type:        "string",
+				Note:        "",
+				Description: "TLS server name to validate the nameserver certificate against.\n\nThis field should be set, if the protocol is set to `DoT`.\nThe value is used both as the SNI sent during the TLS handshake and as the name\nverified against the server certificate.",
+				Comments:    [3]string{"" /* encoder.HeadComment */, "TLS server name to validate the nameserver certificate against." /* encoder.LineComment */, "" /* encoder.FootComment */},
+			},
 		},
 	}
 
 	doc.Fields[0].AddExample("", Addr{netip.MustParseAddr("10.0.0.1")})
+	doc.Fields[2].AddExample("", "dns1.example.com")
 
 	return doc
 }

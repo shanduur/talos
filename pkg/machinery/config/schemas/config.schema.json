@@ -2779,6 +2779,23 @@
           "description": "The IP address of the nameserver.\n",
           "markdownDescription": "The IP address of the nameserver.",
           "x-intellij-html-description": "\u003cp\u003eThe IP address of the nameserver.\u003c/p\u003e\n"
+        },
+        "protocol": {
+          "enum": [
+            "Do53",
+            "DoT"
+          ],
+          "title": "protocol",
+          "description": "A DNS protocol to use.\n\nThe default protocol is plain DNS (Do53) (DNS over TCP/UDP), but this can be set\nto DoT to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.\n\nNote: DNS over TLS requires a correct system clock to validate certificates.\nIf NTP is configured with hostnames that need to be resolved through DoT, the\nboot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the\nhardware clock, configure NTP servers by IP, or keep at least one plain-DNS\nfallback nameserver.\n",
+          "markdownDescription": "A DNS protocol to use.\n\nThe default protocol is plain DNS (`Do53`) (DNS over TCP/UDP), but this can be set\nto `DoT` to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.\n\nNote: DNS over TLS requires a correct system clock to validate certificates.\nIf NTP is configured with hostnames that need to be resolved through DoT, the\nboot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the\nhardware clock, configure NTP servers by IP, or keep at least one plain-DNS\nfallback nameserver.",
+          "x-intellij-html-description": "\u003cp\u003eA DNS protocol to use.\u003c/p\u003e\n\n\u003cp\u003eThe default protocol is plain DNS (\u003ccode\u003eDo53\u003c/code\u003e) (DNS over TCP/UDP), but this can be set\nto \u003ccode\u003eDoT\u003c/code\u003e to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.\u003c/p\u003e\n\n\u003cp\u003eNote: DNS over TLS requires a correct system clock to validate certificates.\nIf NTP is configured with hostnames that need to be resolved through DoT, the\nboot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the\nhardware clock, configure NTP servers by IP, or keep at least one plain-DNS\nfallback nameserver.\u003c/p\u003e\n"
+        },
+        "tlsServerName": {
+          "type": "string",
+          "title": "tlsServerName",
+          "description": "TLS server name to validate the nameserver certificate against.\n\nThis field should be set, if the protocol is set to DoT.\nThe value is used both as the SNI sent during the TLS handshake and as the name\nverified against the server certificate.\n",
+          "markdownDescription": "TLS server name to validate the nameserver certificate against.\n\nThis field should be set, if the protocol is set to `DoT`.\nThe value is used both as the SNI sent during the TLS handshake and as the name\nverified against the server certificate.",
+          "x-intellij-html-description": "\u003cp\u003eTLS server name to validate the nameserver certificate against.\u003c/p\u003e\n\n\u003cp\u003eThis field should be set, if the protocol is set to \u003ccode\u003eDoT\u003c/code\u003e.\nThe value is used both as the SNI sent during the TLS handshake and as the name\nverified against the server certificate.\u003c/p\u003e\n"
         }
       },
       "additionalProperties": false,

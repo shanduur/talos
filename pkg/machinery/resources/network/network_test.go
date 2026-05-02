@@ -23,6 +23,8 @@ import (
 )
 
 func TestRegisterResource(t *testing.T) {
+	t.Parallel()
+
 	ctx := t.Context()
 
 	resources := state.WrapCore(namespaced.NewState(inmem.Build))

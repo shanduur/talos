@@ -72,7 +72,7 @@ func (c *Container) NetworkConfiguration(ctx context.Context, _ state.State, ch 
 		return err
 	}
 
-	if len(resolverSpec.DNSServers) > 0 {
+	if len(resolverSpec.NameServers) > 0 {
 		networkConfig.Resolvers = append(networkConfig.Resolvers, resolverSpec)
 	}
 

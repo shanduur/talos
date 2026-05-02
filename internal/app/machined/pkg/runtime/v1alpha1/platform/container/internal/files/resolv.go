@@ -9,6 +9,7 @@ import (
 	"net/netip"
 	"os"
 
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
 
@@ -34,9 +35,14 @@ func ReadResolvConf(path string) (network.ResolverSpecSpec, error) {
 		line = bytes.TrimSpace(bytes.TrimPrefix(line, []byte("nameserver")))
 
 		if addr, err := netip.ParseAddr(string(line)); err == nil {
-			resolverSpec.DNSServers = append(resolverSpec.DNSServers, addr)
+			resolverSpec.NameServers = append(resolverSpec.NameServers, network.NameServerSpec{
+				Addr:     addr,
+				Protocol: nethelpers.DNSProtocolDefault,
+			})
 		}
 	}
+
+	resolverSpec.Convert()
 
 	return resolverSpec, nil
 }

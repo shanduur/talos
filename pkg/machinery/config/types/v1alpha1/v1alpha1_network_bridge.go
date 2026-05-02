@@ -48,16 +48,19 @@ func (c *Config) AutoHostname() nethelpers.AutoHostnameKind {
 }
 
 // Resolvers implements config.NetworkResolverConfig interface.
-func (c *Config) Resolvers() []netip.Addr {
+func (c *Config) Resolvers() []config.NetworkResolver {
 	if c.MachineConfig == nil || c.MachineConfig.MachineNetwork == nil {
 		return nil
 	}
 
-	var result []netip.Addr
+	var result []config.NetworkResolver
 
 	for _, r := range c.MachineConfig.MachineNetwork.NameServers {
 		if addr, err := netip.ParseAddr(r); err == nil {
-			result = append(result, addr)
+			result = append(result, config.NetworkResolver{
+				Addr:     addr,
+				Protocol: nethelpers.DNSProtocolDefault,
+			})
 		}
 	}
 

@@ -17,6 +17,8 @@ import (
 )
 
 func TestAddressSpecMarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	spec := network.AddressSpecSpec{
 		Address:     netip.MustParsePrefix("192.168.3.6/27"),
 		LinkName:    "eth0",

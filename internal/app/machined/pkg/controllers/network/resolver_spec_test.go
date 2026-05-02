@@ -27,14 +27,16 @@ func (suite *ResolverSpecSuite) TestSpec() {
 
 	spec := network.NewResolverSpec(network.NamespaceName, "resolvers")
 	*spec.TypedSpec() = network.ResolverSpecSpec{
-		DNSServers:  []netip.Addr{netip.MustParseAddr(constants.DefaultPrimaryResolver)},
+		NameServers: []network.NameServerSpec{{Addr: netip.MustParseAddr(constants.DefaultPrimaryResolver)}},
+		DNSServers:  []netip.Addr{netip.MustParseAddr(constants.DefaultPrimaryResolver)}, //nolint:staticcheck // backward compatibility
 		ConfigLayer: network.ConfigDefault,
 	}
 
 	suite.Create(spec)
 
 	ctest.AssertResource(suite, "resolvers", func(r *network.ResolverStatus, asrt *assert.Assertions) {
-		asrt.Equal([]netip.Addr{netip.MustParseAddr(constants.DefaultPrimaryResolver)}, r.TypedSpec().DNSServers)
+		asrt.Equal([]netip.Addr{netip.MustParseAddr(constants.DefaultPrimaryResolver)}, r.TypedSpec().DNSServers) //nolint:staticcheck // backward compatibility
+		asrt.Equal([]network.NameServerSpec{{Addr: netip.MustParseAddr(constants.DefaultPrimaryResolver)}}, r.TypedSpec().NameServers)
 	})
 }
 

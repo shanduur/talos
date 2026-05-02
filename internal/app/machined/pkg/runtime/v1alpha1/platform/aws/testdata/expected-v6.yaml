@@ -15,6 +15,10 @@ hostnames:
 resolvers:
     - dnsServers:
         - fd00:ec2::253
+      nameServers:
+        - addr: fd00:ec2::253
+          protocol: Do53
+          tlsServerName: ""
       layer: platform
 timeServers:
     - timeServers:

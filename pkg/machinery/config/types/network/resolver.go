@@ -8,6 +8,7 @@ package network
 
 import (
 	"errors"
+	"fmt"
 	"net/netip"
 	"slices"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/config/validation"
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 )
 
 // ResolverKind is a ResolverConfig document kind.
@@ -51,6 +53,7 @@ var (
 //	  - value: exampleResolverConfigV1Alpha1()
 //	  - value: exampleResolverConfigV1Alpha2()
 //	  - value: exampleResolverConfigV1Alpha3()
+//	  - value: exampleResolverConfigV1Alpha4()
 //	alias: ResolverConfig
 //	schemaRoot: true
 //	schemaMeta: v1alpha1/ResolverConfig
@@ -89,6 +92,32 @@ type NameserverConfig struct {
 	//     type: string
 	//     pattern: ^[0-9a-f.:]+$
 	Address Addr `yaml:"address"`
+	//   description: |
+	//     A DNS protocol to use.
+	//
+	//     The default protocol is plain DNS (`Do53`) (DNS over TCP/UDP), but this can be set
+	//     to `DoT` to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.
+	//
+	//     Note: DNS over TLS requires a correct system clock to validate certificates.
+	//     If NTP is configured with hostnames that need to be resolved through DoT, the
+	//     boot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the
+	//     hardware clock, configure NTP servers by IP, or keep at least one plain-DNS
+	//     fallback nameserver.
+	//   values:
+	//     - "Do53"
+	//     - "DoT"
+	Protocol nethelpers.DNSProtocol `yaml:"protocol,omitempty"`
+	//   description: |
+	//     TLS server name to validate the nameserver certificate against.
+	//
+	//     This field should be set, if the protocol is set to `DoT`.
+	//     The value is used both as the SNI sent during the TLS handshake and as the name
+	//     verified against the server certificate.
+	//
+	//   examples:
+	//     - value: >
+	//        "dns1.example.com"
+	TLSServerName string `yaml:"tlsServerName,omitempty"`
 }
 
 // SearchDomainsConfig represents search domains configuration.
@@ -180,6 +209,24 @@ func exampleResolverConfigV1Alpha3() *ResolverConfigV1Alpha1 {
 	return cfg
 }
 
+func exampleResolverConfigV1Alpha4() *ResolverConfigV1Alpha1 {
+	cfg := NewResolverConfigV1Alpha1()
+	cfg.ResolverNameservers = []NameserverConfig{
+		{
+			Address:       Addr{netip.MustParseAddr("9.9.9.9")},
+			Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+			TLSServerName: "dns.quad9.net",
+		},
+		{
+			Address:       Addr{netip.MustParseAddr("2620:fe::fe")},
+			Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+			TLSServerName: "dns.quad9.net",
+		},
+	}
+
+	return cfg
+}
+
 // Clone implements config.Document interface.
 func (s *ResolverConfigV1Alpha1) Clone() config.Document {
 	return s.DeepCopy()
@@ -209,8 +256,13 @@ func (s *ResolverConfigV1Alpha1) V1Alpha1ConflictValidate(v1alpha1Cfg *v1alpha1.
 }
 
 // Validate implements config.Validator interface.
+//
+//nolint:gocyclo
 func (s *ResolverConfigV1Alpha1) Validate(validation.RuntimeMode, ...validation.Option) ([]string, error) {
-	var errs error
+	var (
+		warnings []string
+		errs     error
+	)
 
 	if !value.IsZero(s.ResolverHostDNS) {
 		if !s.HostDNSEnabled() {
@@ -224,13 +276,50 @@ func (s *ResolverConfigV1Alpha1) Validate(validation.RuntimeMode, ...validation.
 		}
 	}
 
-	return nil, errs
+	nonRegularDNS := 0
+
+	for idx, ns := range s.ResolverNameservers {
+		switch ns.Protocol {
+		case nethelpers.DNSProtocolDNSOverTLS:
+			nonRegularDNS++
+
+			if ns.TLSServerName == "" {
+				errs = errors.Join(errs, fmt.Errorf("tlsServerName must be set when protocol is DoT: entry %d", idx))
+			}
+
+		case nethelpers.DNSProtocolDefault:
+			if ns.TLSServerName != "" {
+				errs = errors.Join(errs, fmt.Errorf("tlsServerName must be empty when protocol is Do53: entry %d", idx))
+			}
+		default:
+			errs = errors.Join(errs, fmt.Errorf("unsupported DNS protocol: entry %d", idx))
+		}
+
+		if !ns.Address.IsValid() {
+			errs = errors.Join(errs, fmt.Errorf("nameserver address must be a valid IP: entry %d", idx))
+		}
+	}
+
+	if nonRegularDNS > 0 && nonRegularDNS == len(s.ResolverNameservers) {
+		warnings = append(
+			warnings,
+			"all configured nameservers use DNS over TLS: validating certificates requires a correct system clock, "+
+				"so boot may stall when NTP servers are configured by hostname; consider keeping at least one plain-DNS fallback "+
+				"or configuring NTP servers by IP address",
+		)
+	}
+
+	return warnings, errs
 }
 
 // Resolvers implements NetworkResolverConfig interface.
-func (s *ResolverConfigV1Alpha1) Resolvers() []netip.Addr {
-	return xslices.Map(s.ResolverNameservers, func(ns NameserverConfig) netip.Addr {
-		return ns.Address.Addr
+func (s *ResolverConfigV1Alpha1) Resolvers() []config.NetworkResolver {
+	return xslices.Map(s.ResolverNameservers, func(ns NameserverConfig) config.NetworkResolver {
+		return config.NetworkResolver{
+			Addr:          ns.Address.Addr,
+			Protocol:      ns.Protocol,
+			TLSServerName: ns.TLSServerName,
+		}
 	})
 }
 

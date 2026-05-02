@@ -92,7 +92,12 @@ func (ctrl *PlatformConfigController) Run(ctx context.Context, r controller.Runt
 				ctx, r,
 				network.NewPlatformConfig(network.NamespaceName, network.PlatformConfigActiveID),
 				func(out *network.PlatformConfig) error {
-					*out.TypedSpec() = *networkConfig
+					*out.TypedSpec() = networkConfig.DeepCopy()
+
+					// fix up resolvers as a defensive measure
+					for i := range out.TypedSpec().Resolvers {
+						out.TypedSpec().Resolvers[i].Convert()
+					}
 
 					return nil
 				},

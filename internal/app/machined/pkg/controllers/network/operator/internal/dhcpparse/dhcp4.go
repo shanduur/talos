@@ -195,7 +195,9 @@ func ParseDHCP4Ack(ack *dhcpv4.DHCPv4, linkName string, routeMetric uint32, useH
 
 		specs.Resolvers = []network.ResolverSpecSpec{
 			{
-				DNSServers:    xslices.Map(ack.DNS(), convertIP),
+				NameServers: xslices.Map(ack.DNS(), func(ip net.IP) network.NameServerSpec {
+					return network.NameServerSpec{Addr: convertIP(ip)}
+				}),
 				SearchDomains: searchDomains,
 				ConfigLayer:   network.ConfigOperator,
 			},

@@ -19,6 +19,8 @@ import (
 )
 
 func TestLinkSpecMarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	spec := network.LinkSpecSpec{
 		Name:       "eth0",
 		Logical:    true,

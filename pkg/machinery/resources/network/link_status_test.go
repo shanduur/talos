@@ -21,6 +21,8 @@ import (
 )
 
 func TestLinkStatusMarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	hwAddr, err := net.ParseMAC("01:23:45:67:89:ab")
 	require.NoError(t, err)
 

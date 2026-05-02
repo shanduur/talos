@@ -12,6 +12,7 @@ import (
 	"unicode"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/siderolabs/gen/xslices"
 
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
 	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
@@ -74,10 +75,13 @@ func (formData *NetworkConfigFormData) ToPlatformNetworkConfig() (*runtime.Platf
 	if len(dnsServers) > 0 {
 		config.Resolvers = []network.ResolverSpecSpec{
 			{
-				DNSServers:  dnsServers,
+				NameServers: xslices.Map(dnsServers, func(addr netip.Addr) network.NameServerSpec {
+					return network.NameServerSpec{Addr: addr}
+				}),
 				ConfigLayer: network.ConfigPlatform,
 			},
 		}
+		config.Resolvers[0].Convert() // handle conversion for backward compatibility
 	}
 
 	timeServers := formData.splitInputList(formData.TimeServers)

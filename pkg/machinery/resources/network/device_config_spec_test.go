@@ -16,6 +16,8 @@ import (
 )
 
 func TestDeviceConfigProtobufMarshal(t *testing.T) {
+	t.Parallel()
+
 	d := &v1alpha1.Device{
 		DeviceInterface: "eth0",
 		DeviceAddresses: []string{"10.0.0.8/32"},

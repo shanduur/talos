@@ -14,6 +14,7 @@ import (
 
 	"github.com/cosi-project/runtime/pkg/safe"
 	"github.com/cosi-project/runtime/pkg/state"
+	"github.com/siderolabs/gen/xslices"
 
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
 	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
@@ -256,10 +257,18 @@ func (v *VMware) ApplyNetworkConfigV2(ctx context.Context, st state.State, confi
 	}
 
 	if len(dnsIPs) > 0 {
-		networkConfig.Resolvers = append(networkConfig.Resolvers, network.ResolverSpecSpec{
-			DNSServers:  dnsIPs,
+		resolverSpec := network.ResolverSpecSpec{
+			NameServers: xslices.Map(dnsIPs, func(addr netip.Addr) network.NameServerSpec {
+				return network.NameServerSpec{
+					Addr:     addr,
+					Protocol: nethelpers.DNSProtocolDefault,
+				}
+			}),
 			ConfigLayer: network.ConfigPlatform,
-		})
+		}
+		resolverSpec.Convert()
+
+		networkConfig.Resolvers = append(networkConfig.Resolvers, resolverSpec)
 	}
 
 	return nil

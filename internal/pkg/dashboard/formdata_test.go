@@ -118,6 +118,10 @@ func TestFilledFormNoIface(t *testing.T) {
 				ConfigLayer: network.ConfigPlatform,
 			}},
 			Resolvers: []network.ResolverSpecSpec{{
+				NameServers: []network.NameServerSpec{
+					{Addr: netip.MustParseAddr("1.2.3.4")},
+					{Addr: netip.MustParseAddr("5.6.7.8")},
+				},
 				DNSServers: []netip.Addr{
 					netip.MustParseAddr("1.2.3.4"),
 					netip.MustParseAddr("5.6.7.8"),

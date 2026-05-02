@@ -101,6 +101,14 @@ mount:
 Upgrade note: apply this `VolumeConfig` patch *before* upgrading, otherwise affected workloads will fail after the next reboot. Longhorn v2 (SPDK data engine) runs the data plane inside the instance manager process and is not affected.
 """
 
+    [notes.DoT]
+        title = "DNS over TLS (DoT) Support"
+        description = """\
+Talos now supports DNS over TLS (DoT) for secure DNS resolution.
+This feature allows Talos to encrypt DNS queries and responses, enhancing privacy and security for DNS traffic.
+The DNS protocol can be configured on a per-name server basis in the `ResolverConfig` document, allowing for flexible configuration of DNS resolution.
+"""
+
 [make_deps]
 
     [make_deps.tools]

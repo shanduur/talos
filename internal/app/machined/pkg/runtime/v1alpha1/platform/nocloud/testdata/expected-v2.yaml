@@ -192,6 +192,16 @@ resolvers:
         - 8.8.8.8
         - 1.1.1.1
         - 2.2.2.2
+      nameServers:
+        - addr: 8.8.8.8
+          protocol: Do53
+          tlsServerName: ""
+        - addr: 1.1.1.1
+          protocol: Do53
+          tlsServerName: ""
+        - addr: 2.2.2.2
+          protocol: Do53
+          tlsServerName: ""
       layer: platform
 timeServers: []
 operators:

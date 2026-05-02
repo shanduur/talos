@@ -1066,6 +1066,8 @@ spec:
             withConfigPatch: "@hack/test/patches/node-address-v2.yaml"
           - test: e2e-tpm1_2
             withTpm12: "true"
+          - test: e2e-dns-over-tls
+            withConfigPatch: "@hack/test/patches/dns-over-tls.yaml"
       steps:
         - name: download-artifacts
           artifactStep:

@@ -26,6 +26,7 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime/v1alpha1/platform/internal/netutils"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/imager/quirks"
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 	runtimeres "github.com/siderolabs/talos/pkg/machinery/resources/runtime"
 )
@@ -224,10 +225,18 @@ func (a *AWS) ParseMetadata(metadata *MetadataConfig) (*runtime.PlatformNetworkC
 
 			dns, _ := netip.ParseAddr(awsIPv6DNSServer) //nolint:errcheck
 
-			networkConfig.Resolvers = append(networkConfig.Resolvers, network.ResolverSpecSpec{
-				DNSServers:  []netip.Addr{dns},
+			resolverSpec := network.ResolverSpecSpec{
+				NameServers: []network.NameServerSpec{
+					{
+						Addr:     dns,
+						Protocol: nethelpers.DNSProtocolDefault,
+					},
+				},
 				ConfigLayer: network.ConfigPlatform,
-			})
+			}
+			resolverSpec.Convert()
+
+			networkConfig.Resolvers = append(networkConfig.Resolvers, resolverSpec)
 		}
 	}
 

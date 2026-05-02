@@ -33,6 +33,10 @@ hostnames:
 resolvers:
     - dnsServers:
         - 169.254.169.254
+      nameServers:
+        - addr: 169.254.169.254
+          protocol: Do53
+          tlsServerName: ""
       layer: platform
 timeServers:
     - timeServers:

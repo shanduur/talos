@@ -101,10 +101,18 @@ func (o *Oracle) ParseMetadata(interfaceAddresses []NetworkConfig, metadata *Met
 
 	dns, _ := netip.ParseAddr(oracleResolverServer) //nolint:errcheck
 
-	networkConfig.Resolvers = append(networkConfig.Resolvers, network.ResolverSpecSpec{
-		DNSServers:  []netip.Addr{dns},
+	resolverSpec := network.ResolverSpecSpec{
+		NameServers: []network.NameServerSpec{
+			{
+				Addr:     dns,
+				Protocol: nethelpers.DNSProtocolDefault,
+			},
+		},
 		ConfigLayer: network.ConfigPlatform,
-	})
+	}
+	resolverSpec.Convert()
+
+	networkConfig.Resolvers = append(networkConfig.Resolvers, resolverSpec)
 
 	networkConfig.TimeServers = append(networkConfig.TimeServers, network.TimeServerSpecSpec{
 		NTPServers:  []string{oracleTimeServer},

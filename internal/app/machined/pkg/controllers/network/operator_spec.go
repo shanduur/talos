@@ -344,6 +344,7 @@ func (ctrl *OperatorSpecController) reconcileOperatorOutputs(ctx context.Context
 				),
 				func(r *network.ResolverSpec) error {
 					*r.TypedSpec() = resolverSpec
+					r.TypedSpec().Convert() // convert deprecated fields for backward compatibility
 
 					return nil
 				},

@@ -56,10 +56,18 @@ func (g *GCP) ParseMetadata(metadata *MetadataConfig, interfaces []NetworkInterf
 
 	dns, _ := netip.ParseAddr(gcpResolverServer) //nolint:errcheck
 
-	networkConfig.Resolvers = append(networkConfig.Resolvers, network.ResolverSpecSpec{
-		DNSServers:  []netip.Addr{dns},
+	resolverSpec := network.ResolverSpecSpec{
+		NameServers: []network.NameServerSpec{
+			{
+				Addr:     dns,
+				Protocol: nethelpers.DNSProtocolDefault,
+			},
+		},
 		ConfigLayer: network.ConfigPlatform,
-	})
+	}
+	resolverSpec.Convert()
+
+	networkConfig.Resolvers = append(networkConfig.Resolvers, resolverSpec)
 
 	networkConfig.TimeServers = append(networkConfig.TimeServers, network.TimeServerSpecSpec{
 		NTPServers:  []string{gcpTimeServer},

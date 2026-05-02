@@ -22,6 +22,7 @@ import (
 	"github.com/cosi-project/runtime/pkg/safe"
 	"github.com/cosi-project/runtime/pkg/state"
 	"github.com/siderolabs/gen/maps"
+	"github.com/siderolabs/gen/xslices"
 	yaml "go.yaml.in/yaml/v4"
 
 	networkadapter "github.com/siderolabs/talos/internal/app/machined/pkg/adapters/network"
@@ -427,10 +428,18 @@ func (n *Nocloud) applyNetworkConfigV1(ctx context.Context, config *NetworkConfi
 				}
 			}
 
-			networkConfig.Resolvers = append(networkConfig.Resolvers, network.ResolverSpecSpec{
-				DNSServers:  dnsIPs,
+			resolverSpec := network.ResolverSpecSpec{
+				NameServers: xslices.Map(dnsIPs, func(addr netip.Addr) network.NameServerSpec {
+					return network.NameServerSpec{
+						Addr:     addr,
+						Protocol: nethelpers.DNSProtocolDefault,
+					}
+				}),
 				ConfigLayer: network.ConfigPlatform,
-			})
+			}
+			resolverSpec.Convert()
+
+			networkConfig.Resolvers = append(networkConfig.Resolvers, resolverSpec)
 		case "bond":
 			name := ntwrk.Interfaces
 
@@ -917,10 +926,18 @@ func (n *Nocloud) applyNetworkConfigV2(ctx context.Context, config *NetworkConfi
 	}
 
 	if len(dnsIPs) > 0 {
-		networkConfig.Resolvers = append(networkConfig.Resolvers, network.ResolverSpecSpec{
-			DNSServers:  dnsIPs,
+		resolverSpec := network.ResolverSpecSpec{
+			NameServers: xslices.Map(dnsIPs, func(addr netip.Addr) network.NameServerSpec {
+				return network.NameServerSpec{
+					Addr:     addr,
+					Protocol: nethelpers.DNSProtocolDefault,
+				}
+			}),
 			ConfigLayer: network.ConfigPlatform,
-		})
+		}
+		resolverSpec.Convert()
+
+		networkConfig.Resolvers = append(networkConfig.Resolvers, resolverSpec)
 	}
 
 	return needsReconcile, nil

@@ -14,6 +14,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config"
 	"github.com/siderolabs/talos/pkg/machinery/config/machine"
 	"github.com/siderolabs/talos/pkg/machinery/config/validation"
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 )
 
 // Validate checks configuration and returns warnings and fatal errors (as multierror).
@@ -129,6 +130,24 @@ func (container *Container) validateContainer(mode validation.RuntimeMode) error
 
 			if !hostDNSConfig.ForwardKubeDNSToHost() {
 				errs = multierror.Append(errs, fmt.Errorf("forwardKubeDNSToHost must be enabled in container mode"))
+			}
+		}
+	}
+
+	// DNS protocols besides plain UDP/TCP can't be used without HostDNS
+	if dnsConfig := container.NetworkResolverConfig(); dnsConfig != nil {
+		hasNonDefaultDNS := false
+
+		for _, ns := range dnsConfig.Resolvers() {
+			if ns.Protocol != nethelpers.DNSProtocolDefault {
+				hasNonDefaultDNS = true
+			}
+		}
+
+		if hasNonDefaultDNS {
+			hostDNSConfig := container.NetworkHostDNSConfig()
+			if hostDNSConfig == nil || !hostDNSConfig.HostDNSEnabled() {
+				errs = multierror.Append(errs, fmt.Errorf("hostDNS must be enabled when using non-default DNS protocols"))
 			}
 		}
 	}

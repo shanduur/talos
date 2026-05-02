@@ -7,7 +7,6 @@ package network
 
 import (
 	"cmp"
-	"net/netip"
 	"slices"
 
 	"github.com/cosi-project/runtime/pkg/controller"
@@ -50,21 +49,23 @@ func NewResolverMergeController() controller.Controller {
 				switch spec.ConfigLayer { //nolint:exhaustive
 				case final.ConfigLayer:
 					// simply append server lists on the same layer
-					final.DNSServers = append(final.DNSServers, spec.DNSServers...)
+					final.NameServers = append(final.NameServers, spec.NameServers...)
 				case network.ConfigMachineConfiguration:
 					// machine configuration overrides previous layers, but only when DNS servers are set
-					if len(spec.DNSServers) > 0 {
-						final.DNSServers = slices.Clone(spec.DNSServers)
+					if len(spec.NameServers) > 0 {
+						final.NameServers = slices.Clone(spec.NameServers)
 					}
 				default:
 					// otherwise, do a smart merge across IPv4/IPv6
-					mergeDNSServers(&final.DNSServers, spec.DNSServers)
+					mergeNameServers(&final.NameServers, spec.NameServers)
 				}
 
 				final.ConfigLayer = spec.ConfigLayer
 			}
 
-			if final.DNSServers != nil {
+			if final.NameServers != nil {
+				final.Convert() // convert deprecated fields for backward compatibility
+
 				return map[resource.ID]*network.ResolverSpecSpec{
 					network.ResolverID: &final,
 				}
@@ -75,25 +76,25 @@ func NewResolverMergeController() controller.Controller {
 	)
 }
 
-func mergeDNSServers(dst *[]netip.Addr, src []netip.Addr) {
+func mergeNameServers(dst *[]network.NameServerSpec, src []network.NameServerSpec) {
 	if *dst == nil {
 		*dst = slices.Clone(src)
 
 		return
 	}
 
-	srcHasV4 := slices.IndexFunc(src, netip.Addr.Is4) != -1
-	srcHasV6 := slices.IndexFunc(src, netip.Addr.Is6) != -1
-	dstHasV4 := slices.IndexFunc(*dst, netip.Addr.Is4) != -1
-	dstHasV6 := slices.IndexFunc(*dst, netip.Addr.Is6) != -1
+	srcHasV4 := slices.IndexFunc(src, func(ns network.NameServerSpec) bool { return ns.Addr.Is4() }) != -1
+	srcHasV6 := slices.IndexFunc(src, func(ns network.NameServerSpec) bool { return ns.Addr.Is6() }) != -1
+	dstHasV4 := slices.IndexFunc(*dst, func(ns network.NameServerSpec) bool { return ns.Addr.Is4() }) != -1
+	dstHasV6 := slices.IndexFunc(*dst, func(ns network.NameServerSpec) bool { return ns.Addr.Is6() }) != -1
 
 	// if old set has IPv4, and new one doesn't, preserve IPv4
 	// and same vice versa for IPv6
 	switch {
 	case dstHasV4 && !srcHasV4:
-		*dst = slices.Concat(src, xslices.Filter(*dst, netip.Addr.Is4))
+		*dst = slices.Concat(src, xslices.Filter(*dst, func(ns network.NameServerSpec) bool { return ns.Addr.Is4() }))
 	case dstHasV6 && !srcHasV6:
-		*dst = slices.Concat(src, xslices.Filter(*dst, netip.Addr.Is6))
+		*dst = slices.Concat(src, xslices.Filter(*dst, func(ns network.NameServerSpec) bool { return ns.Addr.Is6() }))
 	default:
 		*dst = slices.Clone(src)
 	}

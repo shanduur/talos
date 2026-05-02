@@ -102,7 +102,15 @@ func (suite *PlatformConfigSuite) TestPlatform() {
 		asrt.Equal(
 			[]string{"1.1.1.1"},
 			xslices.Map(spec.Resolvers, func(r network.ResolverSpecSpec) string {
-				return strings.Join(xslices.Map(r.DNSServers, netip.Addr.String), ", ")
+				return strings.Join(xslices.Map(r.DNSServers, netip.Addr.String), ", ") //nolint:staticcheck
+			}),
+		)
+		asrt.Equal(
+			[]string{"1.1.1.1"},
+			xslices.Map(spec.Resolvers, func(r network.ResolverSpecSpec) string {
+				return strings.Join(xslices.Map(r.NameServers, func(ns network.NameServerSpec) string {
+					return ns.Addr.String()
+				}), ", ")
 			}),
 		)
 		asrt.Equal(
@@ -256,7 +264,9 @@ func (mock *platformMock) NetworkConfiguration(
 		networkConfig.Resolvers = append(
 			networkConfig.Resolvers, network.ResolverSpecSpec{
 				ConfigLayer: network.ConfigPlatform,
-				DNSServers:  mock.resolvers,
+				NameServers: xslices.Map(mock.resolvers, func(addr netip.Addr) network.NameServerSpec {
+					return network.NameServerSpec{Addr: addr}
+				}),
 			},
 		)
 	}

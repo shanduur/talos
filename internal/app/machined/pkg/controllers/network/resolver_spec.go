@@ -7,11 +7,13 @@ package network
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/cosi-project/runtime/pkg/controller"
 	"github.com/cosi-project/runtime/pkg/resource"
 	"github.com/cosi-project/runtime/pkg/safe"
 	"github.com/cosi-project/runtime/pkg/state"
+	"github.com/siderolabs/gen/xslices"
 	"go.uber.org/zap"
 
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
@@ -88,13 +90,14 @@ func (ctrl *ResolverSpecController) Run(ctx context.Context, r controller.Runtim
 			case resource.PhaseRunning:
 				logger.Info(
 					"setting resolvers",
-					zap.Stringers("resolvers", spec.TypedSpec().DNSServers),
-					zap.Strings("searchDomains", spec.TypedSpec().SearchDomains),
+					zap.Strings("resolvers", xslices.Map(spec.TypedSpec().NameServers, network.NameServerSpec.String)),
+					zap.Strings("search_domains", spec.TypedSpec().SearchDomains),
 				)
 
 				if err = safe.WriterModify(ctx, r, network.NewResolverStatus(network.NamespaceName, spec.Metadata().ID()), func(r *network.ResolverStatus) error {
-					r.TypedSpec().DNSServers = spec.TypedSpec().DNSServers
+					r.TypedSpec().DNSServers = slices.Clone(spec.TypedSpec().DNSServers) //nolint:staticcheck
 					r.TypedSpec().SearchDomains = spec.TypedSpec().SearchDomains
+					r.TypedSpec().NameServers = slices.Clone(spec.TypedSpec().NameServers)
 
 					return nil
 				}); err != nil {

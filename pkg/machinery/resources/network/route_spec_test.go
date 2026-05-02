@@ -17,6 +17,8 @@ import (
 )
 
 func TestRoutSpecMarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	spec := network.RouteSpecSpec{
 		Family:      nethelpers.FamilyInet6,
 		Destination: netip.MustParsePrefix("192.168.3.4/25"),

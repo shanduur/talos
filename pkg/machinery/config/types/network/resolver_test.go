@@ -17,6 +17,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/network"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 )
 
 //go:embed testdata/resolverconfig.yaml
@@ -34,7 +35,9 @@ func TestResolverConfigMarshalStability(t *testing.T) {
 			Address: network.Addr{Addr: netip.MustParseAddr("10.0.0.1")},
 		},
 		{
-			Address: network.Addr{Addr: netip.MustParseAddr("2001:4860:4860::8888")},
+			Address:       network.Addr{Addr: netip.MustParseAddr("2001:4860:4860::8888")},
+			Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+			TLSServerName: "dns.google",
 		},
 	}
 	cfg.ResolverSearchDomains = network.SearchDomainsConfig{
@@ -92,7 +95,9 @@ func TestResolverConfigUnmarshal(t *testing.T) {
 				Address: network.Addr{Addr: netip.MustParseAddr("10.0.0.1")},
 			},
 			{
-				Address: network.Addr{Addr: netip.MustParseAddr("2001:4860:4860::8888")},
+				Address:       network.Addr{Addr: netip.MustParseAddr("2001:4860:4860::8888")},
+				Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+				TLSServerName: "dns.google",
 			},
 		},
 		ResolverSearchDomains: network.SearchDomainsConfig{
@@ -224,11 +229,16 @@ func TestResolverV1Alpha1ConflictValidate(t *testing.T) {
 func TestResolverV1Alpha1Validate(t *testing.T) {
 	t.Parallel()
 
+	const dotOnlyWarning = "all configured nameservers use DNS over TLS: validating certificates requires a correct system clock, " +
+		"so boot may stall when NTP servers are configured by hostname; consider keeping at least one plain-DNS fallback " +
+		"or configuring NTP servers by IP address"
+
 	for _, test := range []struct {
 		name string
 		cfg  func() *network.ResolverConfigV1Alpha1
 
-		expectedError string
+		expectedError    string
+		expectedWarnings []string
 	}{
 		{
 			name: "empty",
@@ -275,12 +285,97 @@ func TestResolverV1Alpha1Validate(t *testing.T) {
 				return cfg
 			},
 		},
+		{
+			name: "DoT mixed with plain DNS, no warning",
+			cfg: func() *network.ResolverConfigV1Alpha1 {
+				cfg := network.NewResolverConfigV1Alpha1()
+				cfg.ResolverNameservers = []network.NameserverConfig{
+					{
+						Address:       network.Addr{Addr: netip.MustParseAddr("9.9.9.9")},
+						Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+						TLSServerName: "dns.quad9.net",
+					},
+					{
+						Address: network.Addr{Addr: netip.MustParseAddr("8.8.8.8")},
+					},
+				}
+
+				return cfg
+			},
+		},
+		{
+			name: "DoT only, warns about clock dependency",
+			cfg: func() *network.ResolverConfigV1Alpha1 {
+				cfg := network.NewResolverConfigV1Alpha1()
+				cfg.ResolverNameservers = []network.NameserverConfig{
+					{
+						Address:       network.Addr{Addr: netip.MustParseAddr("9.9.9.9")},
+						Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+						TLSServerName: "dns.quad9.net",
+					},
+					{
+						Address:       network.Addr{Addr: netip.MustParseAddr("1.1.1.1")},
+						Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+						TLSServerName: "cloudflare-dns.com",
+					},
+				}
+
+				return cfg
+			},
+			expectedWarnings: []string{dotOnlyWarning},
+		},
+		{
+			name: "tlsServerName without an address",
+			cfg: func() *network.ResolverConfigV1Alpha1 {
+				cfg := network.NewResolverConfigV1Alpha1()
+				cfg.ResolverNameservers = []network.NameserverConfig{
+					{
+						TLSServerName: "dns.quad9.net",
+					},
+				}
+
+				return cfg
+			},
+			expectedError: "tlsServerName must be empty when protocol is Do53: entry 0\nnameserver address must be a valid IP: entry 0",
+		},
+		{
+			name: "DoT without tlsServerName",
+			cfg: func() *network.ResolverConfigV1Alpha1 {
+				cfg := network.NewResolverConfigV1Alpha1()
+				cfg.ResolverNameservers = []network.NameserverConfig{
+					{
+						Address:  network.Addr{Addr: netip.MustParseAddr("9.9.9.9")},
+						Protocol: nethelpers.DNSProtocolDNSOverTLS,
+					},
+				}
+
+				return cfg
+			},
+			expectedError:    "tlsServerName must be set when protocol is DoT: entry 0",
+			expectedWarnings: []string{dotOnlyWarning},
+		},
+		{
+			name: "Do53 with tlsServerName set",
+			cfg: func() *network.ResolverConfigV1Alpha1 {
+				cfg := network.NewResolverConfigV1Alpha1()
+				cfg.ResolverNameservers = []network.NameserverConfig{
+					{
+						Address:       network.Addr{Addr: netip.MustParseAddr("8.8.8.8")},
+						Protocol:      nethelpers.DNSProtocolDefault,
+						TLSServerName: "dns.google",
+					},
+				}
+
+				return cfg
+			},
+			expectedError: "tlsServerName must be empty when protocol is Do53: entry 0",
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			warnings, err := test.cfg().Validate(validationMode{})
-			assert.Nil(t, warnings)
+			assert.Equal(t, test.expectedWarnings, warnings)
 
 			if test.expectedError != "" {
 				assert.EqualError(t, err, test.expectedError)

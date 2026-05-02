@@ -56,6 +56,19 @@ resolvers:
         - 94.237.40.9
         - 2a04:3540:53::1
         - 2a04:3544:53::1
+      nameServers:
+        - addr: 94.237.127.9
+          protocol: Do53
+          tlsServerName: ""
+        - addr: 94.237.40.9
+          protocol: Do53
+          tlsServerName: ""
+        - addr: 2a04:3540:53::1
+          protocol: Do53
+          tlsServerName: ""
+        - addr: 2a04:3544:53::1
+          protocol: Do53
+          tlsServerName: ""
       layer: platform
 timeServers: []
 operators:

@@ -27,6 +27,7 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/ctest"
 	netctrl "github.com/siderolabs/talos/internal/app/machined/pkg/controllers/network"
 	"github.com/siderolabs/talos/pkg/machinery/config/machine"
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/cluster"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
@@ -43,8 +44,29 @@ func expectedDNSRunners(port string) []resource.ID {
 	}
 }
 
-func (suite *DNSServer) TestResolving() {
-	dnsSlice := []string{"8.8.8.8", "1.1.1.1"}
+func (suite *DNSServer) TestResolvingDo53() {
+	suite.testResolving([]network.NameServerSpec{
+		{Addr: netip.MustParseAddr("8.8.8.8")},
+		{Addr: netip.MustParseAddr("1.1.1.1")},
+	})
+}
+
+func (suite *DNSServer) TestResolvingDoT() {
+	suite.testResolving([]network.NameServerSpec{
+		{
+			Addr:          netip.MustParseAddr("8.8.8.8"),
+			Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+			TLSServerName: "dns.google",
+		},
+		{
+			Addr:          netip.MustParseAddr("1.1.1.1"),
+			Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+			TLSServerName: "cloudflare-dns.com",
+		},
+	})
+}
+
+func (suite *DNSServer) testResolving(nameservers []network.NameServerSpec) {
 	port := getDynamicPort(suite.T())
 
 	cfg := network.NewHostDNSConfig(network.HostDNSConfigID)
@@ -54,7 +76,7 @@ func (suite *DNSServer) TestResolving() {
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
 
 	resolverSpec := network.NewResolverStatus(network.NamespaceName, network.ResolverID)
-	resolverSpec.TypedSpec().DNSServers = xslices.Map(dnsSlice, netip.MustParseAddr)
+	resolverSpec.TypedSpec().NameServers = nameservers
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), resolverSpec))
 
@@ -66,7 +88,7 @@ func (suite *DNSServer) TestResolving() {
 		},
 	)
 
-	rtestutils.AssertLength[*network.DNSUpstream](suite.Ctx(), suite.T(), suite.State(), len(dnsSlice))
+	rtestutils.AssertLength[*network.DNSUpstream](suite.Ctx(), suite.T(), suite.State(), len(nameservers))
 
 	msg := &dns.Msg{
 		MsgHdr: dns.MsgHdr{
@@ -107,7 +129,9 @@ func (suite *DNSServer) TestSetupStartStop() {
 	port := getDynamicPort(suite.T())
 
 	resolverSpec := network.NewResolverStatus(network.NamespaceName, network.ResolverID)
-	resolverSpec.TypedSpec().DNSServers = xslices.Map(dnsSlice, netip.MustParseAddr)
+	resolverSpec.TypedSpec().NameServers = xslices.Map(dnsSlice, func(addr string) network.NameServerSpec {
+		return network.NameServerSpec{Addr: netip.MustParseAddr(addr)}
+	})
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), resolverSpec))
 
@@ -311,7 +335,9 @@ func (suite *DNSUpstreams) TestOrder() {
 		{"192.168.0.1"},
 	} {
 		if !suite.Run(strings.Join(addrs, ","), func() {
-			resolverSpec.TypedSpec().DNSServers = xslices.Map(addrs, netip.MustParseAddr)
+			resolverSpec.TypedSpec().NameServers = xslices.Map(addrs, func(addr string) network.NameServerSpec {
+				return network.NameServerSpec{Addr: netip.MustParseAddr(addr)}
+			})
 
 			switch i {
 			case 0:

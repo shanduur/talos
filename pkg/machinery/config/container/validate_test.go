@@ -20,6 +20,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config/types/siderolink"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	blockres "github.com/siderolabs/talos/pkg/machinery/resources/block"
 )
 
@@ -257,6 +258,17 @@ func TestValidateContainer(t *testing.T) {
 		HostDNSForwardKubeDNSToHost: new(true),
 	}
 
+	resolverConfigDoT := network.NewResolverConfigV1Alpha1()
+	resolverConfigDoT.ResolverNameservers = []network.NameserverConfig{
+		{
+			Address: network.Addr{
+				Addr: netip.MustParseAddr("1.1.1.1"),
+			},
+			Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+			TLSServerName: "cloudflare-dns.com",
+		},
+	}
+
 	for _, tt := range []struct {
 		name        string
 		documents   []config.Document
@@ -307,6 +319,15 @@ func TestValidateContainer(t *testing.T) {
 			documents:   []config.Document{hostDNSResolverConfig, v1alpha1Cfg},
 			inContainer: true,
 		},
+		{
+			name:          "DoT without hostDNS",
+			documents:     []config.Document{resolverConfigDoT},
+			expectedError: "1 error occurred:\n\t* hostDNS must be enabled when using non-default DNS protocols\n\n",
+		},
+		{
+			name:      "DoT with hostDNS",
+			documents: []config.Document{resolverConfigDoT, v1alpha1CfgHostDNS},
+		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
@@ -314,15 +335,13 @@ func TestValidateContainer(t *testing.T) {
 			ctr, err := container.New(tt.documents...)
 			require.NoError(t, err)
 
-			warnings, err := ctr.Validate(validationMode{inContainer: tt.inContainer})
+			_, err = ctr.Validate(validationMode{inContainer: tt.inContainer})
 
 			if tt.expectedError == "" {
 				require.NoError(t, err)
 			} else {
 				require.EqualError(t, err, tt.expectedError)
 			}
-
-			require.Nil(t, warnings)
 		})
 	}
 }

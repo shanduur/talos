@@ -83,6 +83,13 @@ resolvers:
     - dnsServers:
         - 67.207.67.2
         - 67.207.67.3
+      nameServers:
+        - addr: 67.207.67.2
+          protocol: Do53
+          tlsServerName: ""
+        - addr: 67.207.67.3
+          protocol: Do53
+          tlsServerName: ""
       layer: platform
 timeServers: []
 operators: []

@@ -25,8 +25,13 @@ type ResolverStatus = typed.Resource[ResolverStatusSpec, ResolverStatusExtension
 //
 //gotagsrewrite:gen
 type ResolverStatusSpec struct {
-	DNSServers    []netip.Addr `yaml:"dnsServers" protobuf:"1"`
-	SearchDomains []string     `yaml:"searchDomains" protobuf:"2"`
+	// DNSServers is a flat list of DNS server IP addresses.
+	//
+	// Deprecated: This field is deprecated in favor of NameServers which contain more information.
+	DNSServers []netip.Addr `yaml:"dnsServers" protobuf:"1"`
+	// NameServers is a list of DNS servers with additional configuration.
+	NameServers   []NameServerSpec `yaml:"nameServers,omitempty" protobuf:"4"`
+	SearchDomains []string         `yaml:"searchDomains" protobuf:"2"`
 }
 
 // NewResolverStatus initializes a ResolverStatus resource.

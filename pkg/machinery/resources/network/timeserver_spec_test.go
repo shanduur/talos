@@ -15,6 +15,8 @@ import (
 )
 
 func TestTimeServerSpecMarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	spec := network.TimeServerSpecSpec{
 		NTPServers:  []string{"pool.ntp.org"},
 		ConfigLayer: network.ConfigPlatform,

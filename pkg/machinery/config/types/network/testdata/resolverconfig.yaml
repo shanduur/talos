@@ -3,6 +3,8 @@ kind: ResolverConfig
 nameservers:
     - address: 10.0.0.1
     - address: 2001:4860:4860::8888
+      protocol: DoT
+      tlsServerName: dns.google
 searchDomains:
     domains:
         - example.org

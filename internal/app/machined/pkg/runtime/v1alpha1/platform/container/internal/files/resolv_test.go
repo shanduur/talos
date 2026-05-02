@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime/v1alpha1/platform/container/internal/files"
+	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
 
 func TestReadResolvConf(t *testing.T) {
@@ -19,8 +20,8 @@ func TestReadResolvConf(t *testing.T) {
 	spec, err := files.ReadResolvConf("testdata/resolv.conf")
 	require.NoError(t, err)
 
-	require.Equal(t, []netip.Addr{
-		netip.MustParseAddr("127.0.0.53"),
-		netip.MustParseAddr("::1"),
-	}, spec.DNSServers)
+	require.Equal(t, []network.NameServerSpec{
+		{Addr: netip.MustParseAddr("127.0.0.53")},
+		{Addr: netip.MustParseAddr("::1")},
+	}, spec.NameServers)
 }

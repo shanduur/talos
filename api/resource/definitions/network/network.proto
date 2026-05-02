@@ -362,6 +362,13 @@ message LinkStatusSpec {
   VRFMasterSpec vrf_master = 33;
 }
 
+// NameServerSpec describes a single DNS nameserver with additional configuration.
+message NameServerSpec {
+  common.NetIP addr = 1;
+  talos.resource.definitions.enums.NethelpersDNSProtocol protocol = 2;
+  string tls_server_name = 3;
+}
+
 // NfTablesAddressMatch describes the match on the IP address.
 message NfTablesAddressMatch {
   repeated common.NetIPPrefix include_subnets = 1;
@@ -529,15 +536,25 @@ message ProbeStatusSpec {
 
 // ResolverSpecSpec describes DNS resolvers.
 message ResolverSpecSpec {
+  // DNSServers is a flat list of DNS server IP addresses.
+  //
+  // Deprecated: This field is deprecated in favor of NameServers which contain more information.
   repeated common.NetIP dns_servers = 1;
   talos.resource.definitions.enums.NetworkConfigLayer config_layer = 2;
   repeated string search_domains = 3;
+  // NameServers is a list of DNS servers with additional configuration.
+  repeated NameServerSpec name_servers = 4;
 }
 
 // ResolverStatusSpec describes DNS resolvers.
 message ResolverStatusSpec {
+  // DNSServers is a flat list of DNS server IP addresses.
+  //
+  // Deprecated: This field is deprecated in favor of NameServers which contain more information.
   repeated common.NetIP dns_servers = 1;
   repeated string search_domains = 2;
+  // NameServers is a list of DNS servers with additional configuration.
+  repeated NameServerSpec name_servers = 4;
 }
 
 // RouteSpecSpec describes the route.

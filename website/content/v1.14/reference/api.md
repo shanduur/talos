@@ -310,6 +310,7 @@ description: Talos gRPC API reference.
     - [NethelpersBondXmitHashPolicy](#talos.resource.definitions.enums.NethelpersBondXmitHashPolicy)
     - [NethelpersClientIdentifier](#talos.resource.definitions.enums.NethelpersClientIdentifier)
     - [NethelpersConntrackState](#talos.resource.definitions.enums.NethelpersConntrackState)
+    - [NethelpersDNSProtocol](#talos.resource.definitions.enums.NethelpersDNSProtocol)
     - [NethelpersDuplex](#talos.resource.definitions.enums.NethelpersDuplex)
     - [NethelpersFailOverMAC](#talos.resource.definitions.enums.NethelpersFailOverMAC)
     - [NethelpersFamily](#talos.resource.definitions.enums.NethelpersFamily)
@@ -544,6 +545,7 @@ description: Talos gRPC API reference.
     - [LinkRefreshSpec](#talos.resource.definitions.network.LinkRefreshSpec)
     - [LinkSpecSpec](#talos.resource.definitions.network.LinkSpecSpec)
     - [LinkStatusSpec](#talos.resource.definitions.network.LinkStatusSpec)
+    - [NameServerSpec](#talos.resource.definitions.network.NameServerSpec)
     - [NfTablesAddressMatch](#talos.resource.definitions.network.NfTablesAddressMatch)
     - [NfTablesChainSpec](#talos.resource.definitions.network.NfTablesChainSpec)
     - [NfTablesClampMSS](#talos.resource.definitions.network.NfTablesClampMSS)
@@ -5316,6 +5318,18 @@ NethelpersConntrackState is a conntrack state.
 
 
 
+<a name="talos.resource.definitions.enums.NethelpersDNSProtocol"></a>
+
+### NethelpersDNSProtocol
+NethelpersDNSProtocol is a kind of DNS protocol.
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| DNS_PROTOCOL_DEFAULT | 0 |  |
+| DNS_PROTOCOL_DNS_OVER_TLS | 1 |  |
+
+
+
 <a name="talos.resource.definitions.enums.NethelpersDuplex"></a>
 
 ### NethelpersDuplex
@@ -9584,6 +9598,23 @@ LinkStatusSpec describes status of rendered secrets.
 
 
 
+<a name="talos.resource.definitions.network.NameServerSpec"></a>
+
+### NameServerSpec
+NameServerSpec describes a single DNS nameserver with additional configuration.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| addr | [common.NetIP](#common.NetIP) |  |  |
+| protocol | [talos.resource.definitions.enums.NethelpersDNSProtocol](#talos.resource.definitions.enums.NethelpersDNSProtocol) |  |  |
+| tls_server_name | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="talos.resource.definitions.network.NfTablesAddressMatch"></a>
 
 ### NfTablesAddressMatch
@@ -9938,9 +9969,10 @@ ResolverSpecSpec describes DNS resolvers.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| dns_servers | [common.NetIP](#common.NetIP) | repeated |  |
+| dns_servers | [common.NetIP](#common.NetIP) | repeated | DNSServers is a flat list of DNS server IP addresses.<br><br>Deprecated: This field is deprecated in favor of NameServers which contain more information. |
 | config_layer | [talos.resource.definitions.enums.NetworkConfigLayer](#talos.resource.definitions.enums.NetworkConfigLayer) |  |  |
 | search_domains | [string](#string) | repeated |  |
+| name_servers | [NameServerSpec](#talos.resource.definitions.network.NameServerSpec) | repeated | NameServers is a list of DNS servers with additional configuration. |
 
 
 
@@ -9955,8 +9987,9 @@ ResolverStatusSpec describes DNS resolvers.
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| dns_servers | [common.NetIP](#common.NetIP) | repeated |  |
+| dns_servers | [common.NetIP](#common.NetIP) | repeated | DNSServers is a flat list of DNS server IP addresses.<br><br>Deprecated: This field is deprecated in favor of NameServers which contain more information. |
 | search_domains | [string](#string) | repeated |  |
+| name_servers | [NameServerSpec](#talos.resource.definitions.network.NameServerSpec) | repeated | NameServers is a list of DNS servers with additional configuration. |
 
 
 

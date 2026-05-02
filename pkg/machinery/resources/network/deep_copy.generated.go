@@ -594,6 +594,10 @@ func (o ResolverSpecSpec) DeepCopy() ResolverSpecSpec {
 		cp.DNSServers = make([]netip.Addr, len(o.DNSServers))
 		copy(cp.DNSServers, o.DNSServers)
 	}
+	if o.NameServers != nil {
+		cp.NameServers = make([]NameServerSpec, len(o.NameServers))
+		copy(cp.NameServers, o.NameServers)
+	}
 	if o.SearchDomains != nil {
 		cp.SearchDomains = make([]string, len(o.SearchDomains))
 		copy(cp.SearchDomains, o.SearchDomains)
@@ -607,6 +611,10 @@ func (o ResolverStatusSpec) DeepCopy() ResolverStatusSpec {
 	if o.DNSServers != nil {
 		cp.DNSServers = make([]netip.Addr, len(o.DNSServers))
 		copy(cp.DNSServers, o.DNSServers)
+	}
+	if o.NameServers != nil {
+		cp.NameServers = make([]NameServerSpec, len(o.NameServers))
+		copy(cp.NameServers, o.NameServers)
 	}
 	if o.SearchDomains != nil {
 		cp.SearchDomains = make([]string, len(o.SearchDomains))

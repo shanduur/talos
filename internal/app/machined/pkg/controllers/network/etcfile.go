@@ -30,6 +30,7 @@ import (
 	"github.com/siderolabs/talos/internal/pkg/mount/v3"
 	talosconfig "github.com/siderolabs/talos/pkg/machinery/config"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/config"
 	"github.com/siderolabs/talos/pkg/machinery/resources/files"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
@@ -170,7 +171,16 @@ func (ctrl *EtcFileController) Run(ctx context.Context, r controller.Runtime, lo
 			)
 
 			if len(dnsServers) == 0 {
-				dnsServers = resolverStatus.TypedSpec().DNSServers
+				dnsServers = xslices.Map(
+					xslices.Filter(
+						resolverStatus.TypedSpec().NameServers,
+						func(ns network.NameServerSpec) bool {
+							// without HostDNS support only plain DNS protocol
+							return ns.Protocol == nethelpers.DNSProtocolDefault
+						},
+					),
+					func(ns network.NameServerSpec) netip.Addr { return ns.Addr },
+				)
 			}
 
 			src := "resolv.conf"
@@ -216,7 +226,19 @@ func pickNameservers(hostDNSCfg *network.HostDNSConfig, resolverStatus *network.
 		return localDNS
 	}
 
-	return slices.All(resolverStatus.TypedSpec().DNSServers)
+	return slices.All(
+		xslices.Map(
+			xslices.Filter(
+				resolverStatus.TypedSpec().NameServers,
+				func(ns network.NameServerSpec) bool {
+					return ns.Protocol == nethelpers.DNSProtocolDefault
+				},
+			),
+			func(ns network.NameServerSpec) netip.Addr {
+				return ns.Addr
+			},
+		),
+	)
 }
 
 func renderResolvConf(nameservers iter.Seq2[int, netip.Addr], searchDomains []string) []byte {

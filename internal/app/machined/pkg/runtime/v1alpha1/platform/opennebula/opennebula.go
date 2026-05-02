@@ -17,6 +17,7 @@ import (
 
 	"github.com/cosi-project/runtime/pkg/state"
 	"github.com/hashicorp/go-envparse"
+	"github.com/siderolabs/gen/xslices"
 	"github.com/siderolabs/go-procfs/procfs"
 
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
@@ -827,11 +828,19 @@ func (o *OpenNebula) ParseMetadata(st state.State, oneContextPlain []byte) (*run
 	}
 
 	if len(allDNSIPs)+len(allSearchDomains) > 0 {
-		networkConfig.Resolvers = append(networkConfig.Resolvers, network.ResolverSpecSpec{
-			DNSServers:    allDNSIPs,
+		resolverSpec := network.ResolverSpecSpec{
+			NameServers: xslices.Map(allDNSIPs, func(addr netip.Addr) network.NameServerSpec {
+				return network.NameServerSpec{
+					Addr:     addr,
+					Protocol: nethelpers.DNSProtocolDefault,
+				}
+			}),
 			SearchDomains: allSearchDomains,
 			ConfigLayer:   network.ConfigPlatform,
-		})
+		}
+		resolverSpec.Convert()
+
+		networkConfig.Resolvers = append(networkConfig.Resolvers, resolverSpec)
 	}
 
 	hostnameSpec := network.HostnameSpecSpec{

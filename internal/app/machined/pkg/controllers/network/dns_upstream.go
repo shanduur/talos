@@ -6,10 +6,12 @@ package network
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 
 	"github.com/coredns/coredns/plugin/pkg/proxy"
+	"github.com/coredns/coredns/plugin/pkg/transport"
 	"github.com/cosi-project/runtime/pkg/controller"
 	"github.com/cosi-project/runtime/pkg/resource"
 	"github.com/cosi-project/runtime/pkg/safe"
@@ -17,6 +19,7 @@ import (
 	"github.com/siderolabs/gen/optional"
 	"go.uber.org/zap"
 
+	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
 
@@ -108,17 +111,15 @@ func (ctrl *DNSUpstreamController) run(ctx context.Context, r controller.Runtime
 		return err
 	}
 
-	for i, srv := range rs.TypedSpec().DNSServers {
-		remoteHost := srv.String()
-
+	for i, srv := range rs.TypedSpec().NameServers {
 		if err = safe.WriterModify[*network.DNSUpstream](
 			ctx,
 			r,
-			network.NewDNSUpstream(fmt.Sprintf("#%03d %s", i, remoteHost)),
+			network.NewDNSUpstream(fmt.Sprintf("#%03d %s %s", i, srv.Protocol, srv.Addr)),
 			func(u *network.DNSUpstream) error {
 				touchedIDs[u.Metadata().ID()] = struct{}{}
 
-				initConn(&u.TypedSpec().Value, remoteHost, l)
+				initConn(&u.TypedSpec().Value, srv.Protocol, srv.Addr.String(), srv.TLSServerName, l)
 
 				return nil
 			},
@@ -130,7 +131,7 @@ func (ctrl *DNSUpstreamController) run(ctx context.Context, r controller.Runtime
 	return nil
 }
 
-func existingConnections(ctx context.Context, r controller.Runtime) (func(*network.DNSUpstreamSpecSpec, string, *zap.Logger), error) {
+func existingConnections(ctx context.Context, r controller.Runtime) (func(*network.DNSUpstreamSpecSpec, nethelpers.DNSProtocol, string, string, *zap.Logger), error) {
 	upstream, err := safe.ReaderListAll[*network.DNSUpstream](ctx, r)
 	if err != nil {
 		return nil, err
@@ -142,8 +143,23 @@ func existingConnections(ctx context.Context, r controller.Runtime) (func(*netwo
 		existingConn[u.TypedSpec().Value.Conn.Addr()] = u.TypedSpec().Value.Conn
 	}
 
-	return func(spec *network.DNSUpstreamSpecSpec, remoteHost string, l *zap.Logger) {
-		remoteAddr := net.JoinHostPort(remoteHost, "53")
+	return func(spec *network.DNSUpstreamSpecSpec, protocol nethelpers.DNSProtocol, remoteHost, tlsServerName string, l *zap.Logger) {
+		var port string
+
+		switch protocol {
+		case nethelpers.DNSProtocolDefault:
+			port = transport.Port
+		case nethelpers.DNSProtocolDNSOverTLS:
+			port = transport.TLSPort
+		default:
+			panic(fmt.Sprintf("unsupported DNS protocol: %s", protocol))
+		}
+
+		if tlsServerName != "" {
+			port = transport.TLSPort
+		}
+
+		remoteAddr := net.JoinHostPort(remoteHost, port)
 		if spec.Conn != nil && spec.Conn.Addr() == remoteAddr {
 			l.Debug("reusing existing upstream spec", zap.String("addr", remoteAddr))
 
@@ -164,12 +180,34 @@ func existingConnections(ctx context.Context, r controller.Runtime) (func(*netwo
 			return
 		}
 
-		spec.Conn = network.NewDNSConn(proxy.NewProxy(remoteHost, remoteAddr, "dns"))
+		spec.Conn = network.NewDNSConn(newUpstreamProxy(protocol, remoteHost, remoteAddr, tlsServerName))
 
-		l.Debug("created new upstream connection", zap.String("addr", remoteAddr))
+		l.Debug(
+			"created new upstream connection",
+			zap.String("addr", remoteAddr),
+			zap.Stringer("protocol", protocol),
+			zap.String("tls_server_name", tlsServerName),
+		)
 
 		existingConn[remoteAddr] = spec.Conn
 	}, nil
+}
+
+func newUpstreamProxy(protocol nethelpers.DNSProtocol, remoteHost, remoteAddr, tlsServerName string) *proxy.Proxy {
+	switch protocol {
+	case nethelpers.DNSProtocolDefault:
+		return proxy.NewProxy(remoteHost, remoteAddr, transport.DNS)
+	case nethelpers.DNSProtocolDNSOverTLS:
+		p := proxy.NewProxy(remoteHost, remoteAddr, transport.TLS)
+		p.SetTLSConfig(&tls.Config{
+			ServerName: tlsServerName,
+			MinVersion: tls.VersionTLS13,
+		})
+
+		return p
+	default:
+		panic(fmt.Sprintf("unsupported DNS protocol: %s", protocol))
+	}
 }
 
 func cleanupUpstream(ctx context.Context, r controller.Runtime, touchedIDs map[resource.ID]struct{}, l *zap.Logger) {

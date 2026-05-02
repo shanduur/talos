@@ -19,7 +19,13 @@ kind: ResolverConfig
 # A list of nameservers (DNS servers) to use for resolving domain names.
 nameservers:
     - address: 1.1.1.1 # The IP address of the nameserver.
+
+      # # TLS server name to validate the nameserver certificate against.
+      # tlsServerName: dns1.example.com
     - address: ff08::1 # The IP address of the nameserver.
+
+      # # TLS server name to validate the nameserver certificate against.
+      # tlsServerName: dns1.example.com
 # Configuration for search domains (in /etc/resolv.conf).
 searchDomains:
     # A list of search domains to be used for DNS resolution.
@@ -45,6 +51,19 @@ hostDNS:
     resolveMemberNames: true # Resolve member hostnames using the host DNS resolver.
 {{< /highlight >}}
 
+{{< highlight yaml >}}
+apiVersion: v1alpha1
+kind: ResolverConfig
+# A list of nameservers (DNS servers) to use for resolving domain names.
+nameservers:
+    - address: 9.9.9.9 # The IP address of the nameserver.
+      protocol: DoT # A DNS protocol to use.
+      tlsServerName: dns.quad9.net # TLS server name to validate the nameserver certificate against.
+    - address: 2620:fe::fe # The IP address of the nameserver.
+      protocol: DoT # A DNS protocol to use.
+      tlsServerName: dns.quad9.net # TLS server name to validate the nameserver certificate against.
+{{< /highlight >}}
+
 
 | Field | Type | Description | Value(s) |
 |-------|------|-------------|----------|
@@ -66,6 +85,10 @@ NameserverConfig represents a single nameserver configuration.
 |-------|------|-------------|----------|
 |`address` |Addr |The IP address of the nameserver. <details><summary>Show example(s)</summary>{{< highlight yaml >}}
 address: 10.0.0.1
+{{< /highlight >}}</details> | |
+|`protocol` |DNSProtocol |A DNS protocol to use.<br><br>The default protocol is plain DNS (`Do53`) (DNS over TCP/UDP), but this can be set<br>to `DoT` to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.<br><br>Note: DNS over TLS requires a correct system clock to validate certificates.<br>If NTP is configured with hostnames that need to be resolved through DoT, the<br>boot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the<br>hardware clock, configure NTP servers by IP, or keep at least one plain-DNS<br>fallback nameserver.  |`Do53`<br />`DoT`<br /> |
+|`tlsServerName` |string |TLS server name to validate the nameserver certificate against.<br><br>This field should be set, if the protocol is set to `DoT`.<br>The value is used both as the SNI sent during the TLS handshake and as the name<br>verified against the server certificate. <details><summary>Show example(s)</summary>{{< highlight yaml >}}
+tlsServerName: dns1.example.com
 {{< /highlight >}}</details> | |
 
 

@@ -16,6 +16,8 @@ import (
 )
 
 func TestOperatorSpecMarshalYAML(t *testing.T) {
+	t.Parallel()
+
 	spec := network.OperatorSpecSpec{
 		Operator:  network.OperatorDHCP4,
 		LinkName:  "eth0",

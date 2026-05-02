@@ -9,10 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/siderolabs/gen/xslices"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/siderolabs/talos/pkg/machinery/config"
+	"github.com/siderolabs/talos/pkg/machinery/config/config"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/network"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
@@ -355,7 +356,12 @@ func TestResolverBridging(t *testing.T) {
 
 			require.NotNil(t, resolverConfig)
 
-			assert.Equal(t, test.expectedNameservers, resolverConfig.Resolvers())
+			assert.Equal(t, xslices.Map(test.expectedNameservers, func(addr netip.Addr) config.NetworkResolver {
+				return config.NetworkResolver{
+					Addr:     addr,
+					Protocol: nethelpers.DNSProtocolDefault,
+				}
+			}), resolverConfig.Resolvers())
 			assert.Equal(t, test.expectedSearchDomains, resolverConfig.SearchDomains())
 			assert.Equal(t, test.expectedDisableSearch, resolverConfig.DisableSearchDomain())
 		})
