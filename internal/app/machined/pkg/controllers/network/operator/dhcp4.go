@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"net/netip"
 	"strings"
 	"sync"
 	"time"
@@ -21,10 +20,9 @@ import (
 	"github.com/siderolabs/gen/channel"
 	"github.com/siderolabs/gen/xslices"
 	"go.uber.org/zap"
-	"go4.org/netipx"
 
+	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/network/operator/internal/dhcpparse"
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
-	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
 
@@ -306,161 +304,18 @@ func (d *DHCP4) TimeServerSpecs() []network.TimeServerSpecSpec {
 	return d.timeservers
 }
 
-//nolint:gocyclo
 func (d *DHCP4) parseNetworkConfigFromAck(ack *dhcpv4.DHCPv4, useHostname bool) {
+	specs := dhcpparse.ParseDHCP4Ack(ack, d.linkName, d.routeMetric, useHostname)
+
 	d.mu.Lock()
 	defer d.mu.Unlock()
 
-	addr, _ := netipx.FromStdIPNet(&net.IPNet{
-		IP:   ack.YourIPAddr,
-		Mask: ack.SubnetMask(),
-	})
-
-	d.addresses = []network.AddressSpecSpec{
-		{
-			Address:     addr,
-			LinkName:    d.linkName,
-			Family:      nethelpers.FamilyInet4,
-			Scope:       nethelpers.ScopeGlobal,
-			Flags:       nethelpers.AddressFlags(nethelpers.AddressPermanent),
-			Priority:    d.routeMetric,
-			ConfigLayer: network.ConfigOperator,
-		},
-	}
-
-	mtu, err := dhcpv4.GetUint16(dhcpv4.OptionInterfaceMTU, ack.Options)
-	if err == nil {
-		d.links = []network.LinkSpecSpec{
-			{
-				Name: d.linkName,
-				MTU:  uint32(mtu),
-				Up:   true,
-			},
-		}
-	} else {
-		d.links = nil
-	}
-
-	// rfc3442:
-	//   If the DHCP server returns both a Classless Static Routes option and
-	//   a Router option, the DHCP client MUST ignore the Router option.
-	d.routes = nil
-
-	if len(ack.ClasslessStaticRoute()) > 0 {
-		for _, route := range ack.ClasslessStaticRoute() {
-			gw, _ := netipx.FromStdIP(route.Router)
-			dst, _ := netipx.FromStdIPNet(route.Dest)
-
-			d.routes = append(d.routes, network.RouteSpecSpec{
-				Family:      nethelpers.FamilyInet4,
-				Destination: dst,
-				Source:      addr.Addr(),
-				Gateway:     gw,
-				OutLinkName: d.linkName,
-				Table:       nethelpers.TableMain,
-				Priority:    d.routeMetric,
-				Scope:       nethelpers.ScopeGlobal,
-				Type:        nethelpers.TypeUnicast,
-				Protocol:    nethelpers.ProtocolBoot,
-				ConfigLayer: network.ConfigOperator,
-			})
-		}
-	} else {
-		for _, router := range ack.Router() {
-			gw, _ := netipx.FromStdIP(router)
-
-			d.routes = append(d.routes, network.RouteSpecSpec{
-				Family:      nethelpers.FamilyInet4,
-				Gateway:     gw,
-				Source:      addr.Addr(),
-				OutLinkName: d.linkName,
-				Table:       nethelpers.TableMain,
-				Priority:    d.routeMetric,
-				Scope:       nethelpers.ScopeGlobal,
-				Type:        nethelpers.TypeUnicast,
-				Protocol:    nethelpers.ProtocolBoot,
-				ConfigLayer: network.ConfigOperator,
-			})
-
-			if !addr.Contains(gw) {
-				// Add an interface route for the gateway if it's not in the same network
-				d.routes = append(d.routes, network.RouteSpecSpec{
-					Family:      nethelpers.FamilyInet4,
-					Destination: netip.PrefixFrom(gw, gw.BitLen()),
-					Source:      addr.Addr(),
-					OutLinkName: d.linkName,
-					Table:       nethelpers.TableMain,
-					Priority:    d.routeMetric,
-					Scope:       nethelpers.ScopeLink,
-					Type:        nethelpers.TypeUnicast,
-					Protocol:    nethelpers.ProtocolBoot,
-					ConfigLayer: network.ConfigOperator,
-				})
-			}
-		}
-	}
-
-	for i := range d.routes {
-		d.routes[i].Normalize()
-	}
-
-	if useHostname {
-		d.hostname = nil
-
-		hostname := strings.TrimRight(ack.HostName(), "\x00")
-
-		if hostname != "" {
-			spec := network.HostnameSpecSpec{
-				ConfigLayer: network.ConfigOperator,
-			}
-
-			if err := spec.ParseFQDN(hostname); err == nil {
-				domainName := strings.TrimRight(ack.DomainName(), "\x00")
-
-				if domainName != "" {
-					spec.Domainname = domainName
-				}
-
-				d.hostname = []network.HostnameSpecSpec{
-					spec,
-				}
-			}
-		}
-	}
-
-	if len(ack.DNS()) > 0 {
-		convertIP := func(ip net.IP) netip.Addr {
-			result, _ := netipx.FromStdIP(ip)
-
-			return result
-		}
-
-		d.resolvers = []network.ResolverSpecSpec{
-			{
-				DNSServers:  xslices.Map(ack.DNS(), convertIP),
-				ConfigLayer: network.ConfigOperator,
-			},
-		}
-	} else {
-		d.resolvers = nil
-	}
-
-	if len(ack.NTPServers()) > 0 {
-		convertIP := func(ip net.IP) string {
-			result, _ := netipx.FromStdIP(ip)
-
-			return result.String()
-		}
-
-		d.timeservers = []network.TimeServerSpecSpec{
-			{
-				NTPServers:  xslices.Map(ack.NTPServers(), convertIP),
-				ConfigLayer: network.ConfigOperator,
-			},
-		}
-	} else {
-		d.timeservers = nil
-	}
+	d.addresses = specs.Addresses
+	d.links = specs.Links
+	d.routes = specs.Routes
+	d.hostname = specs.Hostname
+	d.resolvers = specs.Resolvers
+	d.timeservers = specs.TimeServers
 }
 
 func (d *DHCP4) newClient() (*nclient4.Client, error) {
