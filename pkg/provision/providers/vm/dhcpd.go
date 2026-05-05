@@ -76,12 +76,14 @@ func handlerDHCP4(serverIP net.IP, statePath string) server4.Handler {
 		}
 
 		if match.Hostname != "" && m.IsOptionRequested(dhcpv4.OptionHostName) {
-			modifiers = append(modifiers,
+			modifiers = append(
+				modifiers,
 				dhcpv4.WithOption(dhcpv4.OptHostName(match.Hostname)),
 			)
 		}
 
-		resp, err := dhcpv4.NewReplyFromRequest(m,
+		resp, err := dhcpv4.NewReplyFromRequest(
+			m,
 			modifiers...,
 		)
 		if err != nil {
@@ -185,7 +187,8 @@ func handlerDHCP6(serverHwAddr net.HardwareAddr, statePath string) server6.Handl
 		}
 
 		if match.Hostname != "" {
-			modifiers = append(modifiers,
+			modifiers = append(
+				modifiers,
 				dhcpv6.WithFQDN(0, match.Hostname),
 			)
 		}

@@ -495,7 +495,8 @@ func (i *Imager) outInstaller(ctx context.Context, path string, report *reporter
 	}
 
 	if quirks.UseSDBootForUEFI() || i.prof.SecureBootEnabled() {
-		artifacts = append(artifacts,
+		artifacts = append(
+			artifacts,
 			filemap.File{
 				ImagePath:  strings.TrimLeft(fmt.Sprintf(constants.SDBootAssetPath, i.prof.Arch), "/"),
 				SourcePath: i.sdBootPath,
@@ -506,7 +507,8 @@ func (i *Imager) outInstaller(ctx context.Context, path string, report *reporter
 			},
 		)
 	} else {
-		artifacts = append(artifacts,
+		artifacts = append(
+			artifacts,
 			filemap.File{
 				ImagePath:  strings.TrimLeft(fmt.Sprintf(constants.KernelAssetPath, i.prof.Arch), "/"),
 				SourcePath: i.prof.Input.Kernel.Path,

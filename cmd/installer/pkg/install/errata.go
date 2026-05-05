@@ -47,7 +47,8 @@ func readHostTalosVersion() (*compatibility.TalosVersion, error) {
 		return nil, nil
 	}
 
-	c, err := client.New(ctx,
+	c, err := client.New(
+		ctx,
 		client.WithUnixSocket(constants.MachineSocketPath),
 		client.WithGRPCDialOptions(
 			grpc.WithTransportCredentials(insecure.NewCredentials()),

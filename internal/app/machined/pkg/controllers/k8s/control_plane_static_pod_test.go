@@ -111,65 +111,67 @@ func (suite *ControlPlaneStaticPodSuite) TestReconcileExtraMounts() {
 		suite.Assert().Len(apiServerPod.Spec.Volumes, 4)
 		suite.Assert().Len(apiServerPod.Spec.Containers[0].VolumeMounts, 4)
 
-		suite.Assert().Equal([]v1.Volume{
-			{
-				Name: "secrets",
-				VolumeSource: v1.VolumeSource{
-					HostPath: &v1.HostPathVolumeSource{
-						Path: constants.KubernetesAPIServerSecretsDir,
+		suite.Assert().Equal(
+			[]v1.Volume{
+				{
+					Name: "secrets",
+					VolumeSource: v1.VolumeSource{
+						HostPath: &v1.HostPathVolumeSource{
+							Path: constants.KubernetesAPIServerSecretsDir,
+						},
+					},
+				},
+				{
+					Name: "config",
+					VolumeSource: v1.VolumeSource{
+						HostPath: &v1.HostPathVolumeSource{
+							Path: constants.KubernetesAPIServerConfigDir,
+						},
+					},
+				},
+				{
+					Name: "audit",
+					VolumeSource: v1.VolumeSource{
+						HostPath: &v1.HostPathVolumeSource{
+							Path: constants.KubernetesAuditLogDir,
+						},
+					},
+				},
+				{
+					Name: "foo",
+					VolumeSource: v1.VolumeSource{
+						HostPath: &v1.HostPathVolumeSource{
+							Path: "/var/lib",
+						},
 					},
 				},
 			},
-			{
-				Name: "config",
-				VolumeSource: v1.VolumeSource{
-					HostPath: &v1.HostPathVolumeSource{
-						Path: constants.KubernetesAPIServerConfigDir,
-					},
-				},
-			},
-			{
-				Name: "audit",
-				VolumeSource: v1.VolumeSource{
-					HostPath: &v1.HostPathVolumeSource{
-						Path: constants.KubernetesAuditLogDir,
-					},
-				},
-			},
-			{
-				Name: "foo",
-				VolumeSource: v1.VolumeSource{
-					HostPath: &v1.HostPathVolumeSource{
-						Path: "/var/lib",
-					},
-				},
-			},
-		},
 			apiServerPod.Spec.Volumes,
 		)
 
-		suite.Assert().Equal([]v1.VolumeMount{
-			{
-				Name:      "secrets",
-				MountPath: constants.KubernetesAPIServerSecretsDir,
-				ReadOnly:  true,
+		suite.Assert().Equal(
+			[]v1.VolumeMount{
+				{
+					Name:      "secrets",
+					MountPath: constants.KubernetesAPIServerSecretsDir,
+					ReadOnly:  true,
+				},
+				{
+					Name:      "config",
+					MountPath: constants.KubernetesAPIServerConfigDir,
+					ReadOnly:  true,
+				},
+				{
+					Name:      "audit",
+					MountPath: constants.KubernetesAuditLogDir,
+					ReadOnly:  false,
+				},
+				{
+					Name:      "foo",
+					MountPath: "/var/foo",
+					ReadOnly:  true,
+				},
 			},
-			{
-				Name:      "config",
-				MountPath: constants.KubernetesAPIServerConfigDir,
-				ReadOnly:  true,
-			},
-			{
-				Name:      "audit",
-				MountPath: constants.KubernetesAuditLogDir,
-				ReadOnly:  false,
-			},
-			{
-				Name:      "foo",
-				MountPath: "/var/foo",
-				ReadOnly:  true,
-			},
-		},
 			apiServerPod.Spec.Containers[0].VolumeMounts,
 		)
 	})

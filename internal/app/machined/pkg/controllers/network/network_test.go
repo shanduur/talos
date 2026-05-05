@@ -11,7 +11,8 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	goleak.VerifyTestMain(m,
+	goleak.VerifyTestMain(
+		m,
 		goleak.IgnoreTopFunction("github.com/thejerf/suture/v4.(*Supervisor).removeService.func1.1"),
 	)
 }

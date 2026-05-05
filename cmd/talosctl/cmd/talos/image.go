@@ -125,7 +125,8 @@ func imageList() error {
 			return err
 		}
 
-		responseChan := multiplex.Streaming(ctx, nodes,
+		responseChan := multiplex.Streaming(
+			ctx, nodes,
 			func(ctx context.Context) (grpc.ServerStreamingClient[machine.ImageServiceListResponse], error) {
 				return c.ImageClient.List(ctx, &machine.ImageServiceListRequest{
 					Containerd: containerdInstance,
@@ -156,7 +157,8 @@ func imageList() error {
 				fmt.Fprintln(w, "NODE\tIMAGE\tDIGEST\tSIZE\tLABELS\tCREATED")
 			}
 
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
+			fmt.Fprintf(
+				w, "%s\t%s\t%s\t%s\t%s\t%s\n",
 				resp.Node,
 				resp.Payload.GetName(),
 				resp.Payload.GetDigest(),
@@ -189,7 +191,8 @@ func imageListLegacy() error {
 		fmt.Fprintln(w, "NODE\tIMAGE\tDIGEST\tSIZE\tCREATED")
 
 		if err = helpers.ReadGRPCStream(rcv, func(msg *machine.ImageListResponse, node string, multipleNodes bool) error {
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n",
+			fmt.Fprintf(
+				w, "%s\t%s\t%s\t%s\t%s\n",
 				node,
 				msg.Name,
 				msg.Digest,
@@ -245,7 +248,8 @@ func imagePullInternal(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	responseChan := multiplex.Streaming(ctx, nodes,
+	responseChan := multiplex.Streaming(
+		ctx, nodes,
 		func(ctx context.Context) (grpc.ServerStreamingClient[machine.ImageServicePullResponse], error) {
 			return c.ImageClient.Pull(ctx, &machine.ImageServicePullRequest{
 				Containerd: containerdInstance,
@@ -437,7 +441,8 @@ func imageRemove(imageRef string) error {
 			return err
 		}
 
-		responseChan := multiplex.Unary(ctx, nodes,
+		responseChan := multiplex.Unary(
+			ctx, nodes,
 			func(ctx context.Context) (*emptypb.Empty, error) {
 				return c.ImageClient.Remove(ctx, &machine.ImageServiceRemoveRequest{
 					Containerd: containerdInstance,
@@ -479,20 +484,22 @@ var imageK8sBundleCmd = &cobra.Command{
 	Short:   "List the default Kubernetes images used by Talos",
 	Long:    ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		images := images.ListWithOptions(container.NewV1Alpha1(
-			&v1alpha1.Config{
-				MachineConfig: &v1alpha1.MachineConfig{
-					MachineKubelet: &v1alpha1.KubeletConfig{},
+		images := images.ListWithOptions(
+			container.NewV1Alpha1(
+				&v1alpha1.Config{
+					MachineConfig: &v1alpha1.MachineConfig{
+						MachineKubelet: &v1alpha1.KubeletConfig{},
+					},
+					ClusterConfig: &v1alpha1.ClusterConfig{
+						EtcdConfig:              &v1alpha1.EtcdConfig{},
+						APIServerConfig:         &v1alpha1.APIServerConfig{},
+						ControllerManagerConfig: &v1alpha1.ControllerManagerConfig{},
+						SchedulerConfig:         &v1alpha1.SchedulerConfig{},
+						CoreDNSConfig:           &v1alpha1.CoreDNS{},
+						ProxyConfig:             &v1alpha1.ProxyConfig{},
+					},
 				},
-				ClusterConfig: &v1alpha1.ClusterConfig{
-					EtcdConfig:              &v1alpha1.EtcdConfig{},
-					APIServerConfig:         &v1alpha1.APIServerConfig{},
-					ControllerManagerConfig: &v1alpha1.ControllerManagerConfig{},
-					SchedulerConfig:         &v1alpha1.SchedulerConfig{},
-					CoreDNSConfig:           &v1alpha1.CoreDNS{},
-					ProxyConfig:             &v1alpha1.ProxyConfig{},
-				},
-			}),
+			),
 			images.VersionsListOptions{
 				KubernetesVersion:          imageK8sBundleCmdFlags.k8sVersion.String(),
 				EtcdVersion:                imageK8sBundleCmdFlags.etcdVersion.String(),
@@ -991,7 +998,8 @@ var imageCacheCertGenCmdFlags struct {
 }
 
 func init() {
-	imageCmd.PersistentFlags().StringVar(&imageCmdFlags.namespace, "namespace", "cri",
+	imageCmd.PersistentFlags().StringVar(
+		&imageCmdFlags.namespace, "namespace", "cri",
 		"namespace to use: \"system\" (etcd and kubelet images), \"cri\" for all Kubernetes workloads, \"inmem\" for in-memory containerd instance",
 	)
 	addCommand(imageCmd)

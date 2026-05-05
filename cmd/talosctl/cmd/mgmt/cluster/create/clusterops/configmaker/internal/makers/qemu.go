@@ -145,11 +145,13 @@ func (m *Qemu) AddExtraGenOps() error {
 				return err
 			}
 
-			m.ConfigBundleOps = append(m.ConfigBundleOps,
+			m.ConfigBundleOps = append(
+				m.ConfigBundleOps,
 				bundle.WithPatchControlPlane([]configpatcher.Patch{configpatcher.NewStrategicMergePatch(ctr)}),
 			)
 		} else {
-			m.GenOps = slices.Concat(m.GenOps,
+			m.GenOps = slices.Concat(
+				m.GenOps,
 				[]generate.Option{generate.WithNetworkOptions(
 					v1alpha1.WithNetworkInterfaceVirtualIP(m.Provisioner.GetFirstInterface(), m.VIP.String()),
 				)},
@@ -180,7 +182,8 @@ func (m *Qemu) AddExtraGenOps() error {
 			return err
 		}
 
-		m.ConfigBundleOps = append(m.ConfigBundleOps,
+		m.ConfigBundleOps = append(
+			m.ConfigBundleOps,
 			bundle.WithPatch([]configpatcher.Patch{configpatcher.NewStrategicMergePatch(ctr)}),
 		)
 	}
@@ -399,7 +402,8 @@ func (m *Qemu) addDiskEncryptionPatches() error {
 		}
 	}
 
-	m.ConfigBundleOps = slices.Concat(m.ConfigBundleOps,
+	m.ConfigBundleOps = slices.Concat(
+		m.ConfigBundleOps,
 		[]bundle.Option{bundle.WithPatch(diskEncryptionPatches)},
 	)
 
@@ -693,7 +697,8 @@ func (m *Qemu) initJSONLogs() {
 					},
 				},
 			},
-		})
+		},
+	)
 
 	m.ConfigBundleOps = slices.Concat(m.ConfigBundleOps, []bundle.Option{bundle.WithPatch([]configpatcher.Patch{configpatcher.NewStrategicMergePatch(cfg)})})
 }

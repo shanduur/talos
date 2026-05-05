@@ -130,7 +130,8 @@ func TestCreatePartition(t *testing.T) {
 			diskSetup: func(t *testing.T) string {
 				diskPath := prepareRawImage(t, 1<<23)
 
-				prepareGPT(t, diskPath,
+				prepareGPT(
+					t, diskPath,
 					func(pt *gpt.Table) {
 						_, _, err := pt.AllocatePartition(1<<20, "FIXED", uuid.MustParse("c12a7328-f81f-11d2-ba4b-00a0c93ec93b"))
 						require.NoError(t, err)

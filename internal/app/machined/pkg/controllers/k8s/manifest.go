@@ -189,7 +189,8 @@ func (ctrl *ManifestController) render(cfg k8s.BootstrapManifestsConfigSpec, scr
 	}
 
 	if cfg.CoreDNSEnabled {
-		manifests = append(manifests,
+		manifests = append(
+			manifests,
 			renderedManifest{
 				"11-core-dns",
 				[]runtime.Object{
@@ -210,7 +211,8 @@ func (ctrl *ManifestController) render(cfg k8s.BootstrapManifestsConfigSpec, scr
 	}
 
 	if cfg.FlannelEnabled {
-		manifests = append(manifests,
+		manifests = append(
+			manifests,
 			renderedManifest{
 				"05-flannel",
 				[]runtime.Object{
@@ -225,7 +227,8 @@ func (ctrl *ManifestController) render(cfg k8s.BootstrapManifestsConfigSpec, scr
 	}
 
 	if cfg.ProxyEnabled {
-		manifests = append(manifests,
+		manifests = append(
+			manifests,
 			renderedManifest{
 				"10-kube-proxy",
 				[]runtime.Object{
@@ -242,7 +245,8 @@ func (ctrl *ManifestController) render(cfg k8s.BootstrapManifestsConfigSpec, scr
 	}
 
 	if cfg.TalosAPIServiceEnabled {
-		manifests = append(manifests,
+		manifests = append(
+			manifests,
 			renderedManifest{
 				"13-talos-service-account-crd",
 				[]runtime.Object{

@@ -379,7 +379,8 @@ func (ctrl *ImageCacheConfigController) analyzeImageCacheVolumes(ctx context.Con
 		// but we want them to be mounted whenever they are ready
 		mountID := ctrl.Name() + "-" + volumeID
 
-		if err := safe.WriterModify(ctx, r, block.NewVolumeMountRequest(block.NamespaceName, mountID),
+		if err := safe.WriterModify(
+			ctx, r, block.NewVolumeMountRequest(block.NamespaceName, mountID),
 			func(mountRequest *block.VolumeMountRequest) error {
 				mountRequest.TypedSpec().Requester = ctrl.Name()
 				mountRequest.TypedSpec().VolumeID = volumeID

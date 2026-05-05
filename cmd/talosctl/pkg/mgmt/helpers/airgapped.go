@@ -22,7 +22,8 @@ func GenerateSelfSignedCert(sanIPs []net.IP, sanNames []string) ([]byte, []byte,
 		return nil, nil, nil, err
 	}
 
-	serverIdentity, err := x509.NewKeyPair(ca,
+	serverIdentity, err := x509.NewKeyPair(
+		ca,
 		x509.Organization("talos.dev"),
 		x509.CommonName("server"),
 		x509.IPAddresses(sanIPs),

@@ -93,7 +93,8 @@ func RegistryHosts(reg cri.Registries) docker.RegistryHosts {
 						}
 
 						return PrepareAuth(registryAuthConfig, uu.Host, host)
-					})),
+					}),
+				),
 				Host:         uu.Host,
 				Scheme:       uu.Scheme,
 				Path:         uu.Path,

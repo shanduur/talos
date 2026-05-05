@@ -64,7 +64,8 @@ func (s *Service) ContainerRun(srv grpc.BidiStreamingServer[machine.DebugContain
 	}
 	defer c8dClient.Close() //nolint:errcheck
 
-	l, err := c8dClient.LeasesService().Create(ctx,
+	l, err := c8dClient.LeasesService().Create(
+		ctx,
 		leases.WithRandomID(),
 	)
 	if err != nil {
@@ -192,7 +193,8 @@ func createDebugContainer(
 		ociOpts = append(ociOpts, oci.WithEnv(envVars))
 	}
 
-	container, err := c8dClient.NewContainer(ctx, containerID,
+	container, err := c8dClient.NewContainer(
+		ctx, containerID,
 		client.WithImage(image),
 		client.WithNewSnapshot(containerID+"-snapshot", image),
 		client.WithNewSpec(ociOpts...),

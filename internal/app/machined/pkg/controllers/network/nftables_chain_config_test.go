@@ -155,7 +155,8 @@ func (suite *NfTablesChainConfigTestSuite) TestDefaultAccept() {
 					Verdict:     new(nethelpers.VerdictDrop),
 				},
 			},
-			spec.Rules)
+			spec.Rules,
+		)
 	})
 
 	ctest.AssertResource(suite, netctrl.PreroutingChainName, func(chain *network.NfTablesChain, asrt *assert.Assertions) {
@@ -247,7 +248,8 @@ func (suite *NfTablesChainConfigTestSuite) TestDefaultAccept() {
 					Verdict:     new(nethelpers.VerdictDrop),
 				},
 			},
-			spec.Rules)
+			spec.Rules,
+		)
 	})
 }
 
@@ -377,7 +379,8 @@ func (suite *NfTablesChainConfigTestSuite) TestDefaultBlock() {
 					Verdict:     new(nethelpers.VerdictAccept),
 				},
 			},
-			spec.Rules)
+			spec.Rules,
+		)
 	})
 
 	ctest.AssertResource(suite, netctrl.PreroutingChainName, func(chain *network.NfTablesChain, asrt *assert.Assertions) {
@@ -491,7 +494,8 @@ func (suite *NfTablesChainConfigTestSuite) TestDefaultBlock() {
 					Verdict:     new(nethelpers.VerdictDrop),
 				},
 			},
-			spec.Rules)
+			spec.Rules,
+		)
 	})
 }
 

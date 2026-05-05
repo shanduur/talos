@@ -223,7 +223,8 @@ func (syncer *Syncer) Run(ctx context.Context) {
 			pollInterval = syncer.MinPoll
 		}
 
-		syncer.logger.Debug("sample stats",
+		syncer.logger.Debug(
+			"sample stats",
 			zap.Duration("jitter", time.Duration(syncer.spikeDetector.Jitter()*float64(time.Second))),
 			zap.Duration("poll_interval", pollInterval),
 			zap.Bool("spike", spike),
@@ -377,7 +378,8 @@ func (syncer *Syncer) queryPTP(device string) (*Measurement, error) {
 	}
 
 	offset := time.Until(time.Unix(ts.Sec, ts.Nsec))
-	syncer.logger.Debug("PTP clock",
+	syncer.logger.Debug(
+		"PTP clock",
 		zap.Duration("clock_offset", offset),
 		zap.Int64("sec", ts.Sec),
 		zap.Int64("nsec", ts.Nsec),
@@ -428,7 +430,8 @@ func (syncer *Syncer) queryNTP(server string) (*Measurement, error) {
 		return nil, err
 	}
 
-	syncer.logger.Debug("NTP response",
+	syncer.logger.Debug(
+		"NTP response",
 		zap.Duration("clock_offset", resp.ClockOffset),
 		zap.Duration("rtt", resp.RTT),
 		zap.Uint8("leap", uint8(resp.Leap)),
@@ -478,7 +481,8 @@ func (syncer *Syncer) queryNTS(server string) (*Measurement, error) {
 		}
 	}
 
-	syncer.logger.Debug("NTS response",
+	syncer.logger.Debug(
+		"NTS response",
 		zap.Duration("clock_offset", resp.ClockOffset),
 		zap.Duration("rtt", resp.RTT),
 		zap.Uint8("leap", uint8(resp.Leap)),
@@ -621,7 +625,8 @@ func (syncer *Syncer) adjustTime(offset time.Duration, leapSecond ntp.LeapIndica
 		ce.Write()
 	}
 
-	syncer.logger.Debug("adjtime state",
+	syncer.logger.Debug(
+		"adjtime state",
 		zap.Int64("constant", req.Constant),
 		zap.Duration("offset", time.Duration(req.Offset)),
 		zap.Int64("freq_offset", req.Freq),

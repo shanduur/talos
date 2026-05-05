@@ -181,7 +181,8 @@ func (n *Nocloud) configFromNetwork(ctx context.Context, metaBaseURL string, r s
 
 //nolint:gocyclo
 func (n *Nocloud) configFromCD(ctx context.Context, r state.State) (metaConfig []byte, networkConfig []byte, machineConfig []byte, err error) {
-	err = blockutils.ReadFromVolume(ctx, r,
+	err = blockutils.ReadFromVolume(
+		ctx, r,
 		[]string{strings.ToLower(configISOLabel), strings.ToUpper(configISOLabel)},
 		func(root xfs.Root, volumeStatus *block.VolumeStatus) error {
 			log.Printf("found config disk (cidata) at %s", volumeStatus.TypedSpec().Location)
@@ -351,7 +352,8 @@ func (n *Nocloud) applyNetworkConfigV1(ctx context.Context, config *NetworkConfi
 					ipPrefix = netip.PrefixFrom(ip, ones)
 				}
 
-				networkConfig.Addresses = append(networkConfig.Addresses,
+				networkConfig.Addresses = append(
+					networkConfig.Addresses,
 					network.AddressSpecSpec{
 						ConfigLayer: network.ConfigPlatform,
 						LinkName:    name,
@@ -626,7 +628,8 @@ func applyNetworkConfigV2Ethernet(name string, eth Ethernet, networkConfig *runt
 			family = nethelpers.FamilyInet6
 		}
 
-		networkConfig.Addresses = append(networkConfig.Addresses,
+		networkConfig.Addresses = append(
+			networkConfig.Addresses,
 			network.AddressSpecSpec{
 				ConfigLayer: network.ConfigPlatform,
 				LinkName:    name,

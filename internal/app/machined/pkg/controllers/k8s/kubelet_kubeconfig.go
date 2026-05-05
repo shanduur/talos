@@ -133,7 +133,8 @@ func (ctrl *KubeletKubeconfigController) Run(ctx context.Context, r controller.R
 		}
 
 		if hash != "" {
-			if err = safe.WriterModify(ctx, r,
+			if err = safe.WriterModify(
+				ctx, r,
 				k8s.NewKubeletKubeconfig(k8s.NamespaceName, k8s.KubeletKubeconfigID),
 				func(res *k8s.KubeletKubeconfig) error {
 					res.TypedSpec().Hash = hash

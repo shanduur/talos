@@ -94,7 +94,8 @@ func Format(ctx context.Context, logger *zap.Logger, volumeContext ManagerContex
 		return fmt.Errorf("filesystem type mismatch: %s != %s", info.Name, volumeContext.Cfg.TypedSpec().Provisioning.FilesystemSpec.Type)
 	}
 
-	logger.Info("formatting filesystem",
+	logger.Info(
+		"formatting filesystem",
 		zap.String("device", volumeContext.Status.MountLocation),
 		zap.Stringer("filesystem", volumeContext.Cfg.TypedSpec().Provisioning.FilesystemSpec.Type),
 	)

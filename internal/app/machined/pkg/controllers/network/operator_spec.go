@@ -285,7 +285,8 @@ func (ctrl *OperatorSpecController) reconcileOperatorOutputs(ctx context.Context
 				ctx, r,
 				network.NewRouteSpec(
 					network.ConfigNamespaceName,
-					fmt.Sprintf("%s/%s",
+					fmt.Sprintf(
+						"%s/%s",
 						op.Operator.Prefix(),
 						network.RouteID(routeSpec.Table, routeSpec.Family, routeSpec.Destination, routeSpec.Gateway, routeSpec.Priority, routeSpec.OutLinkName),
 					),
@@ -370,7 +371,8 @@ func (ctrl *OperatorSpecController) reconcileOperatorOutputs(ctx context.Context
 	}
 
 	// clean up not touched specs
-	if err := r.CleanupOutputs(ctx,
+	if err := r.CleanupOutputs(
+		ctx,
 		xslices.Map([]resource.Type{
 			network.AddressSpecType,
 			network.LinkSpecType,

@@ -104,26 +104,28 @@ func (d *Dashboard) Runner(r runtime.Runtime) (runner.Runner, error) {
 		return nil, fmt.Errorf("failed to determine console device: %w", err)
 	}
 
-	return restart.New(process.NewRunner(false, &runner.Args{
-		ID:          d.ID(r),
-		ProcessArgs: []string{"/sbin/dashboard"},
-	},
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithEnv([]string{
-			constants.EnvTerm,
-			constants.EnvTcellMinimizeEnvironment,
-			constants.EnvDashboardGomemlimit(),
-		}),
-		runner.WithStdinFile(tty),
-		runner.WithStdoutFile(tty),
-		runner.WithCtty(0),
-		runner.WithOOMScoreAdj(-400),
-		runner.WithDroppedCapabilities(capability.AllCapabilitiesSetLowercase()),
-		runner.WithSelinuxLabel(constants.SelinuxLabelDashboard),
-		runner.WithCgroupPath(constants.CgroupDashboard),
-		runner.WithUID(constants.DashboardUserID),
-		runner.WithPriority(constants.DashboardPriority),
-	),
+	return restart.New(
+		process.NewRunner(
+			false, &runner.Args{
+				ID:          d.ID(r),
+				ProcessArgs: []string{"/sbin/dashboard"},
+			},
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithEnv([]string{
+				constants.EnvTerm,
+				constants.EnvTcellMinimizeEnvironment,
+				constants.EnvDashboardGomemlimit(),
+			}),
+			runner.WithStdinFile(tty),
+			runner.WithStdoutFile(tty),
+			runner.WithCtty(0),
+			runner.WithOOMScoreAdj(-400),
+			runner.WithDroppedCapabilities(capability.AllCapabilitiesSetLowercase()),
+			runner.WithSelinuxLabel(constants.SelinuxLabelDashboard),
+			runner.WithCgroupPath(constants.CgroupDashboard),
+			runner.WithUID(constants.DashboardUserID),
+			runner.WithPriority(constants.DashboardPriority),
+		),
 		restart.WithType(restart.Forever),
 	), nil
 }

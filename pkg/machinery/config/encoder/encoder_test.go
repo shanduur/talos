@@ -127,7 +127,8 @@ func init() {
 
 	machineConfigDoc.Fields = make([]encoder.Doc, 2)
 	machineConfigDoc.Fields[0].Comments[encoder.HeadComment] = "this is some version"
-	machineConfigDoc.Fields[1].AddExample("",
+	machineConfigDoc.Fields[1].AddExample(
+		"",
 		[]string{
 			"reboot", "upgrade",
 		},

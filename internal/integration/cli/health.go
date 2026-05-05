@@ -70,7 +70,8 @@ func (suite *HealthSuite) TestClientSideWithDiscovery() {
 // TestServerSide does successful health check run from server-side.
 func (suite *HealthSuite) TestServerSide() {
 	randomControlPlaneNodeInternalIP := suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)
-	suite.RunCLI([]string{"health", "--nodes", randomControlPlaneNodeInternalIP},
+	suite.RunCLI(
+		[]string{"health", "--nodes", randomControlPlaneNodeInternalIP},
 		base.StdoutEmpty(),
 		base.StderrShouldMatch(regexp.MustCompile(`waiting for all k8s nodes to report ready`)),
 	)
@@ -83,7 +84,8 @@ func (suite *HealthSuite) testClientSide(extraArgs ...string) {
 		args = append(args, "--k8s-endpoint", suite.K8sEndpoint)
 	}
 
-	suite.RunCLI(append([]string{"health"}, args...),
+	suite.RunCLI(
+		append([]string{"health"}, args...),
 		base.StdoutEmpty(),
 		base.StderrShouldMatch(regexp.MustCompile(`waiting for all k8s nodes to report ready`)),
 	)

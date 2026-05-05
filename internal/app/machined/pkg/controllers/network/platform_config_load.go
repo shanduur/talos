@@ -85,7 +85,8 @@ func (ctrl *PlatformConfigLoadController) Run(ctx context.Context, r controller.
 			)
 		}
 
-		if err := ctrl.stateMachine.Run(ctx, r, logger,
+		if err := ctrl.stateMachine.Run(
+			ctx, r, logger,
 			automaton.WithAfterFunc(func() error {
 				ctrl.stateMachine = nil
 
@@ -117,7 +118,8 @@ func (ctrl *PlatformConfigLoadController) load() func(
 			}
 
 			if cachedNetworkConfig != nil {
-				if err := safe.WriterModify(ctx, r,
+				if err := safe.WriterModify(
+					ctx, r,
 					network.NewPlatformConfig(network.NamespaceName, network.PlatformConfigCachedID),
 					func(out *network.PlatformConfig) error {
 						*out.TypedSpec() = *cachedNetworkConfig

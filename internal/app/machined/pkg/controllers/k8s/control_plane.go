@@ -70,7 +70,8 @@ func NewControlPlaneAdmissionControlController() *ControlPlaneAdmissionControlCo
 				res.TypedSpec().Config = nil
 
 				for _, cfg := range cfgProvider.Cluster().APIServer().AdmissionControl() {
-					res.TypedSpec().Config = append(res.TypedSpec().Config,
+					res.TypedSpec().Config = append(
+						res.TypedSpec().Config,
 						k8s.AdmissionPluginSpec{
 							Name:          cfg.Name(),
 							Configuration: cfg.Configuration(),

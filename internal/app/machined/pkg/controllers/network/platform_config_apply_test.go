@@ -247,15 +247,16 @@ func (suite *PlatformConfigApplySuite) TestProbes() {
 	}
 	suite.Create(platformConfig)
 
-	ctest.AssertResources(suite, []string{
-		"platform/tcp:example.com:80",
-		"platform/tcp:example.com:443",
-	}, func(r *network.ProbeSpec, asrt *assert.Assertions) {
-		spec := r.TypedSpec()
+	ctest.AssertResources(
+		suite, []string{
+			"platform/tcp:example.com:80",
+			"platform/tcp:example.com:443",
+		}, func(r *network.ProbeSpec, asrt *assert.Assertions) {
+			spec := r.TypedSpec()
 
-		asrt.Equal(time.Second, spec.Interval)
-		asrt.Equal(network.ConfigPlatform, spec.ConfigLayer)
-	},
+			asrt.Equal(time.Second, spec.Interval)
+			asrt.Equal(network.ConfigPlatform, spec.ConfigLayer)
+		},
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
 	)
 }
@@ -319,7 +320,8 @@ func TestPlatformConfigApplySuite(t *testing.T) {
 						&netctrl.PlatformConfigApplyController{
 							V1alpha1Platform: &metal.Metal{},
 						},
-					))
+					),
+				)
 			},
 		},
 	})

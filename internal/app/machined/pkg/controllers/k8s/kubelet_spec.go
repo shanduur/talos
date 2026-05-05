@@ -331,7 +331,8 @@ func NewKubeletConfiguration(cfgSpec *k8s.KubeletConfigSpec, kubeletVersion comp
 			return t.Key == constants.LabelNodeRoleControlPlane
 		}) == -1 { // don't add the taint if it's already in the config
 			if cfgSpec.ExtraArgs["register-with-taints"].Values == nil { // don't clash with taints provided via extraArgs, it is deprecated on kubelet side
-				config.RegisterWithTaints = append(config.RegisterWithTaints,
+				config.RegisterWithTaints = append(
+					config.RegisterWithTaints,
 					corev1.Taint{
 						Key:    constants.LabelNodeRoleControlPlane,
 						Effect: corev1.TaintEffectNoSchedule,

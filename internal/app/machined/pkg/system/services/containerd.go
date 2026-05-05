@@ -105,19 +105,20 @@ func (c *Containerd) Runner(r runtime.Runtime) (runner.Runner, error) {
 		debug = r.Config().Debug()
 	}
 
-	return restart.New(process.NewRunner(
-		debug,
-		args,
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithEnv(append(
-			environment.Get(r.Config()),
-			constants.EnvXDGRuntimeDir,
-		)),
-		runner.WithOOMScoreAdj(-999),
-		runner.WithCgroupPath(constants.CgroupSystemRuntime),
-		runner.WithSelinuxLabel(constants.SelinuxLabelSystemRuntime),
-		runner.WithDroppedCapabilities(constants.DefaultDroppedCapabilities),
-	),
+	return restart.New(
+		process.NewRunner(
+			debug,
+			args,
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithEnv(append(
+				environment.Get(r.Config()),
+				constants.EnvXDGRuntimeDir,
+			)),
+			runner.WithOOMScoreAdj(-999),
+			runner.WithCgroupPath(constants.CgroupSystemRuntime),
+			runner.WithSelinuxLabel(constants.SelinuxLabelSystemRuntime),
+			runner.WithDroppedCapabilities(constants.DefaultDroppedCapabilities),
+		),
 		restart.WithType(restart.Forever),
 	), nil
 }

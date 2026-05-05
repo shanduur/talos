@@ -109,7 +109,8 @@ func (ctrl *APIServiceConfigController) Run(ctx context.Context, r controller.Ru
 		// decide whether to create maintenance mode API or not
 		if request != nil {
 			if cfg != nil {
-				if err = safe.WriterModify(ctx, r,
+				if err = safe.WriterModify(
+					ctx, r,
 					runtime.NewAPIServiceConfig(),
 					func(r *runtime.APIServiceConfig) error {
 						r.TypedSpec().ListenAddress = cfg.TypedSpec().ListenAddress
@@ -124,7 +125,8 @@ func (ctrl *APIServiceConfigController) Run(ctx context.Context, r controller.Ru
 				}
 			}
 		} else if cert != nil && !cert.TypedSpec().SkipVerifyingClientCert {
-			if err = safe.WriterModify(ctx, r,
+			if err = safe.WriterModify(
+				ctx, r,
 				runtime.NewAPIServiceConfig(),
 				func(r *runtime.APIServiceConfig) error {
 					r.TypedSpec().ListenAddress = fmt.Sprintf(":%d", constants.ApidPort)

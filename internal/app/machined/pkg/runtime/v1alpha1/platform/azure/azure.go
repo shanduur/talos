@@ -169,7 +169,8 @@ func (a *Azure) ParseMetadata(metadata *ComputeMetadata, interfaceAddresses []Ne
 		ConfigLayer: network.ConfigPlatform,
 	})
 
-	networkConfig.Links = append(networkConfig.Links,
+	networkConfig.Links = append(
+		networkConfig.Links,
 		network.LinkSpecSpec{
 			Name:        "eth0",
 			Up:          true,

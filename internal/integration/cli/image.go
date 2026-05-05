@@ -32,7 +32,8 @@ func (suite *ImageSuite) SuiteName() string {
 
 // TestDefault verifies default Talos list of images.
 func (suite *ImageSuite) TestDefault() {
-	suite.RunCLI([]string{"image", "k8s-bundle"},
+	suite.RunCLI(
+		[]string{"image", "k8s-bundle"},
 		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta("registry.k8s.io/kube-apiserver"))),
 	)
 }
@@ -129,7 +130,8 @@ ghcr.io/siderolabs/youki:0.5.5@sha256:562ceabb69570203024dbb9b8673ba485af1ffdd08
 ghcr.io/siderolabs/zerotier:1.16.0@sha256:9444baa3acdc665dba56ed16c8a983c81c3f37fc73877be8fd882f9cf8c9fa5a
 ghcr.io/siderolabs/zfs:2.3.3-v1.11.2@sha256:73782571f334b18995ddf324d24b86ea9a11aa37661a468b4e077da63e0d9714`
 
-	suite.RunCLI([]string{"image", "talos-bundle", "v1.11.2"},
+	suite.RunCLI(
+		[]string{"image", "talos-bundle", "v1.11.2"},
 		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta(out))),
 	)
 
@@ -143,18 +145,21 @@ ghcr.io/siderolabs/zfs:2.3.3-v1.11.2@sha256:73782571f334b18995ddf324d24b86ea9a11
 		suite.T().Skip("skipping the test for the exact version tag")
 	}
 
-	suite.RunCLI([]string{"image", "talos-bundle", "v" + tag.String()},
+	suite.RunCLI(
+		[]string{"image", "talos-bundle", "v" + tag.String()},
 		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta("ghcr.io/siderolabs/talos:v"+tag.String()))),
 	)
 
-	suite.RunCLI([]string{"image", "talos-bundle", tag.String()},
+	suite.RunCLI(
+		[]string{"image", "talos-bundle", tag.String()},
 		base.StdoutEmpty(),
 		base.ShouldFail(),
 	)
 
 	tag.Patch = 0
 	assert.NoError(suite.T(), tag.IncrementMinor())
-	suite.RunCLI([]string{"image", "talos-bundle", "v" + tag.FinalizeVersion()},
+	suite.RunCLI(
+		[]string{"image", "talos-bundle", "v" + tag.FinalizeVersion()},
 		base.StdoutEmpty(),
 		base.ShouldFail(),
 	)
@@ -162,12 +167,14 @@ ghcr.io/siderolabs/zfs:2.3.3-v1.11.2@sha256:73782571f334b18995ddf324d24b86ea9a11
 
 // TestList verifies listing images in the CRI.
 func (suite *ImageSuite) TestList() {
-	suite.RunCLI([]string{"image", "ls", "--nodes", suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)},
+	suite.RunCLI(
+		[]string{"image", "ls", "--nodes", suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)},
 		base.StdoutShouldMatch(regexp.MustCompile(`IMAGE\s+DIGEST\s+SIZE`)),
 		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta("registry.k8s.io/kube-apiserver"))),
 	)
 
-	suite.RunCLI([]string{"image", "ls", "--namespace", "system", "--nodes", suite.RandomDiscoveredNodeInternalIP()},
+	suite.RunCLI(
+		[]string{"image", "ls", "--namespace", "system", "--nodes", suite.RandomDiscoveredNodeInternalIP()},
 		base.StdoutShouldMatch(regexp.MustCompile(`IMAGE\s+DIGEST\s+SIZE`)),
 		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta("ghcr.io/siderolabs/kubelet:"))),
 	)
@@ -185,7 +192,8 @@ func (suite *ImageSuite) TestPull() {
 		return
 	}
 
-	suite.RunCLI([]string{"image", "pull", "--nodes", node, image},
+	suite.RunCLI(
+		[]string{"image", "pull", "--nodes", node, image},
 		base.StdoutEmpty(),
 		base.StderrShouldMatch(regexp.MustCompile(
 			"("+ // either pinned image (verification on)
@@ -197,7 +205,8 @@ func (suite *ImageSuite) TestPull() {
 	)
 
 	// verify that pulled image appeared, also image aliases should appear
-	suite.RunCLI([]string{"image", "ls", "--nodes", node},
+	suite.RunCLI(
+		[]string{"image", "ls", "--nodes", node},
 		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta(image))),
 		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta("sha256:89b8d9dbef2b905b7d028ca8b7f79d35ebd9baa66b0a3ee2ddd4f3e0e2804b45"))),
 		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta("registry.k8s.io/kube-apiserver@sha256:89b8d9dbef2b905b7d028ca8b7f79d35ebd9baa66b0a3ee2ddd4f3e0e2804b45"))),
@@ -205,7 +214,8 @@ func (suite *ImageSuite) TestPull() {
 	)
 
 	// remove the image
-	suite.RunCLI([]string{"image", "remove", "--nodes", node, image},
+	suite.RunCLI(
+		[]string{"image", "remove", "--nodes", node, image},
 		base.StdoutEmpty(),
 	)
 }

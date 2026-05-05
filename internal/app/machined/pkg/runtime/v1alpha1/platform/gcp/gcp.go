@@ -102,7 +102,8 @@ func (g *GCP) ParseMetadata(metadata *MetadataConfig, interfaces []NetworkInterf
 				return nil, fmt.Errorf("failed to parse ip address: %w", err)
 			}
 
-			networkConfig.Addresses = append(networkConfig.Addresses,
+			networkConfig.Addresses = append(
+				networkConfig.Addresses,
 				network.AddressSpecSpec{
 					ConfigLayer: network.ConfigPlatform,
 					LinkName:    ifname,

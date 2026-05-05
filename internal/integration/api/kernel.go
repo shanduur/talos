@@ -55,7 +55,8 @@ func (suite *KernelSuite) TestCmdline() {
 
 	suite.T().Logf("using node %s", node)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []resource.ID{runtime.KernelCmdlineID},
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, []resource.ID{runtime.KernelCmdlineID},
 		func(res *runtime.KernelCmdline, asrt *assert.Assertions) {
 			asrt.NotEmpty(res.TypedSpec().Cmdline, "kernel cmdline should not be empty")
 		},

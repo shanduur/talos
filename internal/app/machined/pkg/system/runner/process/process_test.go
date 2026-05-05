@@ -205,10 +205,11 @@ func (suite *ProcessSuite) TestStopFailingAndRestarting() {
 }
 
 func (suite *ProcessSuite) TestStopSigKill() {
-	r := process.NewRunner(false, &runner.Args{
-		ID:          "nokill",
-		ProcessArgs: []string{"/bin/bash", "-c", "trap -- '' SIGTERM; while :; do :; done"},
-	},
+	r := process.NewRunner(
+		false, &runner.Args{
+			ID:          "nokill",
+			ProcessArgs: []string{"/bin/bash", "-c", "trap -- '' SIGTERM; while :; do :; done"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithGracefulShutdownTimeout(10*time.Millisecond),
 	)
@@ -245,10 +246,11 @@ func (suite *ProcessSuite) TestPriority() {
 		suite.T().Skipf("skipping test, we already have low priority %d", currentPriority)
 	}
 
-	r := process.NewRunner(false, &runner.Args{
-		ID:          "nokill",
-		ProcessArgs: []string{"/bin/bash", "-c", "echo $BASHPID >> " + pidFile + "; trap -- '' SIGTERM; while :; do :; done"},
-	},
+	r := process.NewRunner(
+		false, &runner.Args{
+			ID:          "nokill",
+			ProcessArgs: []string{"/bin/bash", "-c", "echo $BASHPID >> " + pidFile + "; trap -- '' SIGTERM; while :; do :; done"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithGracefulShutdownTimeout(10*time.Millisecond),
 		runner.WithPriority(17),
@@ -299,10 +301,11 @@ func (suite *ProcessSuite) TestIOPriority() {
 		suite.T().Skipf("skipping test, we already have idle IO priority %d", ioprio)
 	}
 
-	r := process.NewRunner(false, &runner.Args{
-		ID:          "nokill",
-		ProcessArgs: []string{"/bin/bash", "-c", "echo $BASHPID >> " + pidFile + "; trap -- '' SIGTERM; while :; do :; done"},
-	},
+	r := process.NewRunner(
+		false, &runner.Args{
+			ID:          "nokill",
+			ProcessArgs: []string{"/bin/bash", "-c", "echo $BASHPID >> " + pidFile + "; trap -- '' SIGTERM; while :; do :; done"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithGracefulShutdownTimeout(10*time.Millisecond),
 		runner.WithIOPriority(runner.IoprioClassIdle, 6),
@@ -352,10 +355,11 @@ func (suite *ProcessSuite) TestSchedulingPolicy() {
 		suite.T().Skipf("skipping test, we already have idle scheduling policy")
 	}
 
-	r := process.NewRunner(false, &runner.Args{
-		ID:          "nokill",
-		ProcessArgs: []string{"/bin/bash", "-c", "echo $BASHPID >> " + pidFile + "; trap -- '' SIGTERM; while :; do :; done"},
-	},
+	r := process.NewRunner(
+		false, &runner.Args{
+			ID:          "nokill",
+			ProcessArgs: []string{"/bin/bash", "-c", "echo $BASHPID >> " + pidFile + "; trap -- '' SIGTERM; while :; do :; done"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithGracefulShutdownTimeout(10*time.Millisecond),
 		runner.WithSchedulingPolicy(runner.SchedulingPolicyIdle),
@@ -390,7 +394,8 @@ func (suite *ProcessSuite) TestSchedulingPolicy() {
 
 func TestProcessSuite(t *testing.T) {
 	for _, runReaper := range []bool{true, false} {
-		t.Run(fmt.Sprintf("runReaper=%v", runReaper),
+		t.Run(
+			fmt.Sprintf("runReaper=%v", runReaper),
 			func(t *testing.T) {
 				suite.Run(t, &ProcessSuite{runReaper: runReaper})
 			},

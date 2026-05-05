@@ -157,7 +157,8 @@ func (suite *NetworkConfigSuite) TestDummyLinkConfig() {
 
 	suite.PatchMachineConfig(nodeCtx, dummy)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, dummyName,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, dummyName,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("dummy", link.TypedSpec().Kind)
 			asrt.Equal(dummy.HardwareAddressConfig, link.TypedSpec().HardwareAddr)
@@ -165,13 +166,15 @@ func (suite *NetworkConfigSuite) TestDummyLinkConfig() {
 		},
 	)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, addressID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, addressID,
 		func(addr *networkres.AddressStatus, asrt *assert.Assertions) {
 			asrt.Equal(dummyName, addr.TypedSpec().LinkName)
 		},
 	)
 
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI,
 		[]resource.ID{routeID, addressRouteID},
 		func(route *networkres.RouteStatus, asrt *assert.Assertions) {
 			asrt.Equal(dummyName, route.TypedSpec().OutLinkName)
@@ -231,7 +234,8 @@ func (suite *NetworkConfigSuite) TestLinkConfig() {
 
 	suite.PatchMachineConfig(nodeCtx, cfg)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, addressID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, addressID,
 		func(addr *networkres.AddressStatus, asrt *assert.Assertions) {
 			asrt.Equal(linkName, addr.TypedSpec().LinkName)
 		},
@@ -280,7 +284,8 @@ func (suite *NetworkConfigSuite) TestLinkAliasConfig() {
 
 		suite.PatchMachineConfig(nodeCtx, cfg)
 
-		rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, linkName,
+		rtestutils.AssertResource(
+			nodeCtx, suite.T(), suite.Client.COSI, linkName,
 			func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 				asrt.Equal(aliasName, link.TypedSpec().Alias)
 			},
@@ -288,7 +293,8 @@ func (suite *NetworkConfigSuite) TestLinkAliasConfig() {
 
 		suite.RemoveMachineConfigDocumentsByName(nodeCtx, network.LinkAliasKind, aliasName)
 
-		rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, linkName,
+		rtestutils.AssertResource(
+			nodeCtx, suite.T(), suite.Client.COSI, linkName,
 			func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 				asrt.Empty(link.TypedSpec().Alias)
 			},
@@ -299,7 +305,8 @@ func (suite *NetworkConfigSuite) TestLinkAliasConfig() {
 		// no unaliased physical links, verify that alias worked properly
 		for link := range links.All() {
 			if link.TypedSpec().Physical() && link.TypedSpec().Alias != "" {
-				rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, link.Metadata().ID(),
+				rtestutils.AssertResource(
+					nodeCtx, suite.T(), suite.Client.COSI, link.Metadata().ID(),
 					func(linkAlias *networkres.LinkAliasSpec, asrt *assert.Assertions) {
 						asrt.Equal(link.TypedSpec().Alias, linkAlias.TypedSpec().Alias)
 					},
@@ -346,7 +353,8 @@ func (suite *NetworkConfigSuite) TestVirtualIPConfig() {
 
 	suite.PatchMachineConfig(nodeCtx, cfg)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, addressID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, addressID,
 		func(addr *networkres.AddressStatus, asrt *assert.Assertions) {
 			asrt.Equal(linkName, addr.TypedSpec().LinkName)
 		},
@@ -399,14 +407,16 @@ func (suite *NetworkConfigSuite) TestVLANConfig() {
 
 	suite.PatchMachineConfig(nodeCtx, dummy, vlan)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, dummyName,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, dummyName,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("dummy", link.TypedSpec().Kind)
 			asrt.Equal(dummy.LinkMTU, link.TypedSpec().MTU)
 		},
 	)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, vlanName,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, vlanName,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("vlan", link.TypedSpec().Kind)
 			asrt.Equal(vlan.LinkMTU, link.TypedSpec().MTU)
@@ -416,13 +426,15 @@ func (suite *NetworkConfigSuite) TestVLANConfig() {
 		},
 	)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, addressID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, addressID,
 		func(addr *networkres.AddressStatus, asrt *assert.Assertions) {
 			asrt.Equal(vlanName, addr.TypedSpec().LinkName)
 		},
 	)
 
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI,
 		[]resource.ID{routeID, addressRouteID},
 		func(route *networkres.RouteStatus, asrt *assert.Assertions) {
 			asrt.Equal(vlanName, route.TypedSpec().OutLinkName)
@@ -492,14 +504,16 @@ func (suite *NetworkConfigSuite) TestBondConfig() {
 
 	suite.PatchMachineConfig(nodeCtx, append(dummyConfigs, bond)...)
 
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI, dummyNames,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI, dummyNames,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("dummy", link.TypedSpec().Kind)
 			asrt.NotZero(link.TypedSpec().MasterIndex)
 		},
 	)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, bondName,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, bondName,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("bond", link.TypedSpec().Kind)
 			asrt.Equal(nethelpers.OperStateUp, link.TypedSpec().OperationalState)
@@ -509,13 +523,15 @@ func (suite *NetworkConfigSuite) TestBondConfig() {
 		},
 	)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, addressID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, addressID,
 		func(addr *networkres.AddressStatus, asrt *assert.Assertions) {
 			asrt.Equal(bondName, addr.TypedSpec().LinkName)
 		},
 	)
 
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI,
 		[]resource.ID{routeID, addressRouteID},
 		func(route *networkres.RouteStatus, asrt *assert.Assertions) {
 			asrt.Equal(bondName, route.TypedSpec().OutLinkName)
@@ -564,14 +580,16 @@ func (suite *NetworkConfigSuite) TestBridgeConfig() {
 
 	suite.PatchMachineConfig(nodeCtx, append(dummyConfigs, bridge)...)
 
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI, dummyNames,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI, dummyNames,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("dummy", link.TypedSpec().Kind)
 			asrt.NotZero(link.TypedSpec().MasterIndex)
 		},
 	)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, bridgeName,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, bridgeName,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("bridge", link.TypedSpec().Kind)
 			asrt.Equal(pointer.SafeDeref(bridge.BridgeSTP.BridgeSTPEnabled), link.TypedSpec().BridgeMaster.STP.Enabled)
@@ -618,14 +636,16 @@ func (suite *NetworkConfigSuite) TestVRFConfig() {
 
 	suite.PatchMachineConfig(nodeCtx, append(dummyConfigs, vrf)...)
 
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI, dummyNames,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI, dummyNames,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("dummy", link.TypedSpec().Kind)
 			asrt.NotZero(link.TypedSpec().MasterIndex)
 		},
 	)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, vrfName,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, vrfName,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("vrf", link.TypedSpec().Kind)
 			asrt.Equal(vrf.VRFTable, link.TypedSpec().VRFMaster.Table)
@@ -679,7 +699,8 @@ func (suite *NetworkConfigSuite) TestWireguardConfig() {
 
 	suite.PatchMachineConfig(nodeCtx, wg)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, wgName,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, wgName,
 		func(link *networkres.LinkStatus, asrt *assert.Assertions) {
 			asrt.Equal("wireguard", link.TypedSpec().Kind)
 			asrt.Equal(wg.WireguardListenPort, link.TypedSpec().Wireguard.ListenPort)
@@ -711,7 +732,8 @@ func (suite *NetworkConfigSuite) TestBlackholeRouteConfig() {
 
 	const routeBlackholeID = "lo/inet6//" + dest + "/1024"
 
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI,
 		[]resource.ID{routeBlackholeID},
 		func(route *networkres.RouteStatus, asrt *assert.Assertions) {
 			asrt.Equal(nethelpers.TypeBlackhole, route.TypedSpec().Type)
@@ -749,7 +771,8 @@ func (suite *NetworkConfigSuite) TestRoutingRuleBasic() {
 
 	const ruleStatusID = "inet4/01000"
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
 		func(rule *networkres.RoutingRuleStatus, asrt *assert.Assertions) {
 			asrt.Equal(nethelpers.FamilyInet4, rule.TypedSpec().Family)
 			asrt.Equal(netip.MustParsePrefix("10.99.0.0/16"), rule.TypedSpec().Src)
@@ -785,7 +808,8 @@ func (suite *NetworkConfigSuite) TestRoutingRuleIPv6() {
 
 	const ruleStatusID = "inet6/03000"
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
 		func(rule *networkres.RoutingRuleStatus, asrt *assert.Assertions) {
 			asrt.Equal(nethelpers.FamilyInet6, rule.TypedSpec().Family)
 			asrt.Equal(netip.MustParsePrefix("fd99:1234::/48"), rule.TypedSpec().Src)
@@ -820,7 +844,8 @@ func (suite *NetworkConfigSuite) TestRoutingRuleSrcAndDst() {
 
 	const ruleStatusID = "inet4/04000"
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
 		func(rule *networkres.RoutingRuleStatus, asrt *assert.Assertions) {
 			asrt.Equal(nethelpers.FamilyInet4, rule.TypedSpec().Family)
 			asrt.Equal(netip.MustParsePrefix("10.96.0.0/16"), rule.TypedSpec().Src)
@@ -856,7 +881,8 @@ func (suite *NetworkConfigSuite) TestRoutingRuleBlackholeAction() {
 
 	const ruleStatusID = "inet4/05000"
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
 		func(rule *networkres.RoutingRuleStatus, asrt *assert.Assertions) {
 			asrt.Equal(nethelpers.FamilyInet4, rule.TypedSpec().Family)
 			asrt.Equal(nethelpers.RoutingRuleActionBlackhole, rule.TypedSpec().Action)
@@ -891,7 +917,8 @@ func (suite *NetworkConfigSuite) TestRoutingRuleFwMark() {
 
 	const ruleStatusID = "inet4/06000"
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, ruleStatusID,
 		func(rule *networkres.RoutingRuleStatus, asrt *assert.Assertions) {
 			asrt.Equal(nethelpers.FamilyInet4, rule.TypedSpec().Family)
 			asrt.Equal(nethelpers.RoutingTable(100), rule.TypedSpec().Table)

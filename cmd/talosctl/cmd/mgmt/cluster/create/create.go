@@ -79,7 +79,8 @@ func downloadBootAssets(ctx context.Context, qOps *clusterops.Qemu) error {
 
 		destPath := strings.ReplaceAll(
 			strings.ReplaceAll(u.String(), "/", "-"),
-			":", "-")
+			":", "-",
+		)
 
 		_, err = os.Stat(filepath.Join(cacheDir, destPath))
 		if err == nil {

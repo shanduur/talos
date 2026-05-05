@@ -150,7 +150,8 @@ func (ctrl *LinkAliasConfigController) Run(ctx context.Context, r controller.Run
 
 			// Fixed name: require exactly one match
 			if len(matchedLinks) > 1 && !lac.IsPatternAlias() {
-				logger.Warn("link selector matched multiple links, skipping",
+				logger.Warn(
+					"link selector matched multiple links, skipping",
 					zap.String("selector", lac.LinkSelector().String()),
 					zap.String("alias", lac.Name()),
 					zap.Strings("links", xslices.Map(matchedLinks, func(item *network.LinkStatus) string {
@@ -164,7 +165,8 @@ func (ctrl *LinkAliasConfigController) Run(ctx context.Context, r controller.Run
 			matchedLinks = xslices.Filter(matchedLinks, func(matchedLink *network.LinkStatus) bool {
 				_, alreadyAliased := linkAliases[matchedLink.Metadata().ID()]
 				if alreadyAliased {
-					logger.Warn("link already has an alias, skipping",
+					logger.Warn(
+						"link already has an alias, skipping",
 						zap.String("link", matchedLink.Metadata().ID()),
 						zap.String("existing_alias", linkAliases[matchedLink.Metadata().ID()]),
 						zap.String("new_alias", lac.Name()),

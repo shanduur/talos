@@ -94,7 +94,8 @@ func (svc *Service) Pull(req *machine.ImageServicePullRequest, srv grpc.ServerSt
 	//nolint:errcheck
 	defer client.Close()
 
-	img, err := image.Pull(ctx,
+	img, err := image.Pull(
+		ctx,
 		cri.RegistryBuilder(svc.controller.Runtime().State().V1Alpha2().Resources()),
 		svc.controller.Runtime().State().V1Alpha2().Resources(),
 		client,

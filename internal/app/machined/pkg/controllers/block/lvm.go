@@ -162,7 +162,8 @@ func (ctrl *LVMActivationController) Run(ctx context.Context, r controller.Runti
 			logger.Info("activating LVM volume", zap.String("name", vgName))
 
 			// activate the volume group
-			if _, err = cmd.RunWithOptions(ctx,
+			if _, err = cmd.RunWithOptions(
+				ctx,
 				"/sbin/lvm",
 				[]string{
 					"vgchange",
@@ -189,7 +190,8 @@ func (ctrl *LVMActivationController) Run(ctx context.Context, r controller.Runti
 func (ctrl *LVMActivationController) checkVGNeedsActivation(ctx context.Context, devicePath string) (string, error) {
 	// first we check if all associated volumes are available
 	// https://man7.org/linux/man-pages/man7/lvmautoactivation.7.html
-	stdOut, err := cmd.RunWithOptions(ctx,
+	stdOut, err := cmd.RunWithOptions(
+		ctx,
 		"/sbin/lvm",
 		[]string{
 			"pvscan",

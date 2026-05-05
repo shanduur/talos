@@ -53,7 +53,8 @@ func apidMain() error {
 
 	startup.LimitMaxProcs(constants.ApidMaxProcs)
 
-	runtimeConn, err := grpc.NewClient("unix://"+constants.APIRuntimeSocketPath,
+	runtimeConn, err := grpc.NewClient(
+		"unix://"+constants.APIRuntimeSocketPath,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithNoProxy(),
 	)

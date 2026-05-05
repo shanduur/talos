@@ -237,7 +237,8 @@ func RankCgroups(logger *zap.Logger, root string, scoringExpr cel.Expression) ma
 			for _, prop := range []string{"memory.current", "memory.peak", "memory.max"} {
 				err := cgroups.ReadCgroupfsProperty(&node, leafDir, prop)
 				if err != nil {
-					logger.Error("cannot read property for cgroup",
+					logger.Error(
+						"cannot read property for cgroup",
 						zap.String("dir", leafDir), zap.String("propery", prop), zap.Error(err),
 					)
 
@@ -255,7 +256,8 @@ func RankCgroups(logger *zap.Logger, root string, scoringExpr cel.Expression) ma
 
 			ranking[cgroup], err = cgroup.CalculateScore(&scoringExpr)
 			if err != nil {
-				logger.Error("cannot calculate score for cgroup",
+				logger.Error(
+					"cannot calculate score for cgroup",
 					zap.String("dir", cgroup.Path), zap.Error(err),
 				)
 

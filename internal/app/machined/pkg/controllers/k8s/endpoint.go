@@ -246,7 +246,8 @@ func (ctrl *EndpointController) updateEndpointsResource(
 
 	slices.SortFunc(addrs, func(a, b netip.Addr) int { return a.Compare(b) })
 
-	if err := safe.WriterModify(ctx,
+	if err := safe.WriterModify(
+		ctx,
 		r,
 		k8s.NewEndpoint(k8s.ControlPlaneNamespaceName, k8s.ControlPlaneAPIServerEndpointsID),
 		func(r *k8s.Endpoint) error {

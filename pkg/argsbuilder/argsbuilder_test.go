@@ -23,9 +23,10 @@ func (suite *ArgsbuilderSuite) TestMergeAdditive() {
 	}
 
 	suite.Require().NoError(
-		args.Merge(argsbuilder.Args{
-			"param": {"value2, value10"},
-		},
+		args.Merge(
+			argsbuilder.Args{
+				"param": {"value2, value10"},
+			},
 			argsbuilder.WithMergePolicies(argsbuilder.MergePolicies{
 				"param": argsbuilder.MergeAdditive,
 			}),
@@ -36,9 +37,10 @@ func (suite *ArgsbuilderSuite) TestMergeAdditive() {
 	suite.Assert().Equal([]string{"--param=value1,value2,value3,value10", "--param2="}, args.Args())
 
 	suite.Require().NoError(
-		args.Merge(argsbuilder.Args{
-			"param2": {"value1, value5"},
-		},
+		args.Merge(
+			argsbuilder.Args{
+				"param2": {"value1, value5"},
+			},
 			argsbuilder.WithMergePolicies(argsbuilder.MergePolicies{
 				"param2": argsbuilder.MergeAdditive,
 			}),
@@ -79,9 +81,10 @@ func (suite *ArgsbuilderSuite) TestMergeDenied() {
 	}
 
 	suite.Require().Error(
-		args.Merge(argsbuilder.Args{
-			"param": {"value10"},
-		},
+		args.Merge(
+			argsbuilder.Args{
+				"param": {"value10"},
+			},
 			argsbuilder.WithMergePolicies(argsbuilder.MergePolicies{
 				"param": argsbuilder.MergeDenied,
 			}),
@@ -101,9 +104,10 @@ func (suite *ArgsbuilderSuite) TestMergeDenyList() {
 	}
 
 	suite.Require().Error(
-		args.Merge(argsbuilder.Args{
-			"param2": {"value10"},
-		},
+		args.Merge(
+			argsbuilder.Args{
+				"param2": {"value10"},
+			},
 			argsbuilder.WithDenyList(denyList),
 		),
 	)

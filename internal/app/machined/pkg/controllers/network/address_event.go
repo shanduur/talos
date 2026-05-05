@@ -41,7 +41,8 @@ func (ctrl *AddressEventController) Inputs() []controller.Input {
 			Kind:      controller.InputWeak,
 			ID: optional.Some(network.FilteredNodeAddressID(
 				network.NodeAddressCurrentID,
-				k8s.NodeAddressFilterNoK8s)),
+				k8s.NodeAddressFilterNoK8s,
+			)),
 		},
 		{
 			Namespace: network.NamespaceName,
@@ -81,8 +82,10 @@ func (ctrl *AddressEventController) Run(ctx context.Context, r controller.Runtim
 				network.NodeAddressType,
 				network.FilteredNodeAddressID(
 					network.NodeAddressCurrentID,
-					k8s.NodeAddressFilterNoK8s),
-				resource.VersionUndefined),
+					k8s.NodeAddressFilterNoK8s,
+				),
+				resource.VersionUndefined,
+			),
 		)
 		if err != nil {
 			if !state.IsNotFoundError(err) {

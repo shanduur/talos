@@ -54,7 +54,8 @@ func NewReadOnlyOverlay(sources []string, target string, printer func(string, ..
 		fsOptions = append(fsOptions, fsopen.WithStringParameter("lowerdir", sources[0]))
 	}
 
-	options = append(options,
+	options = append(
+		options,
 		WithPrinter(printer),
 		WithTarget(target),
 		WithReadOnly(),
@@ -85,7 +86,8 @@ func NewOverlayWithBasePath(sources []string, target, basePath string, printer f
 		fsOptions = append(fsOptions, fsopen.WithStringParameter("lowerdir", sources[0]))
 	}
 
-	options = append(options,
+	options = append(
+		options,
 		WithTarget(target),
 		WithExtraDirs(diff, workdir),
 		WithFsopen("overlay", fsOptions...),

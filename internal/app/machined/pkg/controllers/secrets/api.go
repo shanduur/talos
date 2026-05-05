@@ -295,7 +295,8 @@ func (ctrl *APIController) generateControlPlane(ctx context.Context, r controlle
 		return fmt.Errorf("failed to parse CA certificate: %w", err)
 	}
 
-	serverCert, err := x509.NewKeyPair(ca,
+	serverCert, err := x509.NewKeyPair(
+		ca,
 		x509.IPAddresses(certSANs.StdIPs()),
 		x509.DNSNames(certSANs.DNSNames),
 		x509.CommonName(certSANs.FQDN),
@@ -309,7 +310,8 @@ func (ctrl *APIController) generateControlPlane(ctx context.Context, r controlle
 		return fmt.Errorf("failed to generate API server cert: %w", err)
 	}
 
-	clientCert, err := x509.NewKeyPair(ca,
+	clientCert, err := x509.NewKeyPair(
+		ca,
 		x509.CommonName(certSANs.FQDN),
 		x509.Organization(string(role.Impersonator)),
 		x509.NotAfter(time.Now().Add(x509.DefaultCertificateValidityDuration)),
@@ -339,7 +341,8 @@ func (ctrl *APIController) generateControlPlane(ctx context.Context, r controlle
 	clientFingerprint, _ := x509.SPKIFingerprintFromDER(clientCert.Certificate.Certificate[0]) //nolint:errcheck
 	serverFingerprint, _ := x509.SPKIFingerprintFromDER(serverCert.Certificate.Certificate[0]) //nolint:errcheck
 
-	logger.Debug("generated new certificates",
+	logger.Debug(
+		"generated new certificates",
 		zap.Stringer("client", clientFingerprint),
 		zap.Stringer("server", serverFingerprint),
 	)
@@ -431,7 +434,8 @@ func (ctrl *APIController) generateWorker(ctx context.Context, r controller.Runt
 
 	serverFingerprint, _ := x509.SPKIFingerprintFromPEM(serverCert.Crt) //nolint:errcheck
 
-	logger.Debug("generated new certificates",
+	logger.Debug(
+		"generated new certificates",
 		zap.Stringer("server", serverFingerprint),
 	)
 
@@ -524,7 +528,8 @@ func (ctrl *APIController) reconcileMaintenance(ctx context.Context, r controlle
 			return fmt.Errorf("failed to parse CA certificate: %w", err)
 		}
 
-		serverCert, err := x509.NewKeyPair(ca,
+		serverCert, err := x509.NewKeyPair(
+			ca,
 			x509.IPAddresses(certSANs.TypedSpec().StdIPs()),
 			x509.DNSNames(certSANs.TypedSpec().DNSNames),
 			x509.CommonName(certSANs.TypedSpec().FQDN),
@@ -554,7 +559,8 @@ func (ctrl *APIController) reconcileMaintenance(ctx context.Context, r controlle
 
 		serverFingerprint, _ := x509.SPKIFingerprintFromDER(serverCert.Certificate.Certificate[0]) //nolint:errcheck
 
-		logger.Debug("generated new certificates",
+		logger.Debug(
+			"generated new certificates",
 			zap.Stringer("server", serverFingerprint),
 		)
 

@@ -122,18 +122,20 @@ func getSignatureUsingSDMeasure(t *testing.T) string {
 	sdCmd := exec.CommandContext(
 		t.Context(),
 		"systemd-measure",
-		append([]string{
-			"sign",
-			"--private-key",
-			"testdata/pcr-signing-key.pem",
-			"--bank=sha256",
-			"--bank=sha384",
-			"--bank=sha512",
-			"--phase=enter-initrd:leave-initrd:enter-machined",
-			"--json=short",
-		},
+		append(
+			[]string{
+				"sign",
+				"--private-key",
+				"testdata/pcr-signing-key.pem",
+				"--bank=sha256",
+				"--bank=sha384",
+				"--bank=sha512",
+				"--phase=enter-initrd:leave-initrd:enter-machined",
+				"--json=short",
+			},
 			sdMeasureArgs...,
-		)...)
+		)...,
+	)
 
 	sdCmd.Stdout = &signature
 	sdCmd.Stderr = &stderr

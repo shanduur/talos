@@ -280,14 +280,16 @@ func (m *Maker[T]) finalizeMachineConfigs() (*bundle.Bundle, error) {
 	m.ConfigBundleOps = slices.Concat(m.ConfigBundleOps, provisionBundleOps)
 	m.GenOps = slices.Concat(m.GenOps, []generate.Option{generate.WithEndpointList(m.Endpoints)})
 
-	m.ConfigBundleOps = append(m.ConfigBundleOps,
+	m.ConfigBundleOps = append(
+		m.ConfigBundleOps,
 		bundle.WithInputOptions(
 			&bundle.InputOptions{
 				ClusterName: m.Ops.RootOps.ClusterName,
 				Endpoint:    m.InClusterEndpoint,
 				KubeVersion: strings.TrimPrefix(m.Ops.KubernetesVersion, "v"),
 				GenOptions:  m.GenOps,
-			}),
+			},
+		),
 	)
 
 	configBundle, err := bundle.NewBundle(m.ConfigBundleOps...)
@@ -445,7 +447,8 @@ func (m *Maker[T]) initGenOps() error {
 	}
 
 	if m.Ops.EnableKubeSpan {
-		genOptions = slices.Concat(genOptions,
+		genOptions = slices.Concat(
+			genOptions,
 			[]generate.Option{
 				generate.WithKubeSpanEnabled(m.Ops.EnableKubeSpan),
 			},

@@ -578,7 +578,8 @@ func (widget *ResourceExplorerGrid) runResourceWatch(ctx context.Context, rd *me
 
 	md := resource.NewMetadata(spec.DefaultNamespace, spec.Type, "", resource.VersionUndefined)
 
-	if err := widget.dashboard.cli.COSI.WatchKind(nodeCtx, &md, eventCh,
+	if err := widget.dashboard.cli.COSI.WatchKind(
+		nodeCtx, &md, eventCh,
 		state.WithBootstrapContents(true),
 		state.WithWatchKindUnmarshalOptions(state.WithSkipProtobufUnmarshal()),
 	); err != nil {

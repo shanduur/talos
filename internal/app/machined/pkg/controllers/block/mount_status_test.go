@@ -46,7 +46,8 @@ func (suite *MountStatusSuite) TestReconcile() {
 	suite.Create(mountStatus1)
 
 	// mount status is exploded into volume mount statuses
-	ctest.AssertResources(suite,
+	ctest.AssertResources(
+		suite,
 		[]resource.ID{"requester1/volume1", "requester2/volume1"},
 		func(vms *block.VolumeMountStatus, asrt *assert.Assertions) {
 			asrt.Equal("volume1", vms.Metadata().Labels().Raw()["mount-status-id"])
@@ -101,7 +102,8 @@ func (suite *MountStatusSuite) TestReconcileRequesterGoingOut() {
 	suite.Create(mountStatus1)
 
 	// mount status is exploded into volume mount statuses
-	ctest.AssertResources(suite,
+	ctest.AssertResources(
+		suite,
 		[]resource.ID{"requester1/volume1", "requester2/volume1"},
 		func(vms *block.VolumeMountStatus, asrt *assert.Assertions) {
 			asrt.Equal("volume1", vms.Metadata().Labels().Raw()["mount-status-id"])

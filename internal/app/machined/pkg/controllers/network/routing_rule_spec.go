@@ -137,7 +137,8 @@ func (ctrl *RoutingRuleSpecController) syncRule(
 					}
 				}
 
-				logger.Info("deleted routing rule",
+				logger.Info(
+					"deleted routing rule",
 					zap.Uint8("family", existingRules[i].Family),
 					zap.Uint8("table", existingRules[i].Table),
 					zap.Uint8("action", existingRules[i].Action),
@@ -189,7 +190,8 @@ func (ctrl *RoutingRuleSpecController) syncRule(
 			action = "replaced"
 		}
 
-		logger.Info(action+" routing rule",
+		logger.Info(
+			action+" routing rule",
 			zap.Stringer("family", spec.Family),
 			zap.Stringer("src", spec.Src),
 			zap.Stringer("dst", spec.Dst),

@@ -58,7 +58,8 @@ func (ctrl *LinkSpecController) Outputs() []controller.Output {
 //nolint:gocyclo
 func (ctrl *LinkSpecController) Run(ctx context.Context, r controller.Runtime, logger *zap.Logger) error {
 	// wait for udevd to be healthy, which implies that all link renames are done
-	if err := runtime.WaitForDevicesReady(ctx, r,
+	if err := runtime.WaitForDevicesReady(
+		ctx, r,
 		[]controller.Input{
 			{
 				Namespace: network.NamespaceName,
@@ -262,7 +263,8 @@ func (ctrl *LinkSpecController) syncLink(ctx context.Context, r controller.Runti
 			replace := false
 
 			if existing.Attributes.Info == nil {
-				logger.Warn("requested logical link has no info, skipping sync",
+				logger.Warn(
+					"requested logical link has no info, skipping sync",
 					zap.String("name", existing.Attributes.Name),
 					zap.Stringer("type", nethelpers.LinkType(existing.Type)),
 					zap.Uint32("index", existing.Index),
@@ -273,7 +275,8 @@ func (ctrl *LinkSpecController) syncLink(ctx context.Context, r controller.Runti
 
 			// if type/kind doesn't match, recreate the link to change it
 			if existing.Type != uint16(link.TypedSpec().Type) || existing.Attributes.Info.Kind != link.TypedSpec().Kind {
-				logger.Info("replacing logical link",
+				logger.Info(
+					"replacing logical link",
 					zap.String("old_kind", existing.Attributes.Info.Kind),
 					zap.String("new_kind", link.TypedSpec().Kind),
 					zap.Stringer("old_type", nethelpers.LinkType(existing.Type)),
@@ -296,7 +299,8 @@ func (ctrl *LinkSpecController) syncLink(ctx context.Context, r controller.Runti
 				}
 
 				if existingVLAN != link.TypedSpec().VLAN {
-					logger.Info("replacing VLAN link",
+					logger.Info(
+						"replacing VLAN link",
 						zap.Uint16("old_id", existingVLAN.VID),
 						zap.Uint16("new_id", link.TypedSpec().VLAN.VID),
 						zap.Stringer("old_protocol", existingVLAN.Protocol),
@@ -320,7 +324,8 @@ func (ctrl *LinkSpecController) syncLink(ctx context.Context, r controller.Runti
 				}
 
 				if existingVRF != link.TypedSpec().VRFMaster {
-					logger.Info("replacing vrf link",
+					logger.Info(
+						"replacing vrf link",
 						zap.Stringer("old_table", existingVRF.Table),
 						zap.Stringer("new_table", link.TypedSpec().VRFMaster.Table),
 					)
@@ -381,7 +386,8 @@ func (ctrl *LinkSpecController) syncLink(ctx context.Context, r controller.Runti
 				}
 
 				masterIndex = &master.Index
-				logger.Info("creating vrf slave link",
+				logger.Info(
+					"creating vrf slave link",
 					zap.Uint32p("master_index", masterIndex),
 				)
 			}
@@ -444,7 +450,8 @@ func (ctrl *LinkSpecController) syncLink(ctx context.Context, r controller.Runti
 			}
 
 			if !existingBond.Equal(&link.TypedSpec().BondMaster) {
-				logger.Debug("updating bond settings",
+				logger.Debug(
+					"updating bond settings",
 					zap.String("old", fmt.Sprintf("%+v", existingBond)),
 					zap.String("new", fmt.Sprintf("%+v", link.TypedSpec().BondMaster)),
 				)
@@ -518,7 +525,8 @@ func (ctrl *LinkSpecController) syncLink(ctx context.Context, r controller.Runti
 			}
 
 			if existingBridge != link.TypedSpec().BridgeMaster {
-				logger.Debug("updating bridge settings",
+				logger.Debug(
+					"updating bridge settings",
 					zap.String("old", fmt.Sprintf("%+v", existingBridge)),
 					zap.String("new", fmt.Sprintf("%+v", link.TypedSpec().BridgeMaster)),
 				)

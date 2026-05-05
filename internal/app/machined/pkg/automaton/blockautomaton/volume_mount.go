@@ -66,7 +66,8 @@ func NewVolumeMounter(requester, volumeID string, callback VolumeMountCallbackFu
 		option(&opts)
 	}
 
-	return automaton.NewControllerAutomaton(createVolumeMountRequest,
+	return automaton.NewControllerAutomaton(
+		createVolumeMountRequest,
 		volumeMountContext{
 			mountID:   requester + "-" + volumeID,
 			volumeID:  volumeID,

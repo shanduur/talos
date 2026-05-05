@@ -30,7 +30,8 @@ func (gen *CertificateGenerator) buildOptions(autoSANs, includeLocalhost bool) [
 	addresses := gen.NodeAddresses.TypedSpec().IPs()
 
 	if includeLocalhost {
-		addresses = append(addresses,
+		addresses = append(
+			addresses,
 			netip.MustParseAddr("127.0.0.1"),
 			netip.MustParseAddr("::1"),
 		)
@@ -49,7 +50,8 @@ func (gen *CertificateGenerator) buildOptions(autoSANs, includeLocalhost bool) [
 	}
 
 	if autoSANs {
-		result = append(result,
+		result = append(
+			result,
 			x509.CommonName(hostname),
 			x509.DNSNames(dnsNames),
 			x509.IPAddresses(xslices.Map(addresses, func(addr netip.Addr) net.IP {
@@ -65,7 +67,8 @@ func (gen *CertificateGenerator) buildOptions(autoSANs, includeLocalhost bool) [
 func (gen *CertificateGenerator) GeneratePeerCert() (*x509.PEMEncodedCertificateAndKey, error) {
 	opts := gen.buildOptions(true, false)
 
-	opts = append(opts,
+	opts = append(
+		opts,
 		x509.ExtKeyUsage([]stdlibx509.ExtKeyUsage{
 			stdlibx509.ExtKeyUsageServerAuth,
 			stdlibx509.ExtKeyUsageClientAuth,
@@ -89,7 +92,8 @@ func (gen *CertificateGenerator) GeneratePeerCert() (*x509.PEMEncodedCertificate
 func (gen *CertificateGenerator) GenerateServerCert() (*x509.PEMEncodedCertificateAndKey, error) {
 	opts := gen.buildOptions(true, true)
 
-	opts = append(opts,
+	opts = append(
+		opts,
 		x509.ExtKeyUsage([]stdlibx509.ExtKeyUsage{
 			stdlibx509.ExtKeyUsageServerAuth,
 			stdlibx509.ExtKeyUsageClientAuth,
@@ -114,7 +118,8 @@ func (gen *CertificateGenerator) GenerateClientCert(commonName string) (*x509.PE
 	opts := gen.buildOptions(false, false)
 
 	opts = append(opts, x509.CommonName(commonName))
-	opts = append(opts,
+	opts = append(
+		opts,
 		x509.ExtKeyUsage([]stdlibx509.ExtKeyUsage{
 			stdlibx509.ExtKeyUsageClientAuth,
 		}),

@@ -248,7 +248,8 @@ func admissionControlConfig(spec *k8s.AdmissionControlConfigSpec) func() (runtim
 				return nil, fmt.Errorf("error marshaling configuration for plugin %q: %w", plugin.Name, err)
 			}
 
-			cfg.Plugins = append(cfg.Plugins,
+			cfg.Plugins = append(
+				cfg.Plugins,
 				apiserverv1.AdmissionPluginConfiguration{
 					Name: plugin.Name,
 					Configuration: &runtime.Unknown{

@@ -88,7 +88,8 @@ func (ctrl *PlatformConfigController) Run(ctx context.Context, r controller.Runt
 				continue
 			}
 
-			if err := safe.WriterModify(ctx, r,
+			if err := safe.WriterModify(
+				ctx, r,
 				network.NewPlatformConfig(network.NamespaceName, network.PlatformConfigActiveID),
 				func(out *network.PlatformConfig) error {
 					*out.TypedSpec() = *networkConfig

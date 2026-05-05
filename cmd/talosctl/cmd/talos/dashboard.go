@@ -38,7 +38,8 @@ Keyboard shortcuts:
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return WithClient(func(ctx context.Context, c *client.Client) error {
-			return dashboard.Run(ctx, c,
+			return dashboard.Run(
+				ctx, c,
 				dashboard.WithInterval(dashboardCmdFlags.interval),
 				dashboard.WithScreens(dashboard.ScreenSummary, dashboard.ScreenMonitor, dashboard.ScreenResourceExplorer),
 				dashboard.WithAllowExitKeys(true),

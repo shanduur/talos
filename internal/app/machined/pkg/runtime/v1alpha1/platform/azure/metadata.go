@@ -68,7 +68,8 @@ func (a *Azure) getMetadata(ctx context.Context) (*ComputeMetadata, string, erro
 
 	log.Printf("fetching azure instance config from: %q", metadataEndpoint)
 
-	metadataDl, err := download.Download(ctx, metadataEndpoint,
+	metadataDl, err := download.Download(
+		ctx, metadataEndpoint,
 		download.WithHeaders(map[string]string{"Metadata": "true"}),
 		download.WithErrorOnBadRequest(errBadRequest),
 	)
@@ -78,7 +79,8 @@ func (a *Azure) getMetadata(ctx context.Context) (*ComputeMetadata, string, erro
 
 		log.Printf("fetching azure instance config from: %q", metadataEndpoint)
 
-		metadataDl, err = download.Download(ctx, metadataEndpoint,
+		metadataDl, err = download.Download(
+			ctx, metadataEndpoint,
 			download.WithHeaders(map[string]string{"Metadata": "true"}),
 		)
 	}

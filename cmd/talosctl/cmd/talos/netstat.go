@@ -359,14 +359,16 @@ func netstatSummaryLabels() (labels string) {
 			"Local Address",
 			"Foreign Address",
 			"State",
-		}, "\t")
+		}, "\t",
+	)
 
 	if netstatCmdFlags.extend {
 		labels += "\t" + strings.Join(
 			[]string{
 				"Uid",
 				"Inode",
-			}, "\t")
+			}, "\t",
+		)
 	}
 
 	if netstatCmdFlags.pid {

@@ -493,7 +493,8 @@ func (ctrl *ControlPlaneStaticPodController) manageAPIServer(ctx context.Context
 									},
 								},
 							},
-							env...),
+							env...,
+						),
 						VolumeMounts: append([]v1.VolumeMount{
 							{
 								Name:      "secrets",
@@ -678,7 +679,8 @@ func (ctrl *ControlPlaneStaticPodController) manageControllerManager(ctx context
 									},
 								},
 							},
-							env...),
+							env...,
+						),
 						VolumeMounts: append([]v1.VolumeMount{
 							{
 								Name:      "secrets",
@@ -873,7 +875,8 @@ func (ctrl *ControlPlaneStaticPodController) manageScheduler(ctx context.Context
 									},
 								},
 							},
-							env...),
+							env...,
+						),
 						VolumeMounts: append([]v1.VolumeMount{
 							{
 								Name:      "secrets",

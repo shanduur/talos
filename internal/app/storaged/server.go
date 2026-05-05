@@ -271,7 +271,8 @@ func (s *Server) wipeDevice(deviceName string, method storage.BlockDeviceWipeDes
 		defer parentBd.Close() //nolint:errcheck
 	}
 
-	bd, err := blockdev.NewFromPath(filepath.Join("/dev", deviceName),
+	bd, err := blockdev.NewFromPath(
+		filepath.Join("/dev", deviceName),
 		blockdev.OpenForWrite(),
 		blockdev.OpenAssertNotMounted(),
 	)

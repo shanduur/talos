@@ -38,7 +38,8 @@ func (suite *APIServiceConfigControllerSuite) TestMaintenanceMode() {
 	request := runtimeres.NewMaintenanceServiceRequest()
 	suite.Create(request)
 
-	ctest.AssertResource(suite, runtimeres.MaintenanceServiceRequestID,
+	ctest.AssertResource(
+		suite, runtimeres.MaintenanceServiceRequestID,
 		func(req *runtimeres.MaintenanceServiceRequest, asrt *assert.Assertions) {
 			asrt.False(req.Metadata().Finalizers().Empty())
 		},
@@ -48,7 +49,8 @@ func (suite *APIServiceConfigControllerSuite) TestMaintenanceMode() {
 	cfg.TypedSpec().ListenAddress = ":1"
 	suite.Create(cfg)
 
-	ctest.AssertResource(suite, runtimeres.APIServiceConfigID,
+	ctest.AssertResource(
+		suite, runtimeres.APIServiceConfigID,
 		func(cfg *runtimeres.APIServiceConfig, asrt *assert.Assertions) {
 			asrt.Equal(":1", cfg.TypedSpec().ListenAddress)
 			asrt.True(cfg.TypedSpec().NodeRoutingDisabled)
@@ -62,7 +64,8 @@ func (suite *APIServiceConfigControllerSuite) TestMaintenanceMode() {
 
 	ctest.AssertNoResource[*runtimeres.APIServiceConfig](suite, runtimeres.APIServiceConfigID)
 
-	ctest.AssertResource(suite, runtimeres.MaintenanceServiceRequestID,
+	ctest.AssertResource(
+		suite, runtimeres.MaintenanceServiceRequestID,
 		func(req *runtimeres.MaintenanceServiceRequest, asrt *assert.Assertions) {
 			asrt.True(req.Metadata().Finalizers().Empty())
 		},
@@ -75,7 +78,8 @@ func (suite *APIServiceConfigControllerSuite) TestRegularMode() {
 	cert := secrets.NewAPI()
 	suite.Create(cert)
 
-	ctest.AssertResource(suite, runtimeres.APIServiceConfigID,
+	ctest.AssertResource(
+		suite, runtimeres.APIServiceConfigID,
 		func(cfg *runtimeres.APIServiceConfig, asrt *assert.Assertions) {
 			asrt.Equal(":50000", cfg.TypedSpec().ListenAddress)
 			asrt.False(cfg.TypedSpec().NodeRoutingDisabled)

@@ -21,7 +21,8 @@ func ingressRuleWithinCluster(cidrs []netip.Prefix, gateways []netip.Addr) []net
 	rules := make([]network.IngressRule, 0, len(cidrs))
 
 	for i := range cidrs {
-		rules = append(rules,
+		rules = append(
+			rules,
 			network.IngressRule{
 				Subnet: cidrs[i],
 				Except: network.Prefix{Prefix: netip.PrefixFrom(gateways[i], gateways[i].BitLen())},

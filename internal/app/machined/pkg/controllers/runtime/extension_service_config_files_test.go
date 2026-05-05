@@ -90,7 +90,8 @@ func (suite *ExtensionServiceConfigFilesSuite) TestReconcileExtensionServiceConf
 
 		suite.Require().NoError(suite.State().Create(suite.Ctx(), extensionServiceConfigFiles))
 
-		ctest.AssertResource(suite, tt.extensionName,
+		ctest.AssertResource(
+			suite, tt.extensionName,
 			func(status *runtimeres.ExtensionServiceConfigStatus, asrt *assert.Assertions) {
 				asrt.Equal(extensionServiceConfigFiles.Metadata().Version().String(), status.TypedSpec().SpecVersion)
 			},

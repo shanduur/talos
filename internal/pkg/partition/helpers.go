@@ -30,10 +30,12 @@ func WipeWithSignatures(bd *block.Device, deviceName string, log func(string, ..
 		}
 
 		if log != nil {
-			log("block device %q wiped by ranges: %s",
+			log(
+				"block device %q wiped by ranges: %s",
 				deviceName,
 				strings.Join(
-					xslices.Map(info.SignatureRanges,
+					xslices.Map(
+						info.SignatureRanges,
 						func(r blkid.SignatureRange) string {
 							return fmt.Sprintf("%d-%d", r.Offset, r.Offset+r.Size)
 						},

@@ -247,12 +247,14 @@ func (suite *GenSuite) TestConfigWithSecrets() {
 	secretsYaml, err := os.ReadFile("secrets.yaml")
 	suite.Assert().NoError(err)
 
-	suite.RunCLI([]string{"gen", "config", "foo", "https://192.168.0.1:6443", "--with-secrets", "secrets.yaml"},
+	suite.RunCLI(
+		[]string{"gen", "config", "foo", "https://192.168.0.1:6443", "--with-secrets", "secrets.yaml"},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)
 
-	suite.RunCLI([]string{"gen", "secrets", "--from-controlplane-config", "controlplane.yaml", "--output-file", "secrets-from-config.yaml"},
+	suite.RunCLI(
+		[]string{"gen", "secrets", "--from-controlplane-config", "controlplane.yaml", "--output-file", "secrets-from-config.yaml"},
 		base.StdoutEmpty(),
 	)
 
@@ -266,11 +268,12 @@ func (suite *GenSuite) TestConfigWithSecrets() {
 func (suite *GenSuite) TestGenConfigWithDeprecatedOutputDirFlag() {
 	tempDir := suite.T().TempDir()
 
-	suite.RunCLI([]string{
-		"gen", "config",
-		"foo", "https://192.168.0.1:6443",
-		"--output-dir", tempDir,
-	},
+	suite.RunCLI(
+		[]string{
+			"gen", "config",
+			"foo", "https://192.168.0.1:6443",
+			"--output-dir", tempDir,
+		},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)
@@ -354,12 +357,13 @@ func (suite *GenSuite) TestGenConfigToStdoutMultipleTypesError() {
 func (suite *GenSuite) TestGenConfigMultipleTypesToDirectory() {
 	tempDir := filepath.Join(suite.T().TempDir(), "inner")
 
-	suite.RunCLI([]string{
-		"gen", "config",
-		"foo", "https://192.168.0.1:6443",
-		"--output-types", "controlplane,worker",
-		"--output", tempDir,
-	},
+	suite.RunCLI(
+		[]string{
+			"gen", "config",
+			"foo", "https://192.168.0.1:6443",
+			"--output-types", "controlplane,worker",
+			"--output", tempDir,
+		},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)
@@ -374,12 +378,13 @@ func (suite *GenSuite) TestGenConfigMultipleTypesToDirectory() {
 func (suite *GenSuite) TestGenConfigSingleTypeToFile() {
 	tempFile := filepath.Join(suite.T().TempDir(), "worker-conf.yaml")
 
-	suite.RunCLI([]string{
-		"gen", "config",
-		"foo", "https://192.168.0.1:6443",
-		"--output-types", "worker",
-		"--output", tempFile,
-	},
+	suite.RunCLI(
+		[]string{
+			"gen", "config",
+			"foo", "https://192.168.0.1:6443",
+			"--output-types", "worker",
+			"--output", tempFile,
+		},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)
@@ -392,12 +397,13 @@ func (suite *GenSuite) TestGenConfigSingleTypeToFile() {
 func (suite *GenSuite) TestGenConfigSingleTypeWithDeprecatedOutputDirFlagToDirectory() {
 	tempDir := filepath.Join(suite.T().TempDir(), "inner")
 
-	suite.RunCLI([]string{
-		"gen", "config",
-		"foo", "https://192.168.0.1:6443",
-		"--output-types", "worker",
-		"--output-dir", tempDir,
-	},
+	suite.RunCLI(
+		[]string{
+			"gen", "config",
+			"foo", "https://192.168.0.1:6443",
+			"--output-types", "worker",
+			"--output-dir", tempDir,
+		},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)

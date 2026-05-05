@@ -74,7 +74,8 @@ func PartitionOp(
 					mountOptions,
 				)...)
 
-				managers = append(managers,
+				managers = append(
+					managers,
 					manager,
 				)
 

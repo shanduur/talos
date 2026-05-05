@@ -457,7 +457,8 @@ func (suite *BaseSuite) pullInstallerImageViaLifecycleService(
 	nodes []string,
 	imageRef string,
 ) bool {
-	responseChan := streamPerNode(ctx, nodes,
+	responseChan := streamPerNode(
+		ctx, nodes,
 		func(ctx context.Context) (grpc.ServerStreamingClient[machineapi.ImageServicePullResponse], error) {
 			return c.ImageClient.Pull(ctx, &machineapi.ImageServicePullRequest{
 				Containerd: containerdInstance,
@@ -513,7 +514,8 @@ func (suite *BaseSuite) upgradeViaLifecycleService(
 	nodes []string,
 	imageRef string,
 ) bool {
-	responseChan := streamPerNode(ctx, nodes,
+	responseChan := streamPerNode(
+		ctx, nodes,
 		func(ctx context.Context) (grpc.ServerStreamingClient[machineapi.LifecycleServiceUpgradeResponse], error) {
 			return c.LifecycleClient.Upgrade(ctx, &machineapi.LifecycleServiceUpgradeRequest{
 				Containerd: containerdInstance,
@@ -952,23 +954,24 @@ func (suite *BaseSuite) setupCluster(options clusterOptions) {
 	}
 
 	suite.configBundle, err = bundle.NewBundle(
-		append([]bundle.Option{
-			bundle.WithInputOptions(
-				&bundle.InputOptions{
-					ClusterName: options.ClusterName,
-					Endpoint:    suite.controlPlaneEndpoint,
-					KubeVersion: options.SourceK8sVersion,
-					GenOptions: append(
-						genOptions,
-						generate.WithEndpointList(controlplaneEndpoints),
-						generate.WithInstallImage(options.SourceInstallerImage),
-						generate.WithDNSDomain("cluster.local"),
-						generate.WithVersionContract(versionContract),
-					),
-				},
-			),
-			bundle.WithPatch(extraPatches),
-		},
+		append(
+			[]bundle.Option{
+				bundle.WithInputOptions(
+					&bundle.InputOptions{
+						ClusterName: options.ClusterName,
+						Endpoint:    suite.controlPlaneEndpoint,
+						KubeVersion: options.SourceK8sVersion,
+						GenOptions: append(
+							genOptions,
+							generate.WithEndpointList(controlplaneEndpoints),
+							generate.WithInstallImage(options.SourceInstallerImage),
+							generate.WithDNSDomain("cluster.local"),
+							generate.WithVersionContract(versionContract),
+						),
+					},
+				),
+				bundle.WithPatch(extraPatches),
+			},
 			bundleOptions...,
 		)...,
 	)

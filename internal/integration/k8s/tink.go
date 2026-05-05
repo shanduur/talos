@@ -141,7 +141,8 @@ func (suite *TinkSuite) TestDeploy() {
 
 	talosEndpoint := net.JoinHostPort(lbNode, strconv.Itoa(talosPort))
 
-	in, err := generate.NewInput(namespace,
+	in, err := generate.NewInput(
+		namespace,
 		fmt.Sprintf("https://%s", net.JoinHostPort(lbNode, strconv.Itoa(k8sPort))),
 		constants.DefaultKubernetesVersion,
 		generate.WithAdditionalSubjectAltNames([]string{lbNode}),
@@ -166,7 +167,8 @@ func (suite *TinkSuite) TestDeploy() {
 
 	suite.Require().NoError(readyErr)
 
-	insecureClient, err := client.New(ctx,
+	insecureClient, err := client.New(
+		ctx,
 		client.WithEndpoints(talosEndpoint),
 		client.WithTLSConfig(&tls.Config{InsecureSkipVerify: true}),
 	)
@@ -196,7 +198,8 @@ func (suite *TinkSuite) TestDeploy() {
 
 	suite.Require().NoError(readyErr)
 
-	talosClient, err := client.New(ctx,
+	talosClient, err := client.New(
+		ctx,
 		client.WithConfigContext(talosconfig.Contexts[talosconfig.Context]),
 	)
 	suite.Require().NoError(err)
@@ -465,7 +468,8 @@ func (suite *TinkSuite) getTinkManifests(namespace, serviceName, ssName, talosIm
 						},
 					},
 				},
-			})
+			},
+		)
 	}
 
 	tinkManifests = append(tinkManifests, statefulSet)

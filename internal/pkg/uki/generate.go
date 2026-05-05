@@ -35,7 +35,8 @@ func (builder *Builder) generateOSRel() error {
 		return err
 	}
 
-	builder.sections = append(builder.sections,
+	builder.sections = append(
+		builder.sections,
 		section{
 			Name:    SectionOSRel.String(),
 			Path:    path,
@@ -54,7 +55,8 @@ func (builder *Builder) generateCmdline() error {
 		return err
 	}
 
-	builder.sections = append(builder.sections,
+	builder.sections = append(
+		builder.sections,
 		section{
 			Name:    SectionCmdline.String(),
 			Path:    path,
@@ -67,7 +69,8 @@ func (builder *Builder) generateCmdline() error {
 }
 
 func (builder *Builder) generateInitrd() error {
-	builder.sections = append(builder.sections,
+	builder.sections = append(
+		builder.sections,
 		section{
 			Name:    SectionInitrd.String(),
 			Path:    builder.InitrdPath,
@@ -86,7 +89,8 @@ func (builder *Builder) generateSplash() error {
 		return err
 	}
 
-	builder.sections = append(builder.sections,
+	builder.sections = append(
+		builder.sections,
 		section{
 			Name:    SectionSplash.String(),
 			Path:    path,
@@ -122,7 +126,8 @@ func (builder *Builder) generateUname() error {
 		return err
 	}
 
-	builder.sections = append(builder.sections,
+	builder.sections = append(
+		builder.sections,
 		section{
 			Name:    SectionUname.String(),
 			Path:    path,
@@ -146,7 +151,8 @@ func (builder *Builder) generateSBAT() error {
 		return err
 	}
 
-	builder.sections = append(builder.sections,
+	builder.sections = append(
+		builder.sections,
 		section{
 			Name:    SectionSBAT.String(),
 			Path:    path,
@@ -174,7 +180,8 @@ func (builder *Builder) generatePCRPublicKey() error {
 		return err
 	}
 
-	builder.sections = append(builder.sections,
+	builder.sections = append(
+		builder.sections,
 		section{
 			Name:    SectionPCRPKey.String(),
 			Path:    path,
@@ -212,7 +219,8 @@ func (builder *Builder) generateProfiles() error {
 			return err
 		}
 
-		builder.sections = append(builder.sections,
+		builder.sections = append(
+			builder.sections,
 			section{
 				Name:    SectionProfile.String(),
 				Path:    path,
@@ -228,7 +236,8 @@ func (builder *Builder) generateProfiles() error {
 				return err
 			}
 
-			builder.sections = append(builder.sections,
+			builder.sections = append(
+				builder.sections,
 				section{
 					Name:    SectionCmdline.String(),
 					Path:    path,
@@ -253,7 +262,8 @@ func (builder *Builder) generateKernel() error {
 		}
 	}
 
-	builder.sections = append(builder.sections,
+	builder.sections = append(
+		builder.sections,
 		section{
 			Name:    SectionLinux.String(),
 			Path:    path,

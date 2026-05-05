@@ -131,7 +131,8 @@ func readConfigFromISO(ctx context.Context, r state.State) ([]byte, error) {
 			return fmt.Errorf("read config: %w", err)
 		}
 
-		log.Printf("read machine config from volume: %s (filesystem %q, UUID %q, size %s)",
+		log.Printf(
+			"read machine config from volume: %s (filesystem %q, UUID %q, size %s)",
 			volumeStatus.TypedSpec().Location,
 			volumeStatus.TypedSpec().Filesystem,
 			volumeStatus.TypedSpec().UUID,

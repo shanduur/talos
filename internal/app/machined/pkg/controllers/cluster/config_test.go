@@ -83,7 +83,8 @@ func (suite *ConfigSuite) TestReconcileConfigCustom() {
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{cluster.ConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{cluster.ConfigID},
 		func(res *cluster.Config, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
 
@@ -118,7 +119,8 @@ func (suite *ConfigSuite) TestReconcileConfigCustomInsecure() {
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{cluster.ConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{cluster.ConfigID},
 		func(res *cluster.Config, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
 
@@ -140,7 +142,8 @@ func (suite *ConfigSuite) TestReconcileDisabled() {
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{cluster.ConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{cluster.ConfigID},
 		func(res *cluster.Config, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
 
@@ -159,7 +162,8 @@ func (suite *ConfigSuite) TestReconcilePartial() {
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{cluster.ConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{cluster.ConfigID},
 		func(res *cluster.Config, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
 

@@ -156,7 +156,8 @@ func (suite *WipeSuite) TestWipeFilesystem() {
 	nodeCtx := client.WithNode(suite.ctx, node)
 
 	// wait for Talos to discover xfs
-	_, err = suite.Client.COSI.WatchFor(nodeCtx,
+	_, err = suite.Client.COSI.WatchFor(
+		nodeCtx,
 		block.NewDiscoveredVolume(block.NamespaceName, deviceName).Metadata(),
 		state.WithEventTypes(state.Created, state.Updated),
 		state.WithCondition(func(r resource.Resource) (bool, error) {
@@ -178,7 +179,8 @@ func (suite *WipeSuite) TestWipeFilesystem() {
 	suite.Require().NoError(err)
 
 	// wait for Talos to discover that the disk is wiped
-	_, err = suite.Client.COSI.WatchFor(nodeCtx,
+	_, err = suite.Client.COSI.WatchFor(
+		nodeCtx,
 		block.NewDiscoveredVolume(block.NamespaceName, deviceName).Metadata(),
 		state.WithEventTypes(state.Created, state.Updated),
 		state.WithCondition(func(r resource.Resource) (bool, error) {

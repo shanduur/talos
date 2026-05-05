@@ -42,8 +42,10 @@ var DiskLocator = sync.OnceValue(func() *cel.Env {
 				cel.Types(&diskSpec),
 				cel.Variable("disk", cel.ObjectType(string(diskSpec.ProtoReflect().Descriptor().FullName()))),
 				cel.Variable("system_disk", types.BoolType),
-				cel.Function("glob", // glob(pattern, string)
-					cel.Overload("glob_string_string", []*cel.Type{cel.StringType, cel.StringType}, cel.BoolType,
+				cel.Function(
+					"glob", // glob(pattern, string)
+					cel.Overload(
+						"glob_string_string", []*cel.Type{cel.StringType, cel.StringType}, cel.BoolType,
 						cel.BinaryBinding(func(arg1, arg2 ref.Val) ref.Val {
 							return types.Bool(glob.Glob(string(arg1.(types.String)), string(arg2.(types.String))))
 						}),
@@ -139,8 +141,10 @@ var OOMTrigger = sync.OnceValue(func() *cel.Env {
 				// multiply_qos_vectors(qos_memory_some_avg_10, {Besteffort: 1.0, Burstable: 0.0, Guaranteed: 0.0, Podruntime: 1.0, System: 1.0}) -> double
 				//
 				// Multiplies the values of two QoS class maps and returns the sum.
-				cel.Function("multiply_qos_vectors",
-					cel.Overload("multiply_qos_vectors_ma_map_double",
+				cel.Function(
+					"multiply_qos_vectors",
+					cel.Overload(
+						"multiply_qos_vectors_ma_map_double",
 						[]*cel.Type{
 							cel.MapType(cel.DynType, cel.DoubleType),
 							cel.MapType(cel.DynType, cel.DoubleType),
@@ -213,15 +217,19 @@ var LinkLocator = sync.OnceValue(func() *cel.Env {
 			[]cel.EnvOption{
 				cel.Types(&linkSpec),
 				cel.Variable("link", cel.ObjectType(string(linkSpec.ProtoReflect().Descriptor().FullName()))),
-				cel.Function("glob", // glob(pattern, string) -> bool
-					cel.Overload("glob_string_string", []*cel.Type{cel.StringType, cel.StringType}, cel.BoolType,
+				cel.Function(
+					"glob", // glob(pattern, string) -> bool
+					cel.Overload(
+						"glob_string_string", []*cel.Type{cel.StringType, cel.StringType}, cel.BoolType,
 						cel.BinaryBinding(func(arg1, arg2 ref.Val) ref.Val {
 							return types.Bool(glob.Glob(string(arg1.(types.String)), string(arg2.(types.String))))
 						}),
 					),
 				),
-				cel.Function("mac", // mac(bytes) -> string
-					cel.Overload("mac_bytes", []*cel.Type{cel.BytesType}, cel.StringType,
+				cel.Function(
+					"mac", // mac(bytes) -> string
+					cel.Overload(
+						"mac_bytes", []*cel.Type{cel.BytesType}, cel.StringType,
 						cel.UnaryBinding(func(arg ref.Val) ref.Val {
 							return types.String(net.HardwareAddr([]byte(arg.(types.Bytes))).String())
 						}),

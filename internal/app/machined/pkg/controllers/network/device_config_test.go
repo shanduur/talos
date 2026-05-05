@@ -66,7 +66,8 @@ func (suite *DeviceConfigSpecSuite) TestDeviceConfigs() {
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), maps.Keys(devices),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), maps.Keys(devices),
 		func(r *network.DeviceConfigSpec, assert *assert.Assertions) {
 			assert.Equal(r.TypedSpec().Device, devices[r.Metadata().ID()])
 		},
@@ -133,26 +134,30 @@ func (suite *DeviceConfigSpecSuite) TestSelectors() {
 	status.TypedSpec().BusPath = "0000:01:01.0"
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), status))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []string{"eth0/000"},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []string{"eth0/000"},
 		func(r *network.DeviceConfigSpec, assert *assert.Assertions) {
 			assert.Equal(1500, r.TypedSpec().Device.MTU())
 			assert.Equal([]string{"192.168.2.0/24"}, r.TypedSpec().Device.Addresses())
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []string{"eth0/001"},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []string{"eth0/001"},
 		func(r *network.DeviceConfigSpec, assert *assert.Assertions) {
 			assert.Equal([]string{"192.168.3.0/24"}, r.TypedSpec().Device.Addresses())
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []string{"eth0/003/000", "eth1/003/001"},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []string{"eth0/003/000", "eth1/003/001"},
 		func(r *network.DeviceConfigSpec, assert *assert.Assertions) {
 			assert.Equal([]string{"192.168.5.0/24"}, r.TypedSpec().Device.Addresses())
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []string{"eth0/004"},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []string{"eth0/004"},
 		func(r *network.DeviceConfigSpec, assert *assert.Assertions) {
 			assert.Equal([]string{"192.168.6.0/24"}, r.TypedSpec().Device.Addresses())
 		},
@@ -229,7 +234,8 @@ func (suite *DeviceConfigSpecSuite) TestBondSelectors() {
 		suite.Require().NoError(suite.State().Create(suite.Ctx(), status))
 	}
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []string{"bond0/000"},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []string{"bond0/000"},
 		func(r *network.DeviceConfigSpec, assert *assert.Assertions) {
 			assert.Equal(1500, r.TypedSpec().Device.MTU())
 			assert.Equal([]string{"192.168.2.0/24"}, r.TypedSpec().Device.Addresses())

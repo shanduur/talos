@@ -183,13 +183,17 @@ func init() {
 	genSecurebootCmd.AddCommand(genSecurebootPCRCmd)
 
 	genSecurebootDatabaseCmd.Flags().StringVar(
-		&genSecurebootDatabaseCmdFlags.enrolledCertificatePath, "enrolled-certificate", helpers.ArtifactPath(constants.SecureBootSigningCertAsset), "path to the certificate to enroll")
+		&genSecurebootDatabaseCmdFlags.enrolledCertificatePath, "enrolled-certificate", helpers.ArtifactPath(constants.SecureBootSigningCertAsset), "path to the certificate to enroll",
+	)
 	genSecurebootDatabaseCmd.Flags().StringVar(
-		&genSecurebootDatabaseCmdFlags.signingCertificatePath, "signing-certificate", helpers.ArtifactPath(constants.SecureBootSigningCertAsset), "path to the certificate used to sign the database")
+		&genSecurebootDatabaseCmdFlags.signingCertificatePath, "signing-certificate", helpers.ArtifactPath(constants.SecureBootSigningCertAsset), "path to the certificate used to sign the database",
+	)
 	genSecurebootDatabaseCmd.Flags().StringVar(
-		&genSecurebootDatabaseCmdFlags.signingKeyPath, "signing-key", helpers.ArtifactPath(constants.SecureBootSigningKeyAsset), "path to the key used to sign the database")
+		&genSecurebootDatabaseCmdFlags.signingKeyPath, "signing-key", helpers.ArtifactPath(constants.SecureBootSigningKeyAsset), "path to the key used to sign the database",
+	)
 	genSecurebootDatabaseCmd.Flags().BoolVar(
-		&genSecurebootDatabaseCmdFlags.includeWellKnownCerts, "include-well-known-uefi-certs", false, "include well-known UEFI (Microsoft) certificates in the database")
+		&genSecurebootDatabaseCmdFlags.includeWellKnownCerts, "include-well-known-uefi-certs", false, "include well-known UEFI (Microsoft) certificates in the database",
+	)
 	genSecurebootCmd.AddCommand(genSecurebootDatabaseCmd)
 }
 

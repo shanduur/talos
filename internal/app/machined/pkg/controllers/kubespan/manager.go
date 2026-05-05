@@ -326,7 +326,8 @@ func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, lo
 
 		// update peer statuses
 		for pubKey, peerStatus := range peerStatuses {
-			if err = safe.WriterModify(ctx, r,
+			if err = safe.WriterModify(
+				ctx, r,
 				kubespan.NewPeerStatus(
 					kubespan.NamespaceName,
 					pubKey,
@@ -344,7 +345,8 @@ func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, lo
 		mtu := cfgSpec.MTU
 
 		// always update the firewall rules, as allowedIPsSet might change at any moment due to peer up/down events
-		if err = safe.WriterModify(ctx, r,
+		if err = safe.WriterModify(
+			ctx, r,
 			network.NewNfTablesChain(
 				network.NamespaceName,
 				"kubespan_prerouting",
@@ -383,7 +385,8 @@ func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, lo
 			return fmt.Errorf("error modifying nftables chain: %w", err)
 		}
 
-		if err = safe.WriterModify(ctx, r,
+		if err = safe.WriterModify(
+			ctx, r,
 			network.NewNfTablesChain(
 				network.NamespaceName,
 				"kubespan_outgoing",
@@ -443,7 +446,8 @@ func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, lo
 			continue
 		}
 
-		if err = safe.WriterModify(ctx, r,
+		if err = safe.WriterModify(
+			ctx, r,
 			network.NewAddressSpec(
 				network.ConfigNamespaceName,
 				network.LayeredID(network.ConfigOperator, network.AddressID(constants.KubeSpanLinkName, localSpec.Address)),
@@ -496,7 +500,8 @@ func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, lo
 				ConfigLayer: network.ConfigOperator,
 			},
 		} {
-			if err = safe.WriterModify(ctx, r,
+			if err = safe.WriterModify(
+				ctx, r,
 				network.NewRouteSpec(
 					network.ConfigNamespaceName,
 					network.LayeredID(network.ConfigOperator, network.RouteID(spec.Table, spec.Family, spec.Destination, spec.Gateway, spec.Priority, spec.OutLinkName)),
@@ -511,7 +516,8 @@ func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, lo
 			}
 		}
 
-		if err = safe.WriterModify(ctx, r,
+		if err = safe.WriterModify(
+			ctx, r,
 			network.NewLinkSpec(
 				network.ConfigNamespaceName,
 				network.LayeredID(network.ConfigOperator, network.LinkID(constants.KubeSpanLinkName)),
@@ -561,7 +567,8 @@ func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, lo
 				ConfigLayer: network.ConfigOperator,
 			},
 		} {
-			if err = safe.WriterModify(ctx, r,
+			if err = safe.WriterModify(
+				ctx, r,
 				network.NewRoutingRuleSpec(
 					network.ConfigNamespaceName,
 					network.LayeredID(network.ConfigOperator, network.RoutingRuleID(ruleSpec.Family, ruleSpec.Priority)),

@@ -49,7 +49,8 @@ func RetryFetch(ctx context.Context, f func(ctx context.Context) (string, error)
 			userdata, err = f(ctx)
 
 			return err
-		})
+		},
+	)
 	if err != nil {
 		return "", err
 	}

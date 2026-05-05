@@ -129,7 +129,8 @@ func (c *ProgressReporter) reportProgress() {
 		percentage = float64(overallOffset) / float64(overallTotal) * 100.0
 	}
 
-	log.Printf("pulling image %s: downloading %d layers (%s/%s) (%.2f%%)...",
+	log.Printf(
+		"pulling image %s: downloading %d layers (%s/%s) (%.2f%%)...",
 		c.imageRef, len(c.layers),
 		humanize.IBytes(uint64(overallOffset)),
 		humanize.IBytes(uint64(overallTotal)),

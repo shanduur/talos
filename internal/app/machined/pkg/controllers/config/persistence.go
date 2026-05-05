@@ -132,7 +132,8 @@ func (ctrl *PersistenceController) Run(ctx context.Context, r controller.Runtime
 		}
 
 		if ctrl.stateMachine != nil {
-			err := ctrl.stateMachine.Run(ctx, r, logger,
+			err := ctrl.stateMachine.Run(
+				ctx, r, logger,
 				automaton.WithAfterFunc(func() error {
 					ctrl.stateMachine = nil
 

@@ -124,7 +124,8 @@ func (ctrl *UserDiskConfigController) Run(ctx context.Context, r controller.Runt
 		}
 
 		if configurationPresent {
-			if err = safe.WriterModify(ctx, r,
+			if err = safe.WriterModify(
+				ctx, r,
 				block.NewUserDiskConfigStatus(block.NamespaceName, block.UserDiskConfigStatusID),
 				func(udcs *block.UserDiskConfigStatus) error {
 					*udcs.TypedSpec() = *status.TypedSpec()
@@ -176,7 +177,8 @@ func (ctrl *UserDiskConfigController) processUserDiskPartition(
 	id := fmt.Sprintf("%s-%d", device, idx+1)
 
 	// volume configuration
-	if err := safe.WriterModify(ctx, r,
+	if err := safe.WriterModify(
+		ctx, r,
 		block.NewVolumeConfig(block.NamespaceName, id),
 		func(vc *block.VolumeConfig) error {
 			vc.Metadata().Labels().Set(block.UserDiskLabel, "")
@@ -247,7 +249,8 @@ func (ctrl *UserDiskConfigController) processUserDiskPartition(
 
 	if !shouldTearDown {
 		// create volume mount request
-		if err = safe.WriterModify(ctx, r,
+		if err = safe.WriterModify(
+			ctx, r,
 			block.NewVolumeMountRequest(block.NamespaceName, id),
 			func(vmr *block.VolumeMountRequest) error {
 				vmr.TypedSpec().Requester = ctrl.Name()

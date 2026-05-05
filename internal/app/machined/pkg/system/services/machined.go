@@ -195,7 +195,8 @@ func (s *machinedService) Main(ctx context.Context, _ runtime.Runtime, logWriter
 	}
 
 	logger := logging.ZapLogger(
-		logging.NewLogDestination(logWriter, zapcore.DebugLevel,
+		logging.NewLogDestination(
+			logWriter, zapcore.DebugLevel,
 			logging.WithColoredLevels(),
 		),
 	)

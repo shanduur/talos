@@ -115,7 +115,8 @@ func patchFn(c *client.Client, patches []configpatcher.Patch) func(context.Conte
 			return nil
 		}
 
-		fmt.Fprintf(os.Stderr, "patched %s/%s at the node %s\n",
+		fmt.Fprintf(
+			os.Stderr, "patched %s/%s at the node %s\n",
 			mc.Metadata().Type(),
 			mc.Metadata().ID(),
 			node,

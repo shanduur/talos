@@ -87,7 +87,7 @@ type Example struct {
 // Populate populates example value.
 func (e *Example) Populate(index int) {
 	e.populate.Do(func() {
-		if reflect.TypeOf(e.value).Kind() != reflect.Ptr {
+		if reflect.TypeOf(e.value).Kind() != reflect.Pointer {
 			return
 		}
 
@@ -160,7 +160,7 @@ func mergeDoc(a, b *Doc) *Doc {
 
 func getDoc(in any) *Doc {
 	v := reflect.ValueOf(in)
-	if v.Kind() == reflect.Ptr && v.IsNil() {
+	if v.Kind() == reflect.Pointer && v.IsNil() {
 		in = reflect.New(v.Type().Elem()).Interface()
 	}
 
@@ -210,7 +210,7 @@ func renderExample(key string, doc *Doc, options *Options) string {
 			continue
 		}
 
-		if v.Kind() != reflect.Ptr {
+		if v.Kind() != reflect.Pointer {
 			v = reflect.Indirect(v)
 		}
 
@@ -281,7 +281,7 @@ func getExample(v reflect.Value, doc *Doc, index int) *reflect.Value {
 
 	defaultValue := reflect.ValueOf(doc.Examples[index].GetValue())
 	if !isEmpty(defaultValue) {
-		if v.Kind() != reflect.Ptr && defaultValue.Kind() == reflect.Ptr {
+		if v.Kind() != reflect.Pointer && defaultValue.Kind() == reflect.Pointer {
 			defaultValue = defaultValue.Elem()
 		}
 	}

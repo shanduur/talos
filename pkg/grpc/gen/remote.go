@@ -67,7 +67,8 @@ func (g *RemoteGenerator) IdentityContext(ctx context.Context, csr *x509.Certifi
 	ctx, cancel := context.WithTimeout(ctx, time.Minute)
 	defer cancel()
 
-	if err = retry.Exponential(time.Minute,
+	if err = retry.Exponential(
+		time.Minute,
 		retry.WithAttemptTimeout(10*time.Second),
 		retry.WithUnits(time.Second),
 		retry.WithJitter(100*time.Millisecond),

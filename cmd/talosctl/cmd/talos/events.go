@@ -99,9 +99,11 @@ var eventsCmd = &cobra.Command{
 				case *machine.MachineStatusEvent:
 					args = []any{
 						msg.GetStage().String(),
-						fmt.Sprintf("ready: %v, unmet conditions: %v",
+						fmt.Sprintf(
+							"ready: %v, unmet conditions: %v",
 							msg.GetStatus().Ready,
-							xslices.Map(msg.GetStatus().GetUnmetConditions(),
+							xslices.Map(
+								msg.GetStatus().GetUnmetConditions(),
 								func(c *machine.MachineStatusEvent_MachineStatus_UnmetCondition) string {
 									return c.Name
 								},

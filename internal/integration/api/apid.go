@@ -73,7 +73,8 @@ func (suite *ApidSuite) TestControlPlaneRouting() {
 
 	for _, endpoint := range endpoints {
 		suite.Run(endpoint, func() {
-			cli, err := client.New(suite.ctx,
+			cli, err := client.New(
+				suite.ctx,
 				client.WithConfig(suite.Talosconfig),
 				client.WithEndpoints(endpoint),
 			)
@@ -132,7 +133,8 @@ func (suite *ApidSuite) TestWorkerNoRouting() {
 
 	for _, endpoint := range endpoints {
 		suite.Run(endpoint, func() {
-			cli, err := client.New(suite.ctx,
+			cli, err := client.New(
+				suite.ctx,
 				client.WithConfig(suite.Talosconfig),
 				client.WithEndpoints(endpoint),
 			)
@@ -197,7 +199,8 @@ func (suite *ApidSuite) TestBigPayload() {
 	// the config is encoded twice in the resource gRPC message, so ensure that we can get to the one third of the size
 	const targetConfigSize = constants.GRPCMaxMessageSize / 3
 
-	suite.T().Logf("original config size: %d (%s), target size is %d (%s)",
+	suite.T().Logf(
+		"original config size: %d (%s), target size is %d (%s)",
 		len(originalCfg), humanize.Bytes(uint64(len(originalCfg))), targetConfigSize, humanize.Bytes(uint64(targetConfigSize)),
 	)
 

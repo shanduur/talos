@@ -232,17 +232,18 @@ func (svc *Extension) Runner(r runtime.Runtime) (runner.Runner, error) {
 		logToConsole = true
 	}
 
-	return restart.New(containerd.NewRunner(
-		logToConsole,
-		&args,
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithNamespace(constants.SystemContainerdNamespace),
-		runner.WithContainerdAddress(constants.SystemContainerdAddress),
-		runner.WithEnv(environment.Get(r.Config())),
-		runner.WithOCISpecOpts(ociSpecOpts...),
-		runner.WithCgroupPath(filepath.Join(constants.CgroupExtensions, svc.Spec.Name)),
-		runner.WithOOMScoreAdj(-600),
-	),
+	return restart.New(
+		containerd.NewRunner(
+			logToConsole,
+			&args,
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithNamespace(constants.SystemContainerdNamespace),
+			runner.WithContainerdAddress(constants.SystemContainerdAddress),
+			runner.WithEnv(environment.Get(r.Config())),
+			runner.WithOCISpecOpts(ociSpecOpts...),
+			runner.WithCgroupPath(filepath.Join(constants.CgroupExtensions, svc.Spec.Name)),
+			runner.WithOOMScoreAdj(-600),
+		),
 		restart.WithType(restartType),
 	), nil
 }

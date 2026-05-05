@@ -180,7 +180,8 @@ func (suite *ApplyConfigSuite) TestApplyNoOpCRIPatch() {
 			return file.FilePath != "/etc/cri/conf.d/20-customization.part"
 		})
 
-		cfg.MachineConfig.MachineFiles = append(cfg.MachineConfig.MachineFiles,
+		cfg.MachineConfig.MachineFiles = append(
+			cfg.MachineConfig.MachineFiles,
 			&v1alpha1.MachineFile{
 				FilePath: "/etc/cri/conf.d/20-customization.part",
 				FileOp:   "create",
@@ -500,7 +501,8 @@ func (suite *ApplyConfigSuite) TestApplyDryRun() {
 
 	cfgDataOut := suite.PatchV1Alpha1Config(provider, func(cfg *v1alpha1.Config) {
 		// this won't be possible without a reboot
-		cfg.MachineConfig.MachineFiles = append(cfg.MachineConfig.MachineFiles,
+		cfg.MachineConfig.MachineFiles = append(
+			cfg.MachineConfig.MachineFiles,
 			&v1alpha1.MachineFile{
 				FileContent:     "test",
 				FilePermissions: v1alpha1.FileMode(os.ModePerm),

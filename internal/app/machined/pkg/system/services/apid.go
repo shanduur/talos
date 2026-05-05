@@ -222,25 +222,26 @@ func (o *APID) Runner(r runtime.Runtime) (runner.Runner, error) {
 		debug = r.Config().Debug()
 	}
 
-	return restart.New(containerd.NewRunner(
-		debug,
-		&args,
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithContainerdAddress(constants.SystemContainerdAddress),
-		runner.WithEnv(env),
-		runner.WithGracefulShutdownTimeout(15*time.Second),
-		runner.WithCgroupPath(constants.CgroupApid),
-		runner.WithSelinuxLabel(constants.SelinuxLabelApid),
-		runner.WithOCISpecOpts(
-			oci.WithDroppedCapabilities(cap.Known()),
-			oci.WithHostNamespace(specs.NetworkNamespace),
-			oci.WithMounts(mounts),
-			oci.WithRootFSPath(filepath.Join(constants.SystemLibexecPath, o.ID(r))),
-			oci.WithRootFSReadonly(),
-			oci.WithUser(fmt.Sprintf("%d:%d", constants.ApidUserID, constants.ApidUserID)),
+	return restart.New(
+		containerd.NewRunner(
+			debug,
+			&args,
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithContainerdAddress(constants.SystemContainerdAddress),
+			runner.WithEnv(env),
+			runner.WithGracefulShutdownTimeout(15*time.Second),
+			runner.WithCgroupPath(constants.CgroupApid),
+			runner.WithSelinuxLabel(constants.SelinuxLabelApid),
+			runner.WithOCISpecOpts(
+				oci.WithDroppedCapabilities(cap.Known()),
+				oci.WithHostNamespace(specs.NetworkNamespace),
+				oci.WithMounts(mounts),
+				oci.WithRootFSPath(filepath.Join(constants.SystemLibexecPath, o.ID(r))),
+				oci.WithRootFSReadonly(),
+				oci.WithUser(fmt.Sprintf("%d:%d", constants.ApidUserID, constants.ApidUserID)),
+			),
+			runner.WithOOMScoreAdj(-998),
 		),
-		runner.WithOOMScoreAdj(-998),
-	),
 		restart.WithType(restart.Forever),
 	), nil
 }

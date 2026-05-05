@@ -45,7 +45,8 @@ func (suite *TalosconfigSuite) TestInfo() {
 	suite.RunCLI([]string{"config", "info", "--output", "text"}, // TODO: remove 10 years once the CABPT & TF providers are updated to 1.5.2+
 		base.StdoutShouldMatch(regexp.MustCompile(`(1 year|10 years) from now`)))
 
-	suite.RunCLI([]string{"config", "info", "--output", "yaml"},
+	suite.RunCLI(
+		[]string{"config", "info", "--output", "yaml"},
 		base.StdoutMatchFunc(func(stdout string) error {
 			var out map[string]any
 
@@ -63,7 +64,8 @@ func (suite *TalosconfigSuite) TestInfo() {
 		}),
 	)
 
-	suite.RunCLI([]string{"config", "info", "--output", "json"},
+	suite.RunCLI(
+		[]string{"config", "info", "--output", "json"},
 		base.StdoutMatchFunc(func(stdout string) error {
 			var out map[string]any
 
@@ -81,7 +83,8 @@ func (suite *TalosconfigSuite) TestInfo() {
 		}),
 	)
 
-	suite.RunCLI([]string{"config", "info", "--output", "table"},
+	suite.RunCLI(
+		[]string{"config", "info", "--output", "table"},
 		base.StdoutEmpty(),
 		base.ShouldFail(),
 		base.StderrShouldMatch(regexp.MustCompile(`unknown output format: "table"`)),
@@ -92,7 +95,8 @@ func (suite *TalosconfigSuite) TestInfo() {
 func (suite *TalosconfigSuite) TestMerge() {
 	tempDir := suite.T().TempDir()
 
-	suite.RunCLI([]string{"gen", "config", "-o", tempDir, "foo", "https://192.168.0.1:6443"},
+	suite.RunCLI(
+		[]string{"gen", "config", "-o", tempDir, "foo", "https://192.168.0.1:6443"},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)
@@ -113,7 +117,8 @@ func (suite *TalosconfigSuite) TestMerge() {
 
 	suite.Require().NotNil(c.Contexts["foo"])
 
-	suite.RunCLI([]string{"config", "merge", "--talosconfig", path, talosconfigPath},
+	suite.RunCLI(
+		[]string{"config", "merge", "--talosconfig", path, talosconfigPath},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 		base.StderrShouldMatch(regexp.MustCompile(`renamed`)),

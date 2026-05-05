@@ -15,7 +15,8 @@ import (
 func (s *ImageServicePullLayerProgress) Fmt() string {
 	switch s.GetStatus() {
 	case ImageServicePullLayerProgress_DOWNLOADING:
-		return fmt.Sprintf("downloading layer %s/%s (%.1f%%)",
+		return fmt.Sprintf(
+			"downloading layer %s/%s (%.1f%%)",
 			humanize.IBytes(uint64(s.GetOffset())),
 			humanize.IBytes(uint64(s.GetTotal())),
 			float64(s.GetOffset())/float64(s.GetTotal())*100.0,

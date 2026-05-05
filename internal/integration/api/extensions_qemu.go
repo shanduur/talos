@@ -614,12 +614,13 @@ func (suite *ExtensionsSuiteQEMU) TestLoadedKernelModule() {
 
 	suite.T().Logf("using node %s", node)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []resource.ID{
-		"virtio_balloon",
-		"virtio_pci",
-		"virtio_pci_legacy_dev",
-		"virtio_pci_modern_dev",
-	},
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, []resource.ID{
+			"virtio_balloon",
+			"virtio_pci",
+			"virtio_pci_legacy_dev",
+			"virtio_pci_modern_dev",
+		},
 		func(res *runtime.LoadedKernelModule, asrt *assert.Assertions) {
 			asrt.NotEmpty(res.TypedSpec().Size, "kernel module size should not be empty")
 			asrt.NotEmpty(res.TypedSpec().Address, "kernel module address should not be empty")

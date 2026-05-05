@@ -221,7 +221,8 @@ func (ctrl *TrustdController) generateControlPlane(ctx context.Context, r contro
 		return fmt.Errorf("failed to parse CA certificate: %w", err)
 	}
 
-	serverCert, err := x509.NewKeyPair(ca,
+	serverCert, err := x509.NewKeyPair(
+		ca,
 		x509.IPAddresses(certSANs.StdIPs()),
 		x509.DNSNames(certSANs.DNSNames),
 		x509.CommonName(certSANs.FQDN),
@@ -249,7 +250,8 @@ func (ctrl *TrustdController) generateControlPlane(ctx context.Context, r contro
 
 	serverFingerprint, _ := x509.SPKIFingerprintFromDER(serverCert.Certificate.Certificate[0]) //nolint:errcheck
 
-	logger.Debug("generated new certificates",
+	logger.Debug(
+		"generated new certificates",
 		zap.Stringer("server", serverFingerprint),
 	)
 

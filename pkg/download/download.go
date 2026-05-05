@@ -148,11 +148,12 @@ func Download(ctx context.Context, endpoint string, opts ...Option) (b []byte, e
 
 	err = retry.Exponential(
 		options.Timeout,
-		append([]retry.Option{
-			retry.WithUnits(time.Second),
-			retry.WithJitter(time.Second),
-			retry.WithErrorLogging(true),
-		},
+		append(
+			[]retry.Option{
+				retry.WithUnits(time.Second),
+				retry.WithJitter(time.Second),
+				retry.WithErrorLogging(true),
+			},
 			options.RetryOptions...,
 		)...,
 	).RetryWithContext(ctx, func(ctx context.Context) error {

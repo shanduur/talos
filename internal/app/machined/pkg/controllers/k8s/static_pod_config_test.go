@@ -53,7 +53,8 @@ func (suite *StaticPodConfigSuite) TestReconcile() {
 				},
 				ClusterConfig: &v1alpha1.ClusterConfig{},
 			},
-		))
+		),
+	)
 
 	suite.Create(cfg)
 

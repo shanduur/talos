@@ -44,7 +44,8 @@ func (i *Imager) handleEmbeddedConfig() error {
 		return fmt.Errorf("failed to write embedded config to temporary file: %w", err)
 	}
 
-	i.prof.Input.SystemExtensions = append(i.prof.Input.SystemExtensions,
+	i.prof.Input.SystemExtensions = append(
+		i.prof.Input.SystemExtensions,
 		profile.ContainerAsset{
 			TarballPath: tmpPath,
 		},

@@ -66,12 +66,14 @@ func (handler *HCloudHandler) Acquire(ctx context.Context) error {
 
 		oldDeviceID := findServerByAlias(serverList, handler.networkID, handler.vip)
 		if oldDeviceID != 0 {
-			handler.logger.Info("trying to remove previous Hetzner Cloud IP alias",
+			handler.logger.Info(
+				"trying to remove previous Hetzner Cloud IP alias",
 				zap.String("vip", handler.vip), zap.Int64("device_id", oldDeviceID),
 				zap.Int64("network_id", handler.networkID),
 			)
 
-			action, _, err = handler.client.Server.ChangeAliasIPs(ctx,
+			action, _, err = handler.client.Server.ChangeAliasIPs(
+				ctx,
 				&hcloud.Server{ID: oldDeviceID},
 				hcloud.ServerChangeAliasIPsOpts{
 					Network:  &hcloud.Network{ID: handler.networkID},

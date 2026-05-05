@@ -2538,7 +2538,8 @@ func capturePackets(ctx context.Context, w io.Writer, handle *afpacket.TPacket, 
 }
 
 func tryLockUpgradeMutex(ctx context.Context, etcdClient *etcd.Client) (unlock func(), err error) {
-	sess, err := concurrency.NewSession(etcdClient.Client,
+	sess, err := concurrency.NewSession(
+		etcdClient.Client,
 		concurrency.WithContext(ctx),
 		concurrency.WithTTL(MinimumEtcdUpgradeLeaseLockSeconds),
 	)

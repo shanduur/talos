@@ -82,7 +82,8 @@ func (p *provisioner) GenOptions(networkReq provision.NetworkRequest, contract *
 			panic(err)
 		}
 
-		bundleOpts = append(bundleOpts,
+		bundleOpts = append(
+			bundleOpts,
 			bundle.WithPatch([]configpatcher.Patch{configpatcher.NewStrategicMergePatch(ctr)}),
 		)
 	} else {
@@ -90,7 +91,8 @@ func (p *provisioner) GenOptions(networkReq provision.NetworkRequest, contract *
 			NetworkDeviceKernelDriver: "virtio_net",
 		})
 
-		genOpts = append(genOpts,
+		genOpts = append(
+			genOpts,
 			generate.WithNetworkOptions(
 				v1alpha1.WithNetworkInterfaceDHCP(virtioSelector, true),
 				v1alpha1.WithNetworkInterfaceDHCPv4(virtioSelector, hasIPv4),
@@ -100,7 +102,8 @@ func (p *provisioner) GenOptions(networkReq provision.NetworkRequest, contract *
 	}
 
 	if !contract.GrubUseUKICmdlineDefault() {
-		genOpts = append(genOpts,
+		genOpts = append(
+			genOpts,
 			generate.WithInstallExtraKernelArgs([]string{
 				"console=ttyS0", // TODO: should depend on arch
 				// reboot configuration

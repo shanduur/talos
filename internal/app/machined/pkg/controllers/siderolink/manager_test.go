@@ -113,7 +113,8 @@ func (suite *ManagerSuite) TestReconcile() {
 
 	nodeAddress := netip.MustParsePrefix(mockNodeAddressPrefix)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(network.ConfigOperator, network.AddressID(constants.SideroLinkName, nodeAddress)),
 		func(r *network.AddressSpec, asrt *assert.Assertions) {
 			address := r.TypedSpec()
@@ -126,7 +127,8 @@ func (suite *ManagerSuite) TestReconcile() {
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
 	)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(network.ConfigOperator, network.LinkID(constants.SideroLinkName)),
 		func(r *network.LinkSpec, asrt *assert.Assertions) {
 			link := r.TypedSpec()
@@ -159,12 +161,14 @@ func (suite *ManagerSuite) TestReconcile() {
 		state.WithDestroyOwner(new(siderolinkctrl.ConfigController{}).Name()))
 	suite.Require().NoError(destroyErr)
 
-	ctest.AssertNoResource[*network.LinkSpec](suite,
+	ctest.AssertNoResource[*network.LinkSpec](
+		suite,
 		network.LayeredID(network.ConfigOperator, network.LinkID(constants.SideroLinkName)),
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
 	)
 
-	ctest.AssertNoResource[*network.AddressSpec](suite,
+	ctest.AssertNoResource[*network.AddressSpec](
+		suite,
 		network.LayeredID(network.ConfigOperator, network.AddressID(constants.SideroLinkName, nodeAddress)),
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
 	)
@@ -173,7 +177,8 @@ func (suite *ManagerSuite) TestReconcile() {
 func (suite *ManagerSuite) TestMultipleEndpoints() {
 	suite.initialSetup(mockServerEndpoint1, mockServerEndpoint2)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(network.ConfigOperator, network.LinkID(constants.SideroLinkName)),
 		func(r *network.LinkSpec, asrt *assert.Assertions) {
 			link := r.TypedSpec()
@@ -189,7 +194,8 @@ func (suite *ManagerSuite) TestMultipleEndpoints() {
 func (suite *ManagerSuite) TestResolveEndpoints() {
 	suite.initialSetup(mockServerEndpoint2)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(network.ConfigOperator, network.LinkID(constants.SideroLinkName)),
 		func(r *network.LinkSpec, asrt *assert.Assertions) {
 			link := r.TypedSpec()

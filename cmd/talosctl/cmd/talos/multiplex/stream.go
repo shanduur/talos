@@ -26,7 +26,8 @@ func Streaming[ResponseT any](ctx context.Context, nodes []string, initiate func
 		wg.Go(func() {
 			stream, err := initiate(client.WithNode(ctx, node))
 			if err != nil {
-				channel.SendWithContext(ctx, responseCh,
+				channel.SendWithContext(
+					ctx, responseCh,
 					Response[*ResponseT]{
 						Node: node,
 						Err:  err,
@@ -43,7 +44,8 @@ func Streaming[ResponseT any](ctx context.Context, nodes []string, initiate func
 						return
 					}
 
-					channel.SendWithContext(ctx, responseCh,
+					channel.SendWithContext(
+						ctx, responseCh,
 						Response[*ResponseT]{
 							Node: node,
 							Err:  err,
@@ -53,7 +55,8 @@ func Streaming[ResponseT any](ctx context.Context, nodes []string, initiate func
 					return
 				}
 
-				if !channel.SendWithContext(ctx, responseCh,
+				if !channel.SendWithContext(
+					ctx, responseCh,
 					Response[*ResponseT]{
 						Node:    node,
 						Payload: payload,

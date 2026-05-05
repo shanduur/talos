@@ -115,7 +115,8 @@ func (suite *DiscoverySuite) TestMembers() {
 			continue
 		}
 
-		memberByName := xslices.ToMap(members,
+		memberByName := xslices.ToMap(
+			members,
 			func(member *cluster.Member) (string, *cluster.Member) {
 				return member.Metadata().ID(), member
 			},
@@ -322,7 +323,8 @@ func (suite *DiscoverySuite) TestKubeSpanExtraEndpoints() {
 	suite.Require().NoError(err)
 
 	suite.T().Logf("checking extra endpoint %s on node %s", mockEndpoint, checkNode)
-	rtestutils.AssertResources(client.WithNode(suite.ctx, checkNode), suite.T(), suite.Client.COSI, []string{targetIdentity.TypedSpec().PublicKey},
+	rtestutils.AssertResources(
+		client.WithNode(suite.ctx, checkNode), suite.T(), suite.Client.COSI, []string{targetIdentity.TypedSpec().PublicKey},
 		func(peer *kubespan.PeerSpec, asrt *assert.Assertions) {
 			asrt.Contains(peer.TypedSpec().Endpoints, mockEndpoint)
 		},

@@ -200,7 +200,8 @@ func Pull(
 		pullRef := ref
 
 		if verifyResult.Verified {
-			containerdRemoteOpts = append(containerdRemoteOpts,
+			containerdRemoteOpts = append(
+				containerdRemoteOpts,
 				containerd.WithPullLabel(constants.ImageLabelVerified, verifyResult.Message),
 			)
 
@@ -222,7 +223,8 @@ func Pull(
 			finishProgress := pp.ShowProgress(ctx)
 			defer finishProgress()
 
-			containerdRemoteOpts = append(containerdRemoteOpts,
+			containerdRemoteOpts = append(
+				containerdRemoteOpts,
 				containerd.WithImageHandler(
 					images.HandlerFunc(
 						func(ctx context.Context, desc ocispec.Descriptor) ([]ocispec.Descriptor, error) {

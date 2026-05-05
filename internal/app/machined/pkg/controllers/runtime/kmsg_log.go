@@ -61,7 +61,8 @@ func (ctrl *KmsgLogDeliveryController) Outputs() []controller.Output {
 
 // Run implements controller.Controller interface.
 func (ctrl *KmsgLogDeliveryController) Run(ctx context.Context, r controller.Runtime, logger *zap.Logger) error {
-	if err := networkutils.WaitForNetworkReady(ctx, r,
+	if err := networkutils.WaitForNetworkReady(
+		ctx, r,
 		func(status *network.StatusSpec) bool {
 			return status.AddressReady
 		},

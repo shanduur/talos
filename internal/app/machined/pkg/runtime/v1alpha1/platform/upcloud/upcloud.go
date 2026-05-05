@@ -116,7 +116,8 @@ func (u *UpCloud) ParseMetadata(metadata *MetadataConfig) (*runtime.PlatformNetw
 					family = nethelpers.FamilyInet6
 				}
 
-				networkConfig.Addresses = append(networkConfig.Addresses,
+				networkConfig.Addresses = append(
+					networkConfig.Addresses,
 					network.AddressSpecSpec{
 						ConfigLayer: network.ConfigPlatform,
 						LinkName:    iface,

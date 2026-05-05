@@ -173,7 +173,8 @@ func (t *Trustd) Runner(r runtime.Runtime) (runner.Runner, error) {
 	mounts = bindMountContainerMarker(mounts)
 
 	env := environment.Get(r.Config())
-	env = append(env,
+	env = append(
+		env,
 		constants.EnvTcellMinimizeEnvironment,
 		constants.EnvTrustdGomemlimit(),
 	)
@@ -186,25 +187,26 @@ func (t *Trustd) Runner(r runtime.Runtime) (runner.Runner, error) {
 		env = append(env, constants.EnvFIPS140ModeStrict)
 	}
 
-	return restart.New(containerd.NewRunner(
-		r.Config().Debug(),
-		&args,
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithContainerdAddress(constants.SystemContainerdAddress),
-		runner.WithEnv(env),
-		runner.WithCgroupPath(constants.CgroupTrustd),
-		runner.WithGracefulShutdownTimeout(15*time.Second),
-		runner.WithSelinuxLabel(constants.SelinuxLabelTrustd),
-		runner.WithOCISpecOpts(
-			oci.WithDroppedCapabilities(cap.Known()),
-			oci.WithHostNamespace(specs.NetworkNamespace),
-			oci.WithMounts(mounts),
-			oci.WithRootFSPath(filepath.Join(constants.SystemLibexecPath, t.ID(r))),
-			oci.WithRootFSReadonly(),
-			oci.WithUser(fmt.Sprintf("%d:%d", constants.TrustdUserID, constants.TrustdUserID)),
+	return restart.New(
+		containerd.NewRunner(
+			r.Config().Debug(),
+			&args,
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithContainerdAddress(constants.SystemContainerdAddress),
+			runner.WithEnv(env),
+			runner.WithCgroupPath(constants.CgroupTrustd),
+			runner.WithGracefulShutdownTimeout(15*time.Second),
+			runner.WithSelinuxLabel(constants.SelinuxLabelTrustd),
+			runner.WithOCISpecOpts(
+				oci.WithDroppedCapabilities(cap.Known()),
+				oci.WithHostNamespace(specs.NetworkNamespace),
+				oci.WithMounts(mounts),
+				oci.WithRootFSPath(filepath.Join(constants.SystemLibexecPath, t.ID(r))),
+				oci.WithRootFSReadonly(),
+				oci.WithUser(fmt.Sprintf("%d:%d", constants.TrustdUserID, constants.TrustdUserID)),
+			),
+			runner.WithOOMScoreAdj(-998),
 		),
-		runner.WithOOMScoreAdj(-998),
-	),
 		restart.WithType(restart.Forever),
 	), nil
 }

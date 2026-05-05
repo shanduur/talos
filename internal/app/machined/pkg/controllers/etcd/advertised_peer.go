@@ -157,7 +157,8 @@ func (ctrl *AdvertisedPeerController) updateAdvertisedPeers(ctx context.Context,
 		return nil
 	}
 
-	logger.Debug("updating etcd peer URLs",
+	logger.Debug(
+		"updating etcd peer URLs",
 		zap.Strings("current_peer_urls", currentPeerURLs),
 		zap.Strings("new_peer_urls", newPeerURLs),
 		zap.Uint64("member_id", localMemberID),
@@ -168,7 +169,8 @@ func (ctrl *AdvertisedPeerController) updateAdvertisedPeers(ctx context.Context,
 		return fmt.Errorf("error updating member: %w", err)
 	}
 
-	logger.Info("updated etcd peer URLs",
+	logger.Info(
+		"updated etcd peer URLs",
 		zap.Strings("new_peer_urls", newPeerURLs),
 		zap.Uint64("member_id", localMemberID),
 	)

@@ -116,7 +116,8 @@ func (ctrl *EncryptionSaltController) establishEncryptionSalt(ctx context.Contex
 		saltHMAC.Write([]byte("encryption salt checksum"))
 		saltChecksum := saltHMAC.Sum(nil)
 
-		logger.Info("encryption salt established",
+		logger.Info(
+			"encryption salt established",
 			zap.String("salt_checksum", hex.EncodeToString(saltChecksum)),
 		)
 

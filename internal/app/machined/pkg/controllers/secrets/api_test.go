@@ -83,7 +83,8 @@ func (suite *APISuite) TestReconcileControlPlane() {
 	certSANs.TypedSpec().FQDN = "foo.example.com"
 	suite.Create(certSANs)
 
-	ctest.AssertResource(suite, secrets.APIID,
+	ctest.AssertResource(
+		suite, secrets.APIID,
 		func(certs *secrets.API, asrt *assert.Assertions) {
 			apiCerts := certs.TypedSpec()
 
@@ -159,7 +160,8 @@ func (suite *APISuite) TestReconcileMaintenance() {
 	machineType.SetMachineType(machine.TypeUnknown)
 	suite.Create(machineType)
 
-	ctest.AssertResource(suite, secrets.APIID,
+	ctest.AssertResource(
+		suite, secrets.APIID,
 		func(certs *secrets.API, asrt *assert.Assertions) {
 			apiCerts := certs.TypedSpec()
 

@@ -82,17 +82,18 @@ func (c *Udevd) Runner(r runtime.Runtime) (runner.Runner, error) {
 		debug = r.Config().Debug()
 	}
 
-	return restart.New(process.NewRunner(
-		debug,
-		args,
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithCgroupPath(constants.CgroupUdevd),
-		runner.WithSelinuxLabel(constants.SelinuxLabelUdevd),
-		runner.WithDroppedCapabilities(constants.UdevdDroppedCapabilities),
-		runner.WithEnv([]string{
-			constants.EnvXDGRuntimeDir,
-		}),
-	),
+	return restart.New(
+		process.NewRunner(
+			debug,
+			args,
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithCgroupPath(constants.CgroupUdevd),
+			runner.WithSelinuxLabel(constants.SelinuxLabelUdevd),
+			runner.WithDroppedCapabilities(constants.UdevdDroppedCapabilities),
+			runner.WithEnv([]string{
+				constants.EnvXDGRuntimeDir,
+			}),
+		),
 		restart.WithType(restart.Forever),
 	), nil
 }

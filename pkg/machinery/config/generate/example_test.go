@@ -52,7 +52,8 @@ func Example() {
 		log.Fatalf("failed to generate secrets bundle: %s", err)
 	}
 
-	input, err := generate.NewInput(clusterName, controlPlaneEndpoint, kubernetesVersion,
+	input, err := generate.NewInput(
+		clusterName, controlPlaneEndpoint, kubernetesVersion,
 		generate.WithVersionContract(versionContract),
 		generate.WithSecretsBundle(secretsBundle),
 		generate.WithEndpointList(

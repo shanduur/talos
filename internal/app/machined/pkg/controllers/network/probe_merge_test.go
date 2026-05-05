@@ -59,7 +59,8 @@ func (suite *ProbeMergeSuite) TestMerge() {
 		suite.Create(res)
 	}
 
-	ctest.AssertResources(suite, []resource.ID{"tcp:proxy.example.com:3128", "tcp:google.com:80"},
+	ctest.AssertResources(
+		suite, []resource.ID{"tcp:proxy.example.com:3128", "tcp:google.com:80"},
 		func(p *network.ProbeSpec, asrt *assert.Assertions) {
 			if p.Metadata().ID() == "tcp:proxy.example.com:3128" {
 				asrt.Equal(time.Second, p.TypedSpec().Interval)

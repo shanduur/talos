@@ -41,7 +41,8 @@ func (suite *MetaSuite) TestKey() {
 	suite.RunCLI([]string{"--nodes", node, "meta", "write", key, value},
 		base.StdoutEmpty())
 
-	suite.RunCLI([]string{"--nodes", node, "get", "metakeys", key},
+	suite.RunCLI(
+		[]string{"--nodes", node, "get", "metakeys", key},
 		base.StdoutShouldMatch(regexp.MustCompile(key)),
 		base.StdoutShouldMatch(regexp.MustCompile(value)),
 	)
@@ -49,7 +50,8 @@ func (suite *MetaSuite) TestKey() {
 	suite.RunCLI([]string{"--nodes", node, "meta", "delete", key},
 		base.StdoutEmpty())
 
-	suite.RunCLI([]string{"--nodes", node, "get", "metakeys", key},
+	suite.RunCLI(
+		[]string{"--nodes", node, "get", "metakeys", key},
 		base.ShouldFail(),
 		base.StderrShouldMatch(regexp.MustCompile("NotFound")),
 	)

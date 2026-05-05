@@ -147,7 +147,8 @@ func (suite *GoroutineSuite) TestStop() {
 }
 
 func (suite *GoroutineSuite) TestStuckOnStop() {
-	r := goroutine.NewRunner(suite.r, "teststop",
+	r := goroutine.NewRunner(
+		suite.r, "teststop",
 		func(ctx context.Context, data runtime.Runtime, logger io.Writer) error {
 			// hanging forever
 			select {}

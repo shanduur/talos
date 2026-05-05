@@ -54,7 +54,8 @@ func (suite *EtcdSuite) TestForfeitLeadership() {
 		suite.T().Skip("test only can be run on HA etcd clusters")
 	}
 
-	suite.RunCLI([]string{"etcd", "forfeit-leadership", "--nodes", suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)},
+	suite.RunCLI(
+		[]string{"etcd", "forfeit-leadership", "--nodes", suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)},
 		base.StdoutEmpty(),
 	)
 }
@@ -65,7 +66,8 @@ func (suite *EtcdSuite) TestSnapshot() {
 
 	dbPath := filepath.Join(tempDir, "snapshot.db")
 
-	suite.RunCLI([]string{"etcd", "snapshot", dbPath, "--nodes", suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)},
+	suite.RunCLI(
+		[]string{"etcd", "snapshot", dbPath, "--nodes", suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)},
 		base.StdoutShouldMatch(regexp.MustCompile(`etcd snapshot saved to .+\d+ bytes.+`)),
 	)
 }
@@ -79,13 +81,16 @@ func (suite *EtcdSuite) TestDowngrade() {
 
 	node := suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)
 
-	suite.RunCLI([]string{"etcd", "downgrade", "validate", "--nodes", node, downgradeTo},
+	suite.RunCLI(
+		[]string{"etcd", "downgrade", "validate", "--nodes", node, downgradeTo},
 		base.StdoutShouldMatch(regexp.MustCompile(`downgrade validate success, cluster version \d+\.\d+`)),
 	)
-	suite.RunCLI([]string{"etcd", "downgrade", "enable", "--nodes", node, downgradeTo},
+	suite.RunCLI(
+		[]string{"etcd", "downgrade", "enable", "--nodes", node, downgradeTo},
 		base.StdoutShouldMatch(regexp.MustCompile(`downgrade enable success, cluster version \d+\.\d+`)),
 	)
-	suite.RunCLI([]string{"etcd", "downgrade", "cancel", "--nodes", node},
+	suite.RunCLI(
+		[]string{"etcd", "downgrade", "cancel", "--nodes", node},
 		base.StdoutShouldMatch(regexp.MustCompile(`downgrade cancel success, cluster version \d+\.\d+`)),
 	)
 }

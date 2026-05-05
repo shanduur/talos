@@ -340,14 +340,16 @@ func TestBuildUKI(t *testing.T) {
 
 			require.NoError(t, ukifyResetProfileCmd.Run())
 
-			ukifyCmdArgs = append(ukifyCmdArgs,
+			ukifyCmdArgs = append(
+				ukifyCmdArgs,
 				"--join-profile",
 				resetMaintenanceProfile,
 				"--join-profile",
 				resetProfile,
 			)
 
-			ukifySignedCmdArgs = append(ukifySignedCmdArgs,
+			ukifySignedCmdArgs = append(
+				ukifySignedCmdArgs,
 				"--join-profile",
 				resetMaintenanceProfile,
 				"--join-profile",

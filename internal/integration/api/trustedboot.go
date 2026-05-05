@@ -64,13 +64,15 @@ func (suite *TrustedBootSuite) TestTrustedBootState() {
 	node := suite.RandomDiscoveredNodeInternalIP()
 	ctx := client.WithNode(suite.ctx, node)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []resource.ID{runtimeres.SecurityStateID},
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, []resource.ID{runtimeres.SecurityStateID},
 		func(r *runtimeres.SecurityState, asrt *assert.Assertions) {
 			asrt.True(r.TypedSpec().SecureBoot)
 		},
 	)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI,
 		[]resource.ID{constants.StatePartitionLabel, constants.EphemeralPartitionLabel},
 		func(r *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equal(block.VolumePhaseReady, r.TypedSpec().Phase)

@@ -158,7 +158,8 @@ func (ctrl *UserspaceWireguardController) Run(ctx context.Context, r controller.
 
 				err := relay.Run(ctx, ctrl.makeLogger(logger))
 				if err == nil {
-					logger.Debug("tunnel relay exited gracefully",
+					logger.Debug(
+						"tunnel relay exited gracefully",
 						zap.String("endpoint", dstHost),
 						zap.Stringer("node_address", ourAddrPort),
 					)
@@ -171,7 +172,8 @@ func (ctrl *UserspaceWireguardController) Run(ctx context.Context, r controller.
 
 				const retryIn = 5 * time.Second
 
-				logger.Error("tunnel relay failed, retrying",
+				logger.Error(
+					"tunnel relay failed, retrying",
 					zap.Duration("timeout", retryIn),
 					zap.String("endpoint", dstHost),
 					zap.Stringer("node_address", ourAddrPort),

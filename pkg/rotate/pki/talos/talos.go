@@ -156,13 +156,15 @@ func (r *rotator) printIntro() {
 
 	r.opts.Printf("> Cluster topology:\n")
 
-	r.opts.Printf("  - control plane nodes: %q\n",
+	r.opts.Printf(
+		"  - control plane nodes: %q\n",
 		append(
 			helpers.MapToInternalIP(r.opts.ClusterInfo.NodesByType(machine.TypeInit)),
 			helpers.MapToInternalIP(r.opts.ClusterInfo.NodesByType(machine.TypeControlPlane))...,
 		),
 	)
-	r.opts.Printf("  - worker nodes: %q\n",
+	r.opts.Printf(
+		"  - worker nodes: %q\n",
 		helpers.MapToInternalIP(r.opts.ClusterInfo.NodesByType(machine.TypeWorker)),
 	)
 }
@@ -239,14 +241,16 @@ func (r *rotator) generateClients(ctx context.Context) error {
 
 	r.opts.Printf("%s\n", string(marshalledTalosconfig))
 
-	r.intermediateClient, err = client.New(ctx,
+	r.intermediateClient, err = client.New(
+		ctx,
 		client.WithConfig(r.intermediateTalosconfig),
 	)
 	if err != nil {
 		return fmt.Errorf("error creating intermediate client: %w", err)
 	}
 
-	r.newClient, err = client.New(ctx,
+	r.newClient, err = client.New(
+		ctx,
 		client.WithConfig(r.newTalosconfig),
 	)
 	if err != nil {

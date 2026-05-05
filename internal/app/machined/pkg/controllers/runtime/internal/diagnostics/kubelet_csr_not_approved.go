@@ -84,7 +84,8 @@ func KubeletCSRNotApprovedCheck(ctx context.Context, r controller.Reader, logger
 
 	defer k8sClient.Close() //nolint:errcheck
 
-	csrs, err := k8sClient.Clientset.CertificatesV1().CertificateSigningRequests().List(ctx,
+	csrs, err := k8sClient.Clientset.CertificatesV1().CertificateSigningRequests().List(
+		ctx,
 		metav1.ListOptions{
 			FieldSelector: fields.OneTermEqualSelector("spec.signerName", "kubernetes.io/kubelet-serving").String(),
 		},
@@ -118,7 +119,8 @@ func KubeletCSRNotApprovedCheck(ctx context.Context, r controller.Reader, logger
 		Message: "kubelet server certificate rotation is enabled, but CSR is not approved",
 		Details: []string{
 			fmt.Sprintf("kubelet API error: %s", netError),
-			fmt.Sprintf("pending CSRs: %s",
+			fmt.Sprintf(
+				"pending CSRs: %s",
 				strings.Join(
 					xslices.Map(csrs.Items, func(csr v1.CertificateSigningRequest) string { return csr.Name }),
 					", ",

@@ -211,7 +211,8 @@ func DiskSizeCheck(runtime.Sequence, any) (runtime.TaskExecutionFunc, string) {
 			return nil
 		}
 
-		volumeStatus, err := r.State().V1Alpha2().Resources().WatchFor(ctx,
+		volumeStatus, err := r.State().V1Alpha2().Resources().WatchFor(
+			ctx,
 			blockres.NewVolumeStatus(blockres.NamespaceName, constants.EphemeralPartitionLabel).Metadata(),
 			state.WithCondition(func(r resource.Resource) (bool, error) {
 				volumeStatus, ok := r.(*blockres.VolumeStatus)
@@ -452,12 +453,14 @@ func StartAllServices(runtime.Sequence, any) (runtime.TaskExecutionFunc, string)
 
 		switch t := r.Config().Machine().Type(); t {
 		case machine.TypeInit:
-			serviceList = append(serviceList,
+			serviceList = append(
+				serviceList,
 				&services.Trustd{},
 				&services.Etcd{Bootstrap: true},
 			)
 		case machine.TypeControlPlane:
-			serviceList = append(serviceList,
+			serviceList = append(
+				serviceList,
 				&services.Trustd{},
 				&services.Etcd{},
 			)
@@ -541,7 +544,8 @@ func SetupSharedFilesystems(runtime.Sequence, any) (runtime.TaskExecutionFunc, s
 func MountUserDisks(runtime.Sequence, any) (runtime.TaskExecutionFunc, string) {
 	return func(ctx context.Context, logger *log.Logger, r runtime.Runtime) error {
 		// wait for user disk config to be ready
-		_, err := r.State().V1Alpha2().Resources().WatchFor(ctx,
+		_, err := r.State().V1Alpha2().Resources().WatchFor(
+			ctx,
 			blockres.NewUserDiskConfigStatus(blockres.NamespaceName, blockres.UserDiskConfigStatusID).Metadata(),
 			state.WithEventTypes(state.Created, state.Updated),
 			state.WithCondition(func(r resource.Resource) (bool, error) {

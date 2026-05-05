@@ -78,7 +78,8 @@ func (suite *RebootSuite) TestReboot() {
 		args = append(args, "--k8s-endpoint", strings.Split(suite.K8sEndpoint, ":")[0])
 	}
 
-	suite.RunCLI(append([]string{"health"}, args...),
+	suite.RunCLI(
+		append([]string{"health"}, args...),
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)
@@ -156,7 +157,8 @@ func (suite *RebootSuite) TestRebootWithDrain() {
 		args = append(args, "--k8s-endpoint", strings.Split(suite.K8sEndpoint, ":")[0])
 	}
 
-	suite.RunCLI(append([]string{"health"}, args...),
+	suite.RunCLI(
+		append([]string{"health"}, args...),
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)
@@ -229,7 +231,8 @@ func (suite *RebootSuite) TestRebootWithDrainForcesWait() {
 		args = append(args, "--k8s-endpoint", strings.Split(suite.K8sEndpoint, ":")[0])
 	}
 
-	suite.RunCLI(append([]string{"health"}, args...),
+	suite.RunCLI(
+		append([]string{"health"}, args...),
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 	)

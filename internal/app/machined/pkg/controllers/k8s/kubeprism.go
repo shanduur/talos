@@ -187,7 +187,8 @@ func (ctrl *KubePrismController) startKubePrism(lbCfg *k8s.KubePrismConfig, logg
 	ctrl.balancerHost = spec.Host
 	ctrl.balancerPort = spec.Port
 
-	lb, err := controlplane.NewLoadBalancer(ctrl.balancerHost, ctrl.balancerPort,
+	lb, err := controlplane.NewLoadBalancer(
+		ctrl.balancerHost, ctrl.balancerPort,
 		logger.WithOptions(zap.IncreaseLevel(zap.ErrorLevel)), // silence the load balancer logs
 		controlplane.WithDialTimeout(constants.KubePrismDialTimeout),
 		controlplane.WithKeepAlivePeriod(constants.KubePrismKeepAlivePeriod),

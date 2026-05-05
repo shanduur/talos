@@ -69,7 +69,8 @@ func (suite *EventsSinkSuite) startServer(ctx context.Context) string {
 		[]proto.Message{
 			&machine.AddressEvent{},
 			&machine.PhaseEvent{},
-		})
+		},
+	)
 
 	lis, err := (&net.ListenConfig{}).Listen(ctx, "tcp", "localhost:0")
 	suite.Require().NoError(err)

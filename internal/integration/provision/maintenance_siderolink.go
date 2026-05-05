@@ -122,7 +122,8 @@ func (suite *MaintenanceSideroLinkSuite) TestAPI() {
 	registryMirrorConfig, err := container.New(
 		xslices.Filter(suite.configBundle.WorkerCfg.Documents(), func(doc config.Document) bool {
 			return doc.Kind() == cri.RegistryMirrorConfig
-		})...)
+		})...,
+	)
 	suite.Require().NoError(err)
 
 	maintenancePatched, err := configpatcher.Apply(
@@ -299,7 +300,8 @@ func (suite *MaintenanceSideroLinkSuite) TestAPI() {
 		defer cancel()
 
 		for _, maintenanceClient := range sideroLinkMaintenanceClients {
-			rtestutils.AssertResource(ctx, suite.T(), maintenanceClient.COSI, block.SystemDiskID,
+			rtestutils.AssertResource(
+				ctx, suite.T(), maintenanceClient.COSI, block.SystemDiskID,
 				func(systemDisk *block.SystemDisk, asrt *assert.Assertions) {
 					asrt.Equal("/dev/vda", systemDisk.TypedSpec().DevPath)
 				},
@@ -312,7 +314,8 @@ func (suite *MaintenanceSideroLinkSuite) TestAPI() {
 		defer cancel()
 
 		for _, maintenanceClient := range sideroLinkMaintenanceClients {
-			rtestutils.AssertResource(ctx, suite.T(), maintenanceClient.COSI, constants.MetaPartitionLabel,
+			rtestutils.AssertResource(
+				ctx, suite.T(), maintenanceClient.COSI, constants.MetaPartitionLabel,
 				func(volumeStatus *block.VolumeStatus, asrt *assert.Assertions) {
 					asrt.Equal(block.VolumePhaseReady, volumeStatus.TypedSpec().Phase)
 				},
@@ -375,7 +378,8 @@ func (suite *MaintenanceSideroLinkSuite) TestAPI() {
 
 		maintenanceClient := sideroLinkMaintenanceClients[0]
 
-		rtestutils.AssertResource(ctx, suite.T(), maintenanceClient.COSI, runtime.MetaKeyTagToID(meta.UserReserved1),
+		rtestutils.AssertResource(
+			ctx, suite.T(), maintenanceClient.COSI, runtime.MetaKeyTagToID(meta.UserReserved1),
 			func(metaValue *runtime.MetaKey, asrt *assert.Assertions) {
 				asrt.Equal("provision", metaValue.TypedSpec().Value)
 			},

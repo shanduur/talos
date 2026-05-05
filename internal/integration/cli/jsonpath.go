@@ -30,7 +30,8 @@ func (suite *JSONPathSuite) SuiteName() string {
 func (suite *JSONPathSuite) TestGetScalarPropertyWithJSONPath() {
 	node := suite.RandomDiscoveredNodeInternalIP()
 
-	suite.RunCLI([]string{"get", "--nodes", node, "etcfilestatus", "--output", `jsonpath='{.metadata.namespace}'`},
+	suite.RunCLI(
+		[]string{"get", "--nodes", node, "etcfilestatus", "--output", `jsonpath='{.metadata.namespace}'`},
 		base.StdoutShouldMatch(regexp.MustCompile("files")),
 		base.WithRetry(retry.Constant(15*time.Second, retry.WithUnits(time.Second))),
 	)
@@ -41,7 +42,8 @@ func (suite *JSONPathSuite) TestGetScalarPropertyWithJSONPath() {
 func (suite *JSONPathSuite) TestGetWithJSONPathWildcard() {
 	node := suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)
 
-	suite.RunCLI([]string{"get", "--nodes", node, "manifests", "--output", `jsonpath='{.spec[*].metadata.name}'`},
+	suite.RunCLI(
+		[]string{"get", "--nodes", node, "manifests", "--output", `jsonpath='{.spec[*].metadata.name}'`},
 		base.StdoutShouldMatch(regexp.MustCompile("coredns")),
 		base.StdoutShouldMatch(regexp.MustCompile("kube-dns")),
 		base.StdoutShouldMatch(regexp.MustCompile("kubeconfig-in-cluster")),
@@ -55,7 +57,8 @@ func (suite *JSONPathSuite) TestGetComplexPropertyWithJSONPath() {
 
 	const jsonMetadataRegex = `\{\s*"created":\s".*",\s*"id":\s".*",\s*\s*"namespace":\s".*",\s*"owner":\s".*",\s*"phase":\s".*",\s*"type":\s".*",\s*"updated":\s".*",\s*"version":\s\d\n\}`
 
-	suite.RunCLI([]string{"get", "--nodes", node, "etcfilestatus", "--output", `jsonpath='{.metadata}'`},
+	suite.RunCLI(
+		[]string{"get", "--nodes", node, "etcfilestatus", "--output", `jsonpath='{.metadata}'`},
 		base.StdoutShouldMatch(regexp.MustCompile(jsonMetadataRegex)),
 		base.WithRetry(retry.Constant(15*time.Second, retry.WithUnits(time.Second))),
 	)

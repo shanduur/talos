@@ -91,12 +91,13 @@ func (suite *MachineConfigSuite) TestPatchPrintStdout() {
 
 	mc := filepath.Join(suite.T().TempDir(), "input.yaml")
 
-	suite.RunCLI([]string{
-		"gen", "config",
-		"foo", "https://192.168.0.1:6443",
-		"--output-types", "controlplane",
-		"--output", mc,
-	},
+	suite.RunCLI(
+		[]string{
+			"gen", "config",
+			"foo", "https://192.168.0.1:6443",
+			"--output-types", "controlplane",
+			"--output", mc,
+		},
 		base.StderrNotEmpty(),
 		base.StdoutEmpty(),
 	)
@@ -129,12 +130,13 @@ func (suite *MachineConfigSuite) TestPatchWriteToFile() {
 
 	mc := filepath.Join(suite.T().TempDir(), "input2.yaml")
 
-	suite.RunCLI([]string{
-		"gen", "config",
-		"foo", "https://192.168.0.1:6443",
-		"--output-types", "controlplane",
-		"--output", mc,
-	},
+	suite.RunCLI(
+		[]string{
+			"gen", "config",
+			"foo", "https://192.168.0.1:6443",
+			"--output-types", "controlplane",
+			"--output", mc,
+		},
 		base.StderrNotEmpty(),
 		base.StdoutEmpty(),
 	)

@@ -48,8 +48,10 @@ func (p *Provisioner) startVirtiofsd(state *State, clusterReq provision.ClusterR
 				continue
 			}
 
-			virtiofs = append(virtiofs,
-				fmt.Sprintf("%s:%s",
+			virtiofs = append(
+				virtiofs,
+				fmt.Sprintf(
+					"%s:%s",
 					state.GetRelativePath(fmt.Sprintf("%s-%d.virtiofs.d", nodeReq.Name, i)),
 					state.GetRelativePath(fmt.Sprintf("%s-%d.virtiofs.sock", nodeReq.Name, i)),
 				),

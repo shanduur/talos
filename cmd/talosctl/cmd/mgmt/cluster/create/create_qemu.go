@@ -63,7 +63,8 @@ func createQemuCluster(
 		preset.Options{
 			SchematicID:     presetOptions.schematicID,
 			ImageFactoryURL: factoryURL,
-		}, &cOps, &qOps, presetOptions.presets)
+		}, &cOps, &qOps, presetOptions.presets,
+	)
 	if err != nil {
 		return err
 	}

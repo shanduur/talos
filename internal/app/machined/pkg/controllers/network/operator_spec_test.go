@@ -417,17 +417,20 @@ func (suite *OperatorSpecSuite) TestOperatorOutputs() {
 
 	dhcpMock.notify()
 
-	ctest.AssertResources(suite,
+	ctest.AssertResources(
+		suite,
 		[]resource.ID{"dhcp4/eth0/eth0/10.5.0.2/24"},
 		func(*network.AddressSpec, *assert.Assertions) {},
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
 	)
-	ctest.AssertResources(suite,
+	ctest.AssertResources(
+		suite,
 		[]resource.ID{"dhcp4/eth0/eth0"},
 		func(*network.LinkSpec, *assert.Assertions) {},
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
 	)
-	ctest.AssertResources(suite,
+	ctest.AssertResources(
+		suite,
 		[]resource.ID{"dhcp4/eth0/hostname"},
 		func(*network.HostnameSpec, *assert.Assertions) {},
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
@@ -449,7 +452,8 @@ func (suite *OperatorSpecSuite) TestOperatorOutputs() {
 
 	dhcpMock.notify()
 
-	ctest.AssertResources(suite,
+	ctest.AssertResources(
+		suite,
 		[]resource.ID{"dhcp4/eth0/eth0/10.5.0.3/24"},
 		func(*network.AddressSpec, *assert.Assertions) {},
 		rtestutils.WithNamespace(network.ConfigNamespaceName),

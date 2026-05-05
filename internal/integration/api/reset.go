@@ -212,7 +212,8 @@ func (suite *ResetSuite) TestResetWithSpecStateAndUserDisks() {
 	}, false)
 
 	// wait for EPHEMERAL failure
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI,
 		[]string{constants.EphemeralPartitionLabel},
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equal(block.VolumePhaseFailed, vs.TypedSpec().Phase)
@@ -250,7 +251,8 @@ func (suite *ResetSuite) TestResetDuringBoot() {
 	suite.ClearConnectionRefused(suite.ctx, node)
 
 	// make sure EPHEMERAL is ready
-	rtestutils.AssertResources(client.WithNode(suite.ctx, node), suite.T(), suite.Client.COSI,
+	rtestutils.AssertResources(
+		client.WithNode(suite.ctx, node), suite.T(), suite.Client.COSI,
 		[]string{constants.EphemeralPartitionLabel},
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equal(block.VolumePhaseReady, vs.TypedSpec().Phase)

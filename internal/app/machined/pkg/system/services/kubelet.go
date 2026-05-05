@@ -72,7 +72,8 @@ func (k *Kubelet) PreFunc(ctx context.Context, r runtime.Runtime) error {
 	// Pull the image and unpack it.
 	containerdctx := namespaces.WithNamespace(ctx, constants.SystemContainerdNamespace)
 
-	img, err := image.Pull(containerdctx,
+	img, err := image.Pull(
+		containerdctx,
 		cri.RegistryBuilder(r.State().V1Alpha2().Resources()),
 		r.State().V1Alpha2().Resources(),
 		client, spec.Image,
@@ -170,7 +171,8 @@ func (k *Kubelet) Runner(r runtime.Runtime) (runner.Runner, error) {
 	}
 
 	if _, err := os.Stat("/sys/kernel/security"); err == nil {
-		mounts = append(mounts,
+		mounts = append(
+			mounts,
 			specs.Mount{Type: "securityfs", Destination: "/sys/kernel/security", Source: "/sys/kernel/security", Options: []string{"bind", "ro"}},
 		)
 	}
@@ -187,32 +189,33 @@ func (k *Kubelet) Runner(r runtime.Runtime) (runner.Runner, error) {
 		mounts = append(mounts, mount)
 	}
 
-	return restart.New(containerd.NewRunner(
-		r.Config().Debug() && r.Config().Machine().Type() == machine.TypeWorker, // enable debug logs only for the worker nodes
-		&args,
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithNamespace(constants.SystemContainerdNamespace),
-		runner.WithContainerImage(k.imgRef),
-		runner.WithEnv(environment.Get(r.Config())),
-		runner.WithCgroupPath(constants.CgroupKubelet),
-		runner.WithSelinuxLabel(constants.SelinuxLabelKubelet),
-		runner.WithOCISpecOpts(
-			containerd.WithRootfsPropagation("shared"),
-			oci.WithMounts(mounts),
-			oci.WithHostNamespace(specs.NetworkNamespace),
-			oci.WithHostNamespace(specs.PIDNamespace),
-			oci.WithParentCgroupDevices,
-			oci.WithMaskedPaths(nil),
-			oci.WithReadonlyPaths(nil),
-			oci.WithWriteableSysfs,
-			oci.WithWriteableCgroupfs,
-			oci.WithApparmorProfile(""),
-			oci.WithAllDevicesAllowed,
-			oci.WithCapabilities(capability.AllGrantableCapabilities()), // TODO: kubelet doesn't need all of these, we should consider limiting capabilities
+	return restart.New(
+		containerd.NewRunner(
+			r.Config().Debug() && r.Config().Machine().Type() == machine.TypeWorker, // enable debug logs only for the worker nodes
+			&args,
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithNamespace(constants.SystemContainerdNamespace),
+			runner.WithContainerImage(k.imgRef),
+			runner.WithEnv(environment.Get(r.Config())),
+			runner.WithCgroupPath(constants.CgroupKubelet),
+			runner.WithSelinuxLabel(constants.SelinuxLabelKubelet),
+			runner.WithOCISpecOpts(
+				containerd.WithRootfsPropagation("shared"),
+				oci.WithMounts(mounts),
+				oci.WithHostNamespace(specs.NetworkNamespace),
+				oci.WithHostNamespace(specs.PIDNamespace),
+				oci.WithParentCgroupDevices,
+				oci.WithMaskedPaths(nil),
+				oci.WithReadonlyPaths(nil),
+				oci.WithWriteableSysfs,
+				oci.WithWriteableCgroupfs,
+				oci.WithApparmorProfile(""),
+				oci.WithAllDevicesAllowed,
+				oci.WithCapabilities(capability.AllGrantableCapabilities()), // TODO: kubelet doesn't need all of these, we should consider limiting capabilities
+			),
+			runner.WithOOMScoreAdj(constants.KubeletOOMScoreAdj),
+			runner.WithCustomSeccompProfile(kubeletSeccomp),
 		),
-		runner.WithOOMScoreAdj(constants.KubeletOOMScoreAdj),
-		runner.WithCustomSeccompProfile(kubeletSeccomp),
-	),
 		restart.WithType(restart.Forever),
 	), nil
 }
@@ -242,7 +245,8 @@ func (k *Kubelet) APIStartAllowed(runtime.Runtime) bool {
 
 func kubeletSeccomp(seccomp *specs.LinuxSeccomp) {
 	// for cephfs mounts
-	seccomp.Syscalls = append(seccomp.Syscalls,
+	seccomp.Syscalls = append(
+		seccomp.Syscalls,
 		specs.LinuxSyscall{
 			Names: []string{
 				"add_key",

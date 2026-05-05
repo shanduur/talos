@@ -111,21 +111,24 @@ func RunInstallerContainer(
 
 	// mount the machined socket into the container for upgrade pre-checks if the socket exists
 	if _, err = os.Stat(constants.MachineSocketPath); err == nil {
-		mounts = append(mounts,
+		mounts = append(
+			mounts,
 			specs.Mount{Type: "bind", Destination: constants.MachineSocketPath, Source: constants.MachineSocketPath, Options: []string{"rbind", "rshared", "ro"}},
 		)
 	}
 
 	// mount the efivars into the container if the efivars directory exists
 	if _, err = os.Stat(constants.EFIVarsMountPoint); err == nil {
-		mounts = append(mounts,
+		mounts = append(
+			mounts,
 			specs.Mount{Type: "efivarfs", Source: "efivarfs", Destination: constants.EFIVarsMountPoint, Options: []string{"rw", "nosuid", "nodev", "noexec", "relatime"}},
 		)
 	}
 
 	// mount the /.extra directory into the container if the directory exists
 	if _, err = os.Stat(constants.SDStubDynamicInitrdPath); err == nil {
-		mounts = append(mounts,
+		mounts = append(
+			mounts,
 			specs.Mount{Type: "bind", Destination: constants.SDStubDynamicInitrdPath, Source: constants.SDStubDynamicInitrdPath, Options: []string{"rbind", "rshared", "ro"}},
 		)
 	}

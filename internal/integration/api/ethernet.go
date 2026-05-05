@@ -136,7 +136,8 @@ func (suite *EthernetSuite) TestEthernetConfig() {
 		suite.PatchMachineConfig(nodeCtx, cfgDocument)
 
 		// now EthernetStatus should reflect the new RX rings
-		rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, linkName,
+		rtestutils.AssertResource(
+			nodeCtx, suite.T(), suite.Client.COSI, linkName,
 			func(ethStatus *network.EthernetStatus, asrt *assert.Assertions) {
 				asrt.Equal(newRX, pointer.SafeDeref(ethStatus.TypedSpec().Rings.RX))
 			},
@@ -148,7 +149,8 @@ func (suite *EthernetSuite) TestEthernetConfig() {
 		suite.PatchMachineConfig(nodeCtx, cfgDocument)
 
 		// now EthernetStatus should reflect the new RX rings
-		rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, linkName,
+		rtestutils.AssertResource(
+			nodeCtx, suite.T(), suite.Client.COSI, linkName,
 			func(ethStatus *network.EthernetStatus, asrt *assert.Assertions) {
 				asrt.Equal(pointer.SafeDeref(prevRingConfig.RX), pointer.SafeDeref(ethStatus.TypedSpec().Rings.RX))
 			},
@@ -173,7 +175,8 @@ func (suite *EthernetSuite) TestEthernetConfig() {
 		suite.PatchMachineConfig(nodeCtx, cfgDocument)
 
 		// now EthernetStatus should reflect the new feature status
-		rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, linkName,
+		rtestutils.AssertResource(
+			nodeCtx, suite.T(), suite.Client.COSI, linkName,
 			func(ethStatus *network.EthernetStatus, asrt *assert.Assertions) {
 				asrt.Equal(!initialState, getFeatureStatus(suite.T(), ethStatus.TypedSpec().Features, featureName))
 			},
@@ -185,7 +188,8 @@ func (suite *EthernetSuite) TestEthernetConfig() {
 		suite.PatchMachineConfig(nodeCtx, cfgDocument)
 
 		// now EthernetStatus should reflect the old feature status
-		rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, linkName,
+		rtestutils.AssertResource(
+			nodeCtx, suite.T(), suite.Client.COSI, linkName,
 			func(ethStatus *network.EthernetStatus, asrt *assert.Assertions) {
 				asrt.Equal(initialState, getFeatureStatus(suite.T(), ethStatus.TypedSpec().Features, featureName))
 			},

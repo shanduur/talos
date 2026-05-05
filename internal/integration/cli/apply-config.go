@@ -52,7 +52,8 @@ func (suite *ApplyConfigSuite) TestApplyWithPatch() {
 	patchPath := filepath.Join(tmpDir, "patch.yaml")
 	suite.Require().NoError(os.WriteFile(patchPath, dummyAPPatch, 0o777))
 
-	suite.RunCLI([]string{"apply-config", "--nodes", node, "--config-patch", patchPath, "-f", configPath},
+	suite.RunCLI(
+		[]string{"apply-config", "--nodes", node, "--config-patch", patchPath, "-f", configPath},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 		base.StderrShouldMatch(regexp.MustCompile("Applied configuration without a reboot")),
@@ -61,7 +62,8 @@ func (suite *ApplyConfigSuite) TestApplyWithPatch() {
 	// sleep a bit to let the config propagate
 	time.Sleep(1 * time.Second)
 
-	suite.RunCLI([]string{"get", "--nodes", node, "links"},
+	suite.RunCLI(
+		[]string{"get", "--nodes", node, "links"},
 		base.StdoutShouldMatch(regexp.MustCompile("dummy-ap-patch")),
 	)
 
@@ -71,7 +73,8 @@ func (suite *ApplyConfigSuite) TestApplyWithPatch() {
 
 	suite.Require().NoError(os.WriteFile(patchPath, deleteDummyAPPatch, 0o777))
 
-	suite.RunCLI([]string{"apply-config", "--nodes", node, "--config-patch", patchPath, "-f", configPath},
+	suite.RunCLI(
+		[]string{"apply-config", "--nodes", node, "--config-patch", patchPath, "-f", configPath},
 		base.StdoutEmpty(),
 		base.StderrNotEmpty(),
 		base.StderrShouldMatch(regexp.MustCompile("Applied configuration without a reboot")),
@@ -80,7 +83,8 @@ func (suite *ApplyConfigSuite) TestApplyWithPatch() {
 	// sleep a bit to let the config propagate
 	time.Sleep(1 * time.Second)
 
-	suite.RunCLI([]string{"get", "--nodes", node, "links"},
+	suite.RunCLI(
+		[]string{"get", "--nodes", node, "links"},
 		base.StdoutShouldNotMatch(regexp.MustCompile("dummy-ap-patch")),
 		base.WithRetry(retry.Constant(15*time.Second, retry.WithUnits(time.Second))),
 	)

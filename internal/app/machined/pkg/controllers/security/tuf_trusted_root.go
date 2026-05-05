@@ -108,7 +108,8 @@ func (ctrl *TUFTrustedRootController) Run(ctx context.Context, r controller.Runt
 
 			ctrl.lastRefresh = time.Now()
 
-			if err := safe.WriterModify(ctx, r,
+			if err := safe.WriterModify(
+				ctx, r,
 				security.NewTUFTrustedRoot(security.TrustedRootID),
 				func(root *security.TUFTrustedRoot) error {
 					root.TypedSpec().JSONData = string(tufData)

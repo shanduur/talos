@@ -102,7 +102,8 @@ func (e *Etcd) PreFunc(ctx context.Context, r runtime.Runtime) error {
 		return fmt.Errorf("failed to get etcd spec: %w", err)
 	}
 
-	img, err := image.Pull(containerdctx,
+	img, err := image.Pull(
+		containerdctx,
 		cri.RegistryBuilder(r.State().V1Alpha2().Resources()),
 		r.State().V1Alpha2().Resources(),
 		client, spec.TypedSpec().Image,
@@ -213,23 +214,24 @@ func (e *Etcd) Runner(r runtime.Runtime) (runner.Runner, error) {
 		}()
 	}
 
-	return restart.New(containerd.NewRunner(
-		r.Config().Debug(),
-		&args,
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithNamespace(constants.SystemContainerdNamespace),
-		runner.WithContainerImage(e.imgRef),
-		runner.WithEnv(env),
-		runner.WithCgroupPath(constants.CgroupEtcd),
-		runner.WithSelinuxLabel(constants.SELinuxLabelEtcd),
-		runner.WithOCISpecOpts(
-			oci.WithDroppedCapabilities(cap.Known()),
-			oci.WithHostNamespace(specs.NetworkNamespace),
-			oci.WithMounts(mounts),
-			oci.WithUser(fmt.Sprintf("%d:%d", constants.EtcdUserID, constants.EtcdUserID)),
+	return restart.New(
+		containerd.NewRunner(
+			r.Config().Debug(),
+			&args,
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithNamespace(constants.SystemContainerdNamespace),
+			runner.WithContainerImage(e.imgRef),
+			runner.WithEnv(env),
+			runner.WithCgroupPath(constants.CgroupEtcd),
+			runner.WithSelinuxLabel(constants.SELinuxLabelEtcd),
+			runner.WithOCISpecOpts(
+				oci.WithDroppedCapabilities(cap.Known()),
+				oci.WithHostNamespace(specs.NetworkNamespace),
+				oci.WithMounts(mounts),
+				oci.WithUser(fmt.Sprintf("%d:%d", constants.EtcdUserID, constants.EtcdUserID)),
+			),
+			runner.WithOOMScoreAdj(-998),
 		),
-		runner.WithOOMScoreAdj(-998),
-	),
 		restart.WithType(restart.Forever),
 	), nil
 }
@@ -260,7 +262,8 @@ func (e *Etcd) HealthSettings(runtime.Runtime) *health.Settings {
 }
 
 func waitPKI(ctx context.Context, r runtime.Runtime) error {
-	_, err := r.State().V1Alpha2().Resources().WatchFor(ctx,
+	_, err := r.State().V1Alpha2().Resources().WatchFor(
+		ctx,
 		resource.NewMetadata(etcdresource.NamespaceName, etcdresource.PKIStatusType, etcdresource.PKIID, resource.VersionUndefined),
 		state.WithEventTypes(state.Created, state.Updated),
 	)
@@ -315,7 +318,8 @@ func buildInitialCluster(ctx context.Context, r runtime.Runtime, name string, pe
 		lastNag time.Time
 	)
 
-	err = retry.Constant(constants.EtcdJoinTimeout,
+	err = retry.Constant(
+		constants.EtcdJoinTimeout,
 		retry.WithUnits(3*time.Second),
 		retry.WithJitter(time.Second),
 		retry.WithErrorLogging(true),
@@ -445,13 +449,15 @@ func (e *Etcd) argsForInit(ctx context.Context, r runtime.Runtime, spec *etcdres
 	}
 
 	if !extraArgs.Contains("initial-advertise-peer-urls") {
-		denyListArgs.Set("initial-advertise-peer-urls",
+		denyListArgs.Set(
+			"initial-advertise-peer-urls",
 			argsbuilder.Value{formatEtcdURLs(spec.AdvertisedAddresses, constants.EtcdPeerPort)},
 		)
 	}
 
 	if !extraArgs.Contains("advertise-client-urls") {
-		denyListArgs.Set("advertise-client-urls",
+		denyListArgs.Set(
+			"advertise-client-urls",
 			argsbuilder.Value{formatEtcdURLs(spec.AdvertisedAddresses, constants.EtcdClientPort)},
 		)
 	}
@@ -534,13 +540,15 @@ func (e *Etcd) argsForControlPlane(ctx context.Context, r runtime.Runtime, spec 
 	}
 
 	if !extraArgs.Contains("advertise-client-urls") {
-		denyListArgs.Set("advertise-client-urls",
+		denyListArgs.Set(
+			"advertise-client-urls",
 			argsbuilder.Value{formatEtcdURLs(spec.AdvertisedAddresses, constants.EtcdClientPort)},
 		)
 	}
 
 	if !extraArgs.Contains("initial-advertise-peer-urls") {
-		denyListArgs.Set("initial-advertise-peer-urls",
+		denyListArgs.Set(
+			"initial-advertise-peer-urls",
 			argsbuilder.Value{formatEtcdURLs(spec.AdvertisedAddresses, constants.EtcdPeerPort)},
 		)
 	}
@@ -597,7 +605,8 @@ func promoteMember(ctx context.Context, r runtime.Runtime, memberID uint64) erro
 	// promote itself.
 	idx := 0
 
-	return retry.Constant(10*time.Minute,
+	return retry.Constant(
+		10*time.Minute,
 		retry.WithUnits(15*time.Second),
 		retry.WithAttemptTimeout(30*time.Second),
 		retry.WithJitter(time.Second),

@@ -65,7 +65,8 @@ func addCommand(cmd *cobra.Command) {
 		&GlobalArgs.Talosconfig,
 		"talosconfig",
 		"",
-		fmt.Sprintf("The path to the Talos configuration file. Defaults to '%s' env variable if set, otherwise '%s' and '%s' in order.",
+		fmt.Sprintf(
+			"The path to the Talos configuration file. Defaults to '%s' env variable if set, otherwise '%s' and '%s' in order.",
 			constants.TalosConfigEnvVar,
 			filepath.Join("$HOME", constants.TalosDir, constants.TalosconfigFilename),
 			filepath.Join(constants.ServiceAccountMountPath, constants.TalosconfigFilename),
@@ -80,7 +81,8 @@ func addCommand(cmd *cobra.Command) {
 		&GlobalArgs.SideroV1KeysDir,
 		"siderov1-keys-dir",
 		"",
-		fmt.Sprintf("The path to the SideroV1 auth PGP keys directory. Defaults to '%s' env variable if set, otherwise '%s'. Only valid for Contexts that use SideroV1 auth.",
+		fmt.Sprintf(
+			"The path to the SideroV1 auth PGP keys directory. Defaults to '%s' env variable if set, otherwise '%s'. Only valid for Contexts that use SideroV1 auth.",
 			constants.SideroV1KeysDirEnvVar,
 			filepath.Join("$HOME", constants.TalosDir, constants.SideroV1KeysDir),
 		),

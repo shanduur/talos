@@ -65,12 +65,14 @@ func (suite *RootSuite) genConfig(controlplane bool) talosconfig.Config {
 func (suite *RootSuite) TestReconcileControlPlane() {
 	cfg := suite.genConfig(true)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{secrets.EtcdRootID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{secrets.EtcdRootID},
 		func(res *secrets.EtcdRoot, asrt *assert.Assertions) {
 			asrt.Equal(res.TypedSpec().EtcdCA, cfg.Cluster().Etcd().CA())
 		},
 	)
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{secrets.KubernetesRootID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{secrets.KubernetesRootID},
 		func(res *secrets.KubernetesRoot, asrt *assert.Assertions) {
 			asrt.Equal(res.TypedSpec().IssuingCA, cfg.Cluster().IssuingCA())
 			asrt.Equal(
@@ -87,7 +89,8 @@ func (suite *RootSuite) TestReconcileControlPlane() {
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{secrets.OSRootID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{secrets.OSRootID},
 		func(res *secrets.OSRoot, asrt *assert.Assertions) {
 			asrt.Equal(res.TypedSpec().IssuingCA, cfg.Machine().Security().IssuingCA())
 			asrt.Equal(
@@ -105,7 +108,8 @@ func (suite *RootSuite) TestReconcileControlPlane() {
 func (suite *RootSuite) TestReconcileWorker() {
 	cfg := suite.genConfig(false)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{secrets.OSRootID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{secrets.OSRootID},
 		func(res *secrets.OSRoot, asrt *assert.Assertions) {
 			asrt.Nil(res.TypedSpec().IssuingCA)
 			asrt.Equal(

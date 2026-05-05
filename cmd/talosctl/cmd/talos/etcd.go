@@ -449,7 +449,8 @@ var etcdDowngradeValidateCmd = &cobra.Command{
 				}
 
 				args := []any{
-					fmt.Sprintf("downgrade validate success, cluster version %s",
+					fmt.Sprintf(
+						"downgrade validate success, cluster version %s",
 						message.GetClusterDowngrade().GetClusterVersion(),
 					),
 				}
@@ -503,7 +504,8 @@ var etcdDowngradeEnableCmd = &cobra.Command{
 				}
 
 				args := []any{
-					fmt.Sprintf("downgrade enable success, cluster version %s",
+					fmt.Sprintf(
+						"downgrade enable success, cluster version %s",
 						message.GetClusterDowngrade().GetClusterVersion(),
 					),
 				}
@@ -555,7 +557,8 @@ var etcdDowngradeCancelCmd = &cobra.Command{
 				}
 
 				args := []any{
-					fmt.Sprintf("downgrade cancel success, cluster version %s",
+					fmt.Sprintf(
+						"downgrade cancel success, cluster version %s",
 						message.GetClusterDowngrade().GetClusterVersion(),
 					),
 				}

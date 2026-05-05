@@ -103,7 +103,8 @@ func (set NfTablesSet) SetElements() []nftables.SetElement {
 		for _, r := range set.Addresses {
 			fromBin, _ := r.From().MarshalBinary() //nolint:errcheck // doesn't fail
 
-			elements = append(elements,
+			elements = append(
+				elements,
 				nftables.SetElement{
 					Key:         fromBin,
 					IntervalEnd: false,
@@ -134,7 +135,8 @@ func (set NfTablesSet) SetElements() []nftables.SetElement {
 		for _, p := range ports {
 			from := binaryutil.BigEndian.PutUint16(p[0])
 
-			elements = append(elements,
+			elements = append(
+				elements,
 				nftables.SetElement{
 					Key:         from,
 					IntervalEnd: false,
@@ -145,7 +147,8 @@ func (set NfTablesSet) SetElements() []nftables.SetElement {
 			if p[1] != 65535 {
 				to := binaryutil.BigEndian.PutUint16(p[1] + 1)
 
-				elements = append(elements,
+				elements = append(
+					elements,
 					nftables.SetElement{
 						Key:         to,
 						IntervalEnd: true,
@@ -159,7 +162,8 @@ func (set NfTablesSet) SetElements() []nftables.SetElement {
 		elements := make([]nftables.SetElement, 0, len(set.Strings))
 
 		for _, s := range set.Strings {
-			elements = append(elements,
+			elements = append(
+				elements,
 				nftables.SetElement{
 					Key: s,
 				},
@@ -171,7 +175,8 @@ func (set NfTablesSet) SetElements() []nftables.SetElement {
 		elements := make([]nftables.SetElement, 0, len(set.ConntrackStates))
 
 		for _, s := range set.ConntrackStates {
-			elements = append(elements,
+			elements = append(
+				elements,
 				nftables.SetElement{
 					Key: binaryutil.NativeEndian.PutUint32(uint32(s)),
 				},
@@ -268,7 +273,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 
 	matchIfNames := func(operator nethelpers.MatchOperator, ifnames []string) {
 		if len(ifnames) == 1 {
-			rulePre = append(rulePre,
+			rulePre = append(
+				rulePre,
 				// [ cmp eq/neq reg 1 <ifname> ]
 				&expr.Cmp{
 					Op:       expr.CmpOp(operator),
@@ -283,7 +289,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 					Strings: xslices.Map(ifnames, ifname),
 				})
 
-			rulePre = append(rulePre,
+			rulePre = append(
+				rulePre,
 				// Match from target set
 				&expr.Lookup{
 					SourceRegister: 1,
@@ -297,7 +304,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 	if a.NfTablesRule.MatchIIfName != nil {
 		match := a.NfTablesRule.MatchIIfName
 
-		rulePre = append(rulePre,
+		rulePre = append(
+			rulePre,
 			// [ meta load iifname => reg 1 ]
 			&expr.Meta{
 				Key:      expr.MetaKeyIIFNAME,
@@ -311,7 +319,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 	if a.NfTablesRule.MatchOIfName != nil {
 		match := a.NfTablesRule.MatchOIfName
 
-		rulePre = append(rulePre,
+		rulePre = append(
+			rulePre,
 			// [ meta load oifname => reg 1 ]
 			&expr.Meta{
 				Key:      expr.MetaKeyOIFNAME,
@@ -325,7 +334,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 	if a.NfTablesRule.MatchMark != nil {
 		match := a.NfTablesRule.MatchMark
 
-		rulePre = append(rulePre,
+		rulePre = append(
+			rulePre,
 			// [ meta load mark => reg 1 ]
 			&expr.Meta{
 				Key:      expr.MetaKeyMARK,
@@ -353,7 +363,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 		match := a.NfTablesRule.MatchConntrackState
 
 		if len(match.States) == 1 {
-			rulePre = append(rulePre,
+			rulePre = append(
+				rulePre,
 				// [ ct load state => reg 1 ]
 				&expr.Ct{
 					Key:      expr.CtKeySTATE,
@@ -381,7 +392,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 					ConntrackStates: match.States,
 				})
 
-			rulePre = append(rulePre,
+			rulePre = append(
+				rulePre,
 				// [ ct load state => reg 1 ]
 				&expr.Ct{
 					Key:      expr.CtKeySTATE,
@@ -425,14 +437,16 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 			}
 		case !v4SetCoversAll && match.Invert, !match.Invert && v4Set != nil:
 			// match specific v4 IPs
-			result.Sets = append(result.Sets,
+			result.Sets = append(
+				result.Sets,
 				NfTablesSet{
 					Kind:      SetKindIPv4,
 					Addresses: v4Set,
 				},
 			)
 
-			rule4 = append(rule4,
+			rule4 = append(
+				rule4,
 				// Store the destination IP address to register 1
 				&expr.Payload{
 					DestRegister: 1,
@@ -464,7 +478,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 					Addresses: v6Set,
 				})
 
-			rule6 = append(rule6,
+			rule6 = append(
+				rule6,
 				// Store the destination IP address to register 1
 				&expr.Payload{
 					DestRegister: 1,
@@ -512,7 +527,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 	if a.NfTablesRule.MatchLayer4 != nil {
 		match := a.NfTablesRule.MatchLayer4
 
-		rulePre = append(rulePre,
+		rulePre = append(
+			rulePre,
 			// [ meta load l4proto => reg 1 ]
 			&expr.Meta{
 				Key:      expr.MetaKeyL4PROTO,
@@ -527,14 +543,16 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 		)
 
 		portMatch := func(off uint32, ports []network.PortRange) {
-			result.Sets = append(result.Sets,
+			result.Sets = append(
+				result.Sets,
 				NfTablesSet{
 					Kind:  SetKindPort,
 					Ports: xslices.Map(ports, func(r network.PortRange) [2]uint16 { return [2]uint16{r.Lo, r.Hi} }),
 				},
 			)
 
-			rulePost = append(rulePost,
+			rulePost = append(
+				rulePost,
 				// [ payload load 2b @ transport header + <offset> => reg 1 ]
 				&expr.Payload{
 					DestRegister: 1,
@@ -559,14 +577,16 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 		}
 
 		if match.MatchICMPType != nil {
-			result.Sets = append(result.Sets,
+			result.Sets = append(
+				result.Sets,
 				NfTablesSet{
 					Kind:      SetKindICMPType,
 					ICMPTypes: match.MatchICMPType.Types,
 				},
 			)
 
-			rulePost = append(rulePost,
+			rulePost = append(
+				rulePost,
 				// [ payload load 1b @ transport header + 0 => reg 1 ]
 				&expr.Payload{
 					DestRegister: 1,
@@ -586,7 +606,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 	if a.NfTablesRule.MatchLimit != nil {
 		match := a.NfTablesRule.MatchLimit
 
-		rulePost = append(rulePost,
+		rulePost = append(
+			rulePost,
 			// [ limit rate <rate> ]
 			&expr.Limit{
 				Type:  expr.LimitTypePkts,
@@ -685,7 +706,8 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 	if a.NfTablesRule.SetMark != nil {
 		set := a.NfTablesRule.SetMark
 
-		rulePost = append(rulePost,
+		rulePost = append(
+			rulePost,
 			// Load the current packet mark into register 1
 			&expr.Meta{
 				Key:      expr.MetaKeyMARK,
@@ -709,14 +731,16 @@ func (a nftablesRule) Compile() (*NfTablesCompiled, error) {
 	}
 
 	if a.NfTablesRule.AnonCounter {
-		rulePost = append(rulePost,
+		rulePost = append(
+			rulePost,
 			// [ counter ]
 			&expr.Counter{},
 		)
 	}
 
 	if a.NfTablesRule.Verdict != nil {
-		rulePost = append(rulePost,
+		rulePost = append(
+			rulePost,
 			// [ verdict accept|drop ]
 			&expr.Verdict{
 				Kind: expr.VerdictKind(*a.NfTablesRule.Verdict),

@@ -147,7 +147,8 @@ func (ctrl *NfTablesChainConfigController) buildIngressChain(cfg *config.Machine
 		if defaultAction == nethelpers.DefaultActionBlock {
 			spec.Policy = nethelpers.VerdictDrop
 
-			spec.Rules = append(spec.Rules,
+			spec.Rules = append(
+				spec.Rules,
 				// conntrack
 				network.NfTablesRule{
 					MatchConntrackState: &network.NfTablesConntrackStateMatch{
@@ -213,7 +214,8 @@ func (ctrl *NfTablesChainConfigController) buildIngressChain(cfg *config.Machine
 
 					// allow traffic to host DNS
 					for _, protocol := range []nethelpers.Protocol{nethelpers.ProtocolUDP, nethelpers.ProtocolTCP} {
-						spec.Rules = append(spec.Rules,
+						spec.Rules = append(
+							spec.Rules,
 							network.NfTablesRule{
 								MatchSourceAddress: &network.NfTablesAddressMatch{
 									IncludeSubnets: xslices.Map(
@@ -242,7 +244,8 @@ func (ctrl *NfTablesChainConfigController) buildIngressChain(cfg *config.Machine
 			}
 
 			if cfg.Config().Cluster() != nil {
-				spec.Rules = append(spec.Rules,
+				spec.Rules = append(
+					spec.Rules,
 					// allow Kubernetes pod/service traffic
 					network.NfTablesRule{
 						MatchSourceAddress: &network.NfTablesAddressMatch{
@@ -279,7 +282,8 @@ func (ctrl *NfTablesChainConfigController) buildIngressChain(cfg *config.Machine
 				verdict = nethelpers.VerdictAccept
 			}
 
-			spec.Rules = append(spec.Rules,
+			spec.Rules = append(
+				spec.Rules,
 				network.NfTablesRule{
 					MatchSourceAddress: &network.NfTablesAddressMatch{
 						IncludeSubnets: rule.Subnets(),
@@ -306,7 +310,8 @@ func (ctrl *NfTablesChainConfigController) buildIngressChain(cfg *config.Machine
 
 func (ctrl *NfTablesChainConfigController) buildPreroutingChain(cfg *config.MachineConfig, nodeAddresses *network.NodeAddress) func(*network.NfTablesChain) error {
 	// convert CIDRs to /32 (/128) prefixes matching only the address itself
-	myAddresses := xslices.Map(nodeAddresses.TypedSpec().Addresses,
+	myAddresses := xslices.Map(
+		nodeAddresses.TypedSpec().Addresses,
 		func(addr netip.Prefix) netip.Prefix {
 			return netip.PrefixFrom(addr.Addr(), addr.Addr().BitLen())
 		},
@@ -340,7 +345,8 @@ func (ctrl *NfTablesChainConfigController) buildPreroutingChain(cfg *config.Mach
 		}
 
 		// if the traffic is not addressed to the machine, ignore (accept it)
-		spec.Rules = append(spec.Rules,
+		spec.Rules = append(
+			spec.Rules,
 			network.NfTablesRule{
 				MatchDestinationAddress: &network.NfTablesAddressMatch{
 					IncludeSubnets: myAddresses,
@@ -366,7 +372,8 @@ func (ctrl *NfTablesChainConfigController) buildPreroutingChain(cfg *config.Mach
 				verdict = nethelpers.VerdictAccept
 			}
 
-			spec.Rules = append(spec.Rules,
+			spec.Rules = append(
+				spec.Rules,
 				network.NfTablesRule{
 					MatchConntrackState: &network.NfTablesConntrackStateMatch{
 						States: []nethelpers.ConntrackState{
@@ -394,7 +401,8 @@ func (ctrl *NfTablesChainConfigController) buildPreroutingChain(cfg *config.Mach
 
 		if defaultAction == nethelpers.DefaultActionBlock {
 			// drop any TCP/UDP new connections
-			spec.Rules = append(spec.Rules,
+			spec.Rules = append(
+				spec.Rules,
 				network.NfTablesRule{
 					MatchConntrackState: &network.NfTablesConntrackStateMatch{
 						States: []nethelpers.ConntrackState{

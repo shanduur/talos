@@ -70,7 +70,8 @@ func (ctrl *ImageVerificationConfigController) Run(ctx context.Context, r contro
 		if machineConfig != nil {
 			if cfg := machineConfig.Config().ImageVerificationConfig(); cfg != nil {
 				for idx, rule := range cfg.Rules() {
-					if err := safe.WriterModify(ctx, r, security.NewImageVerificationRule(fmt.Sprintf("%04d", idx)),
+					if err := safe.WriterModify(
+						ctx, r, security.NewImageVerificationRule(fmt.Sprintf("%04d", idx)),
 						func(r *security.ImageVerificationRule) error {
 							r.TypedSpec().ImagePattern = rule.ImagePattern()
 							r.TypedSpec().Skip = rule.Skip()

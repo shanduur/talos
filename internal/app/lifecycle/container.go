@@ -108,7 +108,8 @@ func runInstallerContainer(ctx context.Context, pidRecorder pid.Recorder, rc *co
 	}
 
 	// create container
-	ctr, err := c8dClient.NewContainer(ctx, containerID,
+	ctr, err := c8dClient.NewContainer(
+		ctx, containerID,
 		client.WithImage(img),
 		client.WithNewSnapshot(containerID, img),
 		client.WithNewSpec(specOpts...),

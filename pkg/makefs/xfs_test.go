@@ -141,7 +141,8 @@ func TestXFSReproducibility(t *testing.T) {
 		"dir1/subdir1/file3.txt",
 	})
 
-	require.NoError(t, makefs.XFS(t.Context(),
+	require.NoError(t, makefs.XFS(
+		t.Context(),
 		tempFile,
 		makefs.WithReproducible(true),
 		makefs.WithLabel("TESTLABEL"),
@@ -159,7 +160,8 @@ func TestXFSReproducibility(t *testing.T) {
 	require.NoError(t, fileData.Close())
 
 	// create the filesystem again
-	require.NoError(t, makefs.XFS(t.Context(),
+	require.NoError(t, makefs.XFS(
+		t.Context(),
 		tempFile,
 		makefs.WithReproducible(true),
 		makefs.WithForce(true),

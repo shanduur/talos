@@ -34,7 +34,8 @@ func (suite *SupportSuite) TestSupport() {
 
 	node := suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)
 
-	suite.RunCLI([]string{"support", "--nodes", node, "-w", "5", "-O", output},
+	suite.RunCLI(
+		[]string{"support", "--nodes", node, "-w", "5", "-O", output},
 		base.StderrNotEmpty(),
 	)
 

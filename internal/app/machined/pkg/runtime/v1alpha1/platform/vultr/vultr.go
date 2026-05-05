@@ -89,7 +89,8 @@ func (v *Vultr) ParseMetadata(metadata *metadata.MetaData) (*runtime.PlatformNet
 			ones, _ := net.IPMask(mask).Size()
 			ipAddr := netip.PrefixFrom(ip, ones)
 
-			networkConfig.Addresses = append(networkConfig.Addresses,
+			networkConfig.Addresses = append(
+				networkConfig.Addresses,
 				network.AddressSpecSpec{
 					ConfigLayer: network.ConfigPlatform,
 					LinkName:    iface,

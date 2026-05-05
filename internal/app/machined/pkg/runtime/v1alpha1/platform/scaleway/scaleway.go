@@ -117,7 +117,8 @@ func (s *Scaleway) ParseMetadata(metadata *instance.Metadata) (*runtime.Platform
 		addr := netip.PrefixFrom(ip, bits)
 
 		publicIPs = append(publicIPs, address)
-		networkConfig.Addresses = append(networkConfig.Addresses,
+		networkConfig.Addresses = append(
+			networkConfig.Addresses,
 			network.AddressSpecSpec{
 				ConfigLayer: network.ConfigPlatform,
 				LinkName:    "eth0",

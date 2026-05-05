@@ -82,7 +82,8 @@ func (ctrl *MountStatusController) Run(ctx context.Context, r controller.Runtime
 				continue
 			}
 
-			if err = safe.WriterModify(ctx, r, runtime.NewMountStatus(runtime.NamespaceName, volumeStatus.Metadata().ID()),
+			if err = safe.WriterModify(
+				ctx, r, runtime.NewMountStatus(runtime.NamespaceName, volumeStatus.Metadata().ID()),
 				func(res *runtime.MountStatus) error {
 					res.TypedSpec().Source = mountStatus.TypedSpec().Source
 					res.TypedSpec().Target = mountStatus.TypedSpec().Target

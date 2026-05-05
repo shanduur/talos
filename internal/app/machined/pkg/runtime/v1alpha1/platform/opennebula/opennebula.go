@@ -332,7 +332,8 @@ func parseIPv4StaticConfig(
 		return fmt.Errorf("failed to parse IP address: %w", err)
 	}
 
-	networkConfig.Addresses = append(networkConfig.Addresses,
+	networkConfig.Addresses = append(
+		networkConfig.Addresses,
 		network.AddressSpecSpec{
 			Address:         ipPrefix,
 			LinkName:        ifaceNameLower,
@@ -355,7 +356,8 @@ func parseIPv4StaticConfig(
 		mtu = uint32(mtu64)
 	}
 
-	networkConfig.Links = append(networkConfig.Links,
+	networkConfig.Links = append(
+		networkConfig.Links,
 		network.LinkSpecSpec{
 			Name:        ifaceNameLower,
 			Logical:     false,
@@ -463,7 +465,8 @@ func parseInterfaceIPv4(
 	}
 
 	if oneContext[ifaceName+"_METHOD"] == "dhcp" {
-		networkConfig.Operators = append(networkConfig.Operators,
+		networkConfig.Operators = append(
+			networkConfig.Operators,
 			network.OperatorSpecSpec{
 				Operator:  network.OperatorDHCP4,
 				LinkName:  ifaceNameLower,

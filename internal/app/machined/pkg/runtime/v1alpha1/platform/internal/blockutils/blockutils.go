@@ -130,7 +130,8 @@ func ReadFromVolume(ctx context.Context, r state.State, labels []string, cb func
 	}()
 
 	// wait for the volume to be either ready or missing (includes waiting for devices to be ready)
-	volumeStatus, err := safe.StateWatchFor[*block.VolumeStatus](ctx,
+	volumeStatus, err := safe.StateWatchFor[*block.VolumeStatus](
+		ctx,
 		r,
 		block.NewVolumeStatus(vc.Metadata().Namespace(), vc.Metadata().ID()).Metadata(),
 		state.WithEventTypes(state.Created, state.Updated),

@@ -58,7 +58,8 @@ func (suite *DNSServer) TestResolving() {
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), resolverSpec))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		expectedDNSRunners(port),
 		func(r *network.DNSResolveCache, assert *assert.Assertions) {
 			assert.Equal("running", r.TypedSpec().Status)
@@ -188,7 +189,8 @@ func (suite *DNSServer) TestResolveMembers() {
 	cfg.TypedSpec().ResolveMemberNames = true
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		expectedDNSRunners(port),
 		func(r *network.DNSResolveCache, assert *assert.Assertions) {
 			assert.Equal("running", r.TypedSpec().Status)

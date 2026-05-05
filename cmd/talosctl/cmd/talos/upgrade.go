@@ -178,7 +178,8 @@ func upgradeInternal(ctx context.Context, c *client.Client, containerdInstance *
 
 	finishedUpgrades := map[string]int32{}
 
-	responseChan := multiplex.Streaming(ctx, nodes,
+	responseChan := multiplex.Streaming(
+		ctx, nodes,
 		func(ctx context.Context) (grpc.ServerStreamingClient[machine.LifecycleServiceUpgradeResponse], error) {
 			return c.LifecycleClient.Upgrade(ctx, &machine.LifecycleServiceUpgradeRequest{
 				Containerd: containerdInstance,
@@ -346,10 +347,12 @@ func init() {
 	upgradeCmd.Flags().StringVarP(&upgradeCmdFlags.upgradeImage, "image", "i",
 		fmt.Sprintf("%s:%s", images.InstallerImageRepository("metal"), version.Trim(version.Tag)),
 		"the container image to use for performing the install")
-	upgradeCmd.Flags().StringVar(&upgradeCmdFlags.namespace, "namespace", "system",
+	upgradeCmd.Flags().StringVar(
+		&upgradeCmdFlags.namespace, "namespace", "system",
 		"namespace to use: \"system\" (etcd and kubelet images), \"cri\" for all Kubernetes workloads, \"inmem\" for in-memory containerd instance",
 	)
-	upgradeCmd.Flags().VarP(upgradeCmdFlags.rebootMode, "reboot-mode", "m",
+	upgradeCmd.Flags().VarP(
+		upgradeCmdFlags.rebootMode, "reboot-mode", "m",
 		fmt.Sprintf(
 			"select the reboot mode during upgrade. Mode %q bypasses kexec. Values: %v",
 			strings.ToLower(machine.UpgradeRequest_POWERCYCLE.String()),

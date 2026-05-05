@@ -890,7 +890,8 @@ func (i *Installer) getPartitionOptions(ctx context.Context, mode Mode, hostTalo
 	partitions := slices.Clone(bootPartitions)
 
 	// META partition
-	partitions = append(partitions,
+	partitions = append(
+		partitions,
 		partition.NewPartitionOptions(false, quirk, partition.WithLabel(constants.MetaPartitionLabel)),
 	)
 
@@ -898,13 +899,15 @@ func (i *Installer) getPartitionOptions(ctx context.Context, mode Mode, hostTalo
 
 	// compatibility when installing on Talos < 1.8
 	if legacyImage || (hostTalosVersion != nil && hostTalosVersion.PrecreateStatePartition()) {
-		partitions = append(partitions,
+		partitions = append(
+			partitions,
 			partition.NewPartitionOptions(false, quirk, partition.WithLabel(constants.StatePartitionLabel)),
 		)
 	}
 
 	if legacyImage {
-		partitions = append(partitions,
+		partitions = append(
+			partitions,
 			partition.NewPartitionOptions(false, quirk, partition.WithLabel(constants.EphemeralPartitionLabel)),
 		)
 	}
@@ -916,7 +919,8 @@ func (i *Installer) getPartitionOptions(ctx context.Context, mode Mode, hostTalo
 		}
 
 		if mode == ModeImage {
-			imageCachePartitionFormatOptions = append(imageCachePartitionFormatOptions,
+			imageCachePartitionFormatOptions = append(
+				imageCachePartitionFormatOptions,
 				partition.WithReproducible(),
 			)
 		}

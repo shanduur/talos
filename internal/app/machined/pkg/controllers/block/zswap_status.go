@@ -80,7 +80,8 @@ func (ctrl *ZswapStatusController) Run(ctx context.Context, r controller.Runtime
 
 		// try to read a single status file to see if zswap is enabled
 		if _, err := os.ReadFile("/sys/kernel/debug/zswap/pool_total_size"); err == nil {
-			if err = safe.WriterModify(ctx, r, block.NewZswapStatus(block.NamespaceName, block.ZswapStatusID),
+			if err = safe.WriterModify(
+				ctx, r, block.NewZswapStatus(block.NamespaceName, block.ZswapStatusID),
 				func(zs *block.ZswapStatus) error {
 					for _, p := range []struct {
 						name string

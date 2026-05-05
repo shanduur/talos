@@ -62,7 +62,8 @@ func GenerateHosts(cfg cri.Registries, basePath string) (*HostsConfig, error) {
 		if tlsConfig.CA() != nil {
 			relPath := fmt.Sprintf("%s-ca.crt", host)
 
-			directory.Files = append(directory.Files,
+			directory.Files = append(
+				directory.Files,
 				&HostsFile{
 					Name:     relPath,
 					Contents: tlsConfig.CA(),
@@ -77,7 +78,8 @@ func GenerateHosts(cfg cri.Registries, basePath string) (*HostsConfig, error) {
 			relPathCrt := fmt.Sprintf("%s-client.crt", host)
 			relPathKey := fmt.Sprintf("%s-client.key", host)
 
-			directory.Files = append(directory.Files,
+			directory.Files = append(
+				directory.Files,
 				&HostsFile{
 					Name:     relPathCrt,
 					Contents: tlsConfig.ClientIdentity().Crt,
@@ -135,7 +137,8 @@ func GenerateHosts(cfg cri.Registries, basePath string) (*HostsConfig, error) {
 			return nil, err
 		}
 
-		directory.Files = append(directory.Files,
+		directory.Files = append(
+			directory.Files,
 			&HostsFile{
 				Name:     "hosts.toml",
 				Mode:     0o600,
@@ -189,7 +192,8 @@ func GenerateHosts(cfg cri.Registries, basePath string) (*HostsConfig, error) {
 			return nil, err
 		}
 
-		directory.Files = append(directory.Files,
+		directory.Files = append(
+			directory.Files,
 			&HostsFile{
 				Name:     "hosts.toml",
 				Mode:     0o600,

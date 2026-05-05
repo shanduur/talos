@@ -39,7 +39,8 @@ func (c *Client) getConn(opts ...grpc.DialOption) (*grpcConnectionWrapper, error
 	target := c.getTarget(
 		resolver.EnsureEndpointsHavePorts(
 			reduceURLsToAddresses(endpoints),
-			constants.ApidPort),
+			constants.ApidPort,
+		),
 	)
 
 	dialOpts := slices.Concat(
@@ -56,7 +57,8 @@ func (c *Client) getConn(opts ...grpc.DialOption) (*grpcConnectionWrapper, error
 	)
 
 	if c.options.unixSocketPath != "" {
-		dialOpts = append(dialOpts,
+		dialOpts = append(
+			dialOpts,
 			grpc.WithNoProxy(),
 		)
 
@@ -100,7 +102,8 @@ func (c *Client) getConn(opts ...grpc.DialOption) (*grpcConnectionWrapper, error
 			ServiceAccountBase64: c.options.serviceAccountBase64,
 		})
 
-		dialOpts = append(dialOpts,
+		dialOpts = append(
+			dialOpts,
 			grpc.WithUnaryInterceptor(authInterceptor.Unary()),
 			grpc.WithStreamInterceptor(authInterceptor.Stream()),
 		)

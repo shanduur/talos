@@ -205,7 +205,8 @@ func writeConfig(args []string) error {
 
 	// Add KubeSpan configuration based on version
 	if genConfigCmdFlags.withKubeSpan {
-		genOptions = append(genOptions,
+		genOptions = append(
+			genOptions,
 			generate.WithKubeSpanEnabled(genConfigCmdFlags.withKubeSpan),
 		)
 	}
@@ -225,7 +226,8 @@ func writeConfig(args []string) error {
 		genOptions = append(genOptions, generate.WithSecretsBundle(secretsBundle))
 	}
 
-	genOptions = append(genOptions,
+	genOptions = append(
+		genOptions,
 		generate.WithInstallDisk(genConfigCmdFlags.installDisk),
 		generate.WithInstallImage(genConfigCmdFlags.installImage),
 		generate.WithAdditionalSubjectAltNames(genConfigCmdFlags.additionalSANs),
@@ -249,7 +251,8 @@ func writeConfig(args []string) error {
 		genConfigCmdFlags.kubernetesVersion,
 		genConfigCmdFlags.configPatch,
 		genConfigCmdFlags.configPatchControlPlane,
-		genConfigCmdFlags.configPatchWorker)
+		genConfigCmdFlags.configPatchWorker,
+	)
 	if err != nil {
 		return err
 	}

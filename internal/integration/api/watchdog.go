@@ -105,7 +105,8 @@ func (suite *WatchdogSuite) TestWatchdogSysfs() {
 	cfgDocument.WatchdogTimeout = 60 * time.Second
 	suite.PatchMachineConfig(nodeCtx, cfgDocument)
 
-	_, err = suite.Client.COSI.WatchFor(nodeCtx, runtimeres.NewWatchdogTimerStatus(runtimeres.WatchdogTimerConfigID).Metadata(),
+	_, err = suite.Client.COSI.WatchFor(
+		nodeCtx, runtimeres.NewWatchdogTimerStatus(runtimeres.WatchdogTimerConfigID).Metadata(),
 		state.WithEventTypes(state.Created, state.Updated),
 		state.WithCondition(func(r resource.Resource) (bool, error) {
 			return r.(*runtimeres.WatchdogTimerStatus).TypedSpec().Timeout == cfgDocument.WatchdogTimeout, nil

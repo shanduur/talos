@@ -44,17 +44,18 @@ func TestCalculateScore(t *testing.T) {
 			expect: 21,
 		},
 	} {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
+		t.Run(
+			test.name, func(t *testing.T) {
+				t.Parallel()
 
-			parsedExpr, err := cel.ParseDoubleExpression(test.expr, celenv.OOMCgroupScoring())
-			require.NoError(t, err)
+				parsedExpr, err := cel.ParseDoubleExpression(test.expr, celenv.OOMCgroupScoring())
+				require.NoError(t, err)
 
-			score, err := test.cgroup.CalculateScore(&parsedExpr)
-			require.NoError(t, err)
+				score, err := test.cgroup.CalculateScore(&parsedExpr)
+				require.NoError(t, err)
 
-			assert.Equal(t, test.expect, score)
-		},
+				assert.Equal(t, test.expect, score)
+			},
 		)
 	}
 }

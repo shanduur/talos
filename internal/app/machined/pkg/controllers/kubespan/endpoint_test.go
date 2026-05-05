@@ -81,7 +81,8 @@ func (suite *EndpointSuite) TestReconcile() {
 	suite.Create(peerStatus3)
 
 	// peer1 is up and has matching affiliate
-	ctest.AssertResource(suite, peerStatus1.Metadata().ID(),
+	ctest.AssertResource(
+		suite, peerStatus1.Metadata().ID(),
 		func(res *kubespan.Endpoint, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
 

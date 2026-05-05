@@ -38,7 +38,8 @@ func NewPreflightChecks(ctx context.Context) (*PreflightChecks, error) {
 		return &PreflightChecks{disabled: true}, nil //nolint:nilerr
 	}
 
-	c, err := client.New(ctx,
+	c, err := client.New(
+		ctx,
 		client.WithUnixSocket(constants.MachineSocketPath),
 		client.WithGRPCDialOptions(
 			grpc.WithTransportCredentials(insecure.NewCredentials()),

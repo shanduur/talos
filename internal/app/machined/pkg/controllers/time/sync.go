@@ -79,7 +79,8 @@ func (ctrl *SyncController) Run(ctx context.Context, r controller.Runtime, logge
 	}
 
 	// wait for udevd to be healthy, which implies that all RTC devices
-	if err := runtime.WaitForDevicesReady(ctx, r,
+	if err := runtime.WaitForDevicesReady(
+		ctx, r,
 		[]controller.Input{
 			{
 				Namespace: network.NamespaceName,

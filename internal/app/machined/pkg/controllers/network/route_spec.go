@@ -193,7 +193,8 @@ func (ctrl *RouteSpecController) syncRoute(ctx context.Context, r controller.Run
 				return fmt.Errorf("error removing route: %w", err)
 			}
 
-			logger.Info("deleted route",
+			logger.Info(
+				"deleted route",
 				zap.String("destination", destinationStr),
 				zap.String("gateway", gatewayStr),
 				zap.Stringer("table", route.TypedSpec().Table),
@@ -241,7 +242,8 @@ func (ctrl *RouteSpecController) syncRoute(ctx context.Context, r controller.Run
 				return fmt.Errorf("error removing route: %w", err)
 			}
 
-			logger.Debug("removed route due to mismatch",
+			logger.Debug(
+				"removed route due to mismatch",
 				zap.String("destination", destinationStr),
 				zap.String("gateway", gatewayStr),
 				zap.Stringer("table", route.TypedSpec().Table),
@@ -300,7 +302,8 @@ func (ctrl *RouteSpecController) syncRoute(ctx context.Context, r controller.Run
 			return fmt.Errorf("error adding route: %w, message %+v", err, *msg)
 		}
 
-		logger.Info("created route",
+		logger.Info(
+			"created route",
 			zap.String("destination", destinationStr),
 			zap.String("gateway", gatewayStr),
 			zap.Stringer("table", route.TypedSpec().Table),

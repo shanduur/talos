@@ -71,7 +71,8 @@ func (suite *ProbeConfigSuite) TestProbeConfig() { //nolint:dupl
 
 	// Wait for ProbeSpec resource to be created
 	//nolint:dupl
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, "tcp:"+googleDNS,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, "tcp:"+googleDNS,
 		func(spec *networkres.ProbeSpec, asrt *assert.Assertions) {
 			asrt.Equal(2*time.Second, spec.TypedSpec().Interval)
 			asrt.Equal(3, spec.TypedSpec().FailureThreshold)
@@ -86,7 +87,8 @@ func (suite *ProbeConfigSuite) TestProbeConfig() { //nolint:dupl
 	suite.PatchMachineConfig(nodeCtx, probeConfig)
 
 	// Wait for ProbeSpec resource to be updated
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, "tcp:"+googleDNS,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, "tcp:"+googleDNS,
 		func(spec *networkres.ProbeSpec, asrt *assert.Assertions) {
 			asrt.Equal(5, spec.TypedSpec().FailureThreshold)
 		},
@@ -124,7 +126,8 @@ func (suite *ProbeConfigSuite) TestMultipleProbes() {
 	suite.PatchMachineConfig(nodeCtx, probeConfig1, probeConfig2)
 
 	// Verify both probes are created
-	rtestutils.AssertResources(nodeCtx, suite.T(), suite.Client.COSI,
+	rtestutils.AssertResources(
+		nodeCtx, suite.T(), suite.Client.COSI,
 		[]string{"tcp:" + cfDNS, "tcp:" + googleDNS},
 		func(spec *networkres.ProbeSpec, asrt *assert.Assertions) {
 			switch spec.TypedSpec().TCP.Endpoint {
@@ -165,7 +168,8 @@ func (suite *ProbeConfigSuite) TestProbeStatus() {
 	suite.PatchMachineConfig(nodeCtx, probeConfig)
 
 	// Wait for ProbeSpec to be created
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, "tcp:"+googleDNS,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, "tcp:"+googleDNS,
 		func(spec *networkres.ProbeSpec, asrt *assert.Assertions) {
 			asrt.Equal(googleDNS, spec.TypedSpec().TCP.Endpoint)
 		},
@@ -221,7 +225,8 @@ func (suite *ProbeConfigSuite) TestHTTPProbeConfig() {
 	suite.PatchMachineConfig(nodeCtx, probeConfig)
 
 	// Wait for ProbeSpec resource to be created
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, "http:"+probeURL,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, "http:"+probeURL,
 		func(spec *networkres.ProbeSpec, asrt *assert.Assertions) {
 			asrt.Equal(1*time.Second, spec.TypedSpec().Interval)
 			asrt.Equal(3, spec.TypedSpec().FailureThreshold)
@@ -235,7 +240,8 @@ func (suite *ProbeConfigSuite) TestHTTPProbeConfig() {
 	probeConfig.ProbeFailureThreshold = 5
 	suite.PatchMachineConfig(nodeCtx, probeConfig)
 
-	rtestutils.AssertResource(nodeCtx, suite.T(), suite.Client.COSI, "http:"+probeURL,
+	rtestutils.AssertResource(
+		nodeCtx, suite.T(), suite.Client.COSI, "http:"+probeURL,
 		func(spec *networkres.ProbeSpec, asrt *assert.Assertions) {
 			asrt.Equal(5, spec.TypedSpec().FailureThreshold)
 		},

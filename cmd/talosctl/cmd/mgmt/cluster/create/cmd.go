@@ -70,8 +70,10 @@ func getCommonUserFacingFlags(pointer *clusterops.Common) *pflag.FlagSet {
 // Common flags
 
 func addTalosconfigDestinationFlag(flagset *pflag.FlagSet, bind *string, flagName string) {
-	flagset.StringVar(bind, flagName, "",
-		fmt.Sprintf("The location to save the generated Talos configuration file to. Defaults to '%s' env variable if set, otherwise '%s' and '%s' in order.",
+	flagset.StringVar(
+		bind, flagName, "",
+		fmt.Sprintf(
+			"The location to save the generated Talos configuration file to. Defaults to '%s' env variable if set, otherwise '%s' and '%s' in order.",
 			constants.TalosConfigEnvVar,
 			filepath.Join("$HOME", constants.TalosDir, constants.TalosconfigFilename),
 			filepath.Join(constants.ServiceAccountMountPath, constants.TalosconfigFilename),

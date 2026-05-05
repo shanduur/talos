@@ -67,7 +67,8 @@ func (ctrl *DiagnosticsLoggerController) Run(ctx context.Context, r controller.R
 				seenWarnings[warning.Metadata().ID()] = struct{}{}
 
 				if _, reported := reportedWarnings[warning.Metadata().ID()]; !reported {
-					logger.Warn("new diagnostic",
+					logger.Warn(
+						"new diagnostic",
 						zap.String("id", warning.Metadata().ID()),
 						zap.String("message", warning.TypedSpec().Message),
 						zap.Strings("details", warning.TypedSpec().Details),
@@ -96,7 +97,8 @@ func (ctrl *DiagnosticsLoggerController) Run(ctx context.Context, r controller.R
 			}
 
 			for warning := range warnings.All() {
-				logger.Warn("diagnostic still active",
+				logger.Warn(
+					"diagnostic still active",
 					zap.String("id", warning.Metadata().ID()),
 					zap.String("message", warning.TypedSpec().Message),
 					zap.Strings("details", warning.TypedSpec().Details),

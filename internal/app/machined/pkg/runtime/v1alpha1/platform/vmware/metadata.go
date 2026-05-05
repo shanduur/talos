@@ -177,7 +177,8 @@ func (v *VMware) ApplyNetworkConfigV2(ctx context.Context, st state.State, confi
 				family = nethelpers.FamilyInet6
 			}
 
-			networkConfig.Addresses = append(networkConfig.Addresses,
+			networkConfig.Addresses = append(
+				networkConfig.Addresses,
 				network.AddressSpecSpec{
 					ConfigLayer: network.ConfigPlatform,
 					LinkName:    name,

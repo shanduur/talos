@@ -388,7 +388,8 @@ func (suite *VolumesSuite) TestSymlinks() {
 	expectedSymlink := "/dev/disk/by-uuid/" + fsUUID
 
 	// Talos should report a symlink to the disk via FS UUID
-	_, err = suite.Client.COSI.WatchFor(client.WithNode(suite.ctx, node), block.NewDisk(block.NamespaceName, userDiskName).Metadata(),
+	_, err = suite.Client.COSI.WatchFor(
+		client.WithNode(suite.ctx, node), block.NewDisk(block.NamespaceName, userDiskName).Metadata(),
 		state.WithCondition(func(r resource.Resource) (bool, error) {
 			disk, ok := r.(*block.Disk)
 			if !ok {
@@ -412,7 +413,8 @@ func (suite *VolumesSuite) TestSymlinks() {
 	}))
 
 	// Talos should remove a symlink to the disk
-	_, err = suite.Client.COSI.WatchFor(client.WithNode(suite.ctx, node), block.NewDisk(block.NamespaceName, userDiskName).Metadata(),
+	_, err = suite.Client.COSI.WatchFor(
+		client.WithNode(suite.ctx, node), block.NewDisk(block.NamespaceName, userDiskName).Metadata(),
 		state.WithCondition(func(r resource.Resource) (bool, error) {
 			disk, ok := r.(*block.Disk)
 			if !ok {
@@ -434,7 +436,8 @@ func (suite *VolumesSuite) TestUserVolumesStatus() {
 			userVolumeIDs := rtestutils.ResourceIDs[*block.VolumeStatus](ctx, suite.T(), suite.Client.COSI, state.WithLabelQuery(resource.LabelExists(block.UserVolumeLabel)))
 
 			// check that the volumes are ready
-			rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI,
+			rtestutils.AssertResources(
+				ctx, suite.T(), suite.Client.COSI,
 				userVolumeIDs,
 				func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 					asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
@@ -446,7 +449,8 @@ func (suite *VolumesSuite) TestUserVolumesStatus() {
 			}
 
 			// check that the volumes are mounted
-			rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI,
+			rtestutils.AssertResources(
+				ctx, suite.T(), suite.Client.COSI,
 				userVolumeIDs,
 				func(vs *block.MountStatus, _ *assert.Assertions) {},
 			)
@@ -460,7 +464,8 @@ func (suite *VolumesSuite) TestVolumesStatus() {
 		suite.Run(node, func() {
 			ctx := client.WithNode(suite.ctx, node)
 
-			rtestutils.AssertAll(ctx, suite.T(), suite.Client.COSI,
+			rtestutils.AssertAll(
+				ctx, suite.T(), suite.Client.COSI,
 				func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 					asrt.Contains([]block.VolumePhase{block.VolumePhaseReady, block.VolumePhaseMissing}, vs.TypedSpec().Phase)
 				},
@@ -552,7 +557,8 @@ func (suite *VolumesSuite) TestUserVolumesPartition() {
 	// create user volumes
 	suite.PatchMachineConfig(ctx, configDocs...)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -659,7 +665,8 @@ func (suite *VolumesSuite) TestUserVolumesPartition() {
 	configDocs[0].(*blockcfg.UserVolumeConfigV1Alpha1).FilesystemSpec.ProjectQuotaSupportConfig = new(true)
 	suite.PatchMachineConfig(ctx, configDocs[0])
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -760,7 +767,8 @@ func (suite *VolumesSuite) TestUserVolumesDisk() {
 	// create user volumes
 	suite.PatchMachineConfig(ctx, configDocs...)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -857,7 +865,8 @@ func (suite *VolumesSuite) TestUserVolumesDisk() {
 	configDocs[0].(*blockcfg.UserVolumeConfigV1Alpha1).FilesystemSpec.ProjectQuotaSupportConfig = new(true)
 	suite.PatchMachineConfig(ctx, configDocs[0])
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -944,7 +953,8 @@ func (suite *VolumesSuite) TestUserVolumesDirectory() {
 	// create user volumes
 	suite.PatchMachineConfig(ctx, configDocs...)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -995,7 +1005,8 @@ func (suite *VolumesSuite) TestUserVolumesDirectory() {
 	// re-create the volume
 	suite.PatchMachineConfig(ctx, configDocs[0])
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, userVolumeIDs,
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -1066,7 +1077,8 @@ func (suite *VolumesSuite) TestRawVolumes() {
 	// create raw volumes
 	suite.PatchMachineConfig(ctx, configDocs...)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, rawVolumeIDs,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, rawVolumeIDs,
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -1112,7 +1124,8 @@ func (suite *VolumesSuite) TestRawVolumes() {
 	// re-create the volume
 	suite.PatchMachineConfig(ctx, configDocs[0])
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, rawVolumeIDs,
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, rawVolumeIDs,
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -1195,7 +1208,8 @@ func (suite *VolumesSuite) TestExistingVolumes() {
 	// create user volumes
 	suite.PatchMachineConfig(ctx, userVolumeDoc)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []resource.ID{userVolumeID},
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, []resource.ID{userVolumeID},
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -1221,7 +1235,8 @@ func (suite *VolumesSuite) TestExistingVolumes() {
 	suite.PatchMachineConfig(ctx, existingVolumeDoc)
 
 	// wait for the existing volume to be discovered
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []resource.ID{existingVolumeID},
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, []resource.ID{existingVolumeID},
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 			asrt.Equal(userDisks[0], vs.TypedSpec().ParentLocation)
@@ -1363,7 +1378,8 @@ func (suite *VolumesSuite) TestExternalVolumesVirtiofs() {
 	suite.PatchMachineConfig(ctx, externalVolumeDoc)
 
 	// wait for the external volume to be discovered
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []resource.ID{externalVolumeID},
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, []resource.ID{externalVolumeID},
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -1461,7 +1477,8 @@ func (suite *VolumesSuite) TestVolumeProvisioningErrors() {
 
 		suite.T().Logf("verifying volume %s on node %s/%s fails with no disks matched", userVolumeID, node, nodeName)
 
-		rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []string{userVolumeID},
+		rtestutils.AssertResources(
+			ctx, suite.T(), suite.Client.COSI, []string{userVolumeID},
 			func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 				asrt.Equalf(block.VolumePhaseFailed, vs.TypedSpec().Phase,
 					"Expected %q, but got %q (%s)", block.VolumePhaseFailed, vs.TypedSpec().Phase, vs.Metadata().ID())
@@ -1509,7 +1526,8 @@ func (suite *VolumesSuite) TestVolumeProvisioningErrors() {
 
 		suite.T().Logf("verifying volume %s on node %s/%s fails with multiple disks matched", userVolumeID, node, nodeName)
 
-		rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []string{userVolumeID},
+		rtestutils.AssertResources(
+			ctx, suite.T(), suite.Client.COSI, []string{userVolumeID},
 			func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 				asrt.Equalf(block.VolumePhaseFailed, vs.TypedSpec().Phase,
 					"Expected %q, but got %q (%s)", block.VolumePhaseFailed, vs.TypedSpec().Phase, vs.Metadata().ID())
@@ -1538,7 +1556,8 @@ func (suite *VolumesSuite) TestSwapStatus() {
 				suite.T().Skipf("skipping test, no swap volumes found on node %s", node)
 			}
 
-			rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI,
+			rtestutils.AssertResources(
+				ctx, suite.T(), suite.Client.COSI,
 				xslices.Map(slices.Collect(swapVolumes.All()), func(sv *block.VolumeConfig) string {
 					return sv.Metadata().ID()
 				}),
@@ -1554,7 +1573,8 @@ func (suite *VolumesSuite) TestSwapStatus() {
 				return sv.TypedSpec().MountLocation
 			})
 
-			rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI,
+			rtestutils.AssertResources(
+				ctx, suite.T(), suite.Client.COSI,
 				deviceNames,
 				func(vs *block.SwapStatus, asrt *assert.Assertions) {},
 			)
@@ -1620,7 +1640,8 @@ func (suite *VolumesSuite) TestSwapOnOff() {
 
 	swapVolumeID := constants.SwapVolumePrefix + doc.MetaName
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []string{swapVolumeID},
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, []string{swapVolumeID},
 		func(vs *block.VolumeStatus, asrt *assert.Assertions) {
 			asrt.Equalf(block.VolumePhaseReady, vs.TypedSpec().Phase, "Expected %q, but got %q (%s)", block.VolumePhaseReady, vs.TypedSpec().Phase, vs.Metadata().ID())
 		},
@@ -1672,7 +1693,8 @@ func (suite *VolumesSuite) TestZswapStatus() {
 				suite.T().Skipf("skipping test, zswap is not enabled on node %s", node)
 			}
 
-			rtestutils.AssertResource(ctx, suite.T(), suite.Client.COSI,
+			rtestutils.AssertResource(
+				ctx, suite.T(), suite.Client.COSI,
 				block.ZswapStatusID,
 				func(vs *block.ZswapStatus, asrt *assert.Assertions) {
 					suite.T().Logf("zswap total size %s, stored pages %d", vs.TypedSpec().TotalSizeHuman, vs.TypedSpec().StoredPages)

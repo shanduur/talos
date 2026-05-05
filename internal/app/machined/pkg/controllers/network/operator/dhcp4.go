@@ -114,7 +114,8 @@ func (d *DHCP4) knownHostname(hostname network.HostnameStatusSpec) bool {
 func (d *DHCP4) waitForNetworkReady(ctx context.Context) error {
 	// If an IP address has been registered, wait for the address association to be ready
 	if addresses := d.AddressSpecs(); len(addresses) > 0 {
-		_, err := d.state.WatchFor(ctx,
+		_, err := d.state.WatchFor(
+			ctx,
 			resource.NewMetadata(
 				network.NamespaceName,
 				network.AddressStatusType,
@@ -216,7 +217,8 @@ func (d *DHCP4) Run(ctx context.Context, notifyCh chan<- struct{}) {
 				oldHostname := hostname
 				hostname = extractHostname(event.Resource)
 
-				d.logger.Debug("detected hostname change",
+				d.logger.Debug(
+					"detected hostname change",
 					zap.String("old", oldHostname.FQDN()),
 					zap.String("new", hostname.FQDN()),
 				)
@@ -241,7 +243,8 @@ func (d *DHCP4) Run(ctx context.Context, notifyCh chan<- struct{}) {
 				// servers in the first place.
 				d.lease = nil
 
-				d.logger.Debug("restarting DHCP sequence due to hostname change",
+				d.logger.Debug(
+					"restarting DHCP sequence due to hostname change",
 					zap.Strings("dhcp_hostname", xslices.Map(d.HostnameSpecs(), func(spec network.HostnameSpecSpec) string {
 						return spec.Hostname
 					})),
@@ -469,7 +472,8 @@ func (d *DHCP4) newClient() (*nclient4.Client, error) {
 		//     DHCPREQUEST generated during RENEWING state:
 		//     ... This message will be unicast, so no relay
 		//     agents will be involved in its transmission.
-		clientOpts = append(clientOpts,
+		clientOpts = append(
+			clientOpts,
 			nclient4.WithServerAddr(&net.UDPAddr{
 				IP:   d.lease.ACK.ServerIdentifier(),
 				Port: nclient4.ServerPort,
@@ -567,7 +571,8 @@ func (d *DHCP4) requestRenew(ctx context.Context, hostname network.HostnameStatu
 
 		d.logger.Debug("DHCP REQUEST with previous IP", zap.String("link", d.linkName), zap.Stringer("previous_ip", previousIPAddress))
 
-		d.lease, err = client.Request(ctx, dhcpv4.PrependModifiers(mods,
+		d.lease, err = client.Request(ctx, dhcpv4.PrependModifiers(
+			mods,
 			dhcpv4.WithOption(dhcpv4.OptRequestedIPAddress(previousIPAddress)),
 		)...)
 	default:

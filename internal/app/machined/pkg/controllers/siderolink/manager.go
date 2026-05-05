@@ -82,7 +82,8 @@ func (ctrl *ManagerController) Outputs() []controller.Output {
 //nolint:gocyclo,cyclop
 func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, logger *zap.Logger) error {
 	// initially, wait for the network address status to be ready
-	if err := networkutils.WaitForNetworkReady(ctx, r,
+	if err := networkutils.WaitForNetworkReady(
+		ctx, r,
 		func(status *network.StatusSpec) bool {
 			return status.AddressReady
 		},
@@ -290,7 +291,8 @@ func (ctrl *ManagerController) Run(ctx context.Context, r controller.Runtime, lo
 				return err
 			}
 
-			if err = safe.WriterModify(ctx, r, siderolink.NewTunnel(),
+			if err = safe.WriterModify(
+				ctx, r, siderolink.NewTunnel(),
 				func(tunnel *siderolink.Tunnel) error {
 					tunnel.TypedSpec().APIEndpoint = ctrl.pd.apiEndpont
 					tunnel.TypedSpec().LinkName = linkName

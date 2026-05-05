@@ -107,7 +107,8 @@ var lsCmd = &cobra.Command{
 					if !multipleNodes {
 						fmt.Println(info.RelativeName)
 					} else {
-						fmt.Fprintf(w, "%s\t%s\n",
+						fmt.Fprintf(
+							w, "%s\t%s\n",
 							node,
 							info.RelativeName,
 						)
@@ -163,7 +164,8 @@ var lsCmd = &cobra.Command{
 					}
 				}
 
-				fmt.Fprintf(w, "%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\n",
+				fmt.Fprintf(
+					w, "%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\n",
 					node,
 					os.FileMode(info.Mode).String(),
 					info.Uid,

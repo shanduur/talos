@@ -153,7 +153,8 @@ func (ctrl *LoadedKernelModuleController) reconcile(ctx context.Context, r contr
 
 	// create a map to track which modules were touched
 	for _, module := range rawModules {
-		if err := safe.WriterModify(ctx, r,
+		if err := safe.WriterModify(
+			ctx, r,
 			runtime.NewLoadedKernelModule(runtime.NamespaceName, module.Name),
 			func(res *runtime.LoadedKernelModule) error {
 				res.TypedSpec().Size = module.Size

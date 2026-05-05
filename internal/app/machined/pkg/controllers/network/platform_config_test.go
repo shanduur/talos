@@ -290,7 +290,8 @@ func (mock *platformMock) NetworkConfiguration(
 					Timeout:  time.Second,
 				},
 				ConfigLayer: network.ConfigPlatform,
-			})
+			},
+		)
 	}
 
 	networkConfig.Metadata = mock.metadata

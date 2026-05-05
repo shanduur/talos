@@ -44,7 +44,8 @@ func TestExt4Reproducibility(t *testing.T) {
 		"dir1/subdir1/file3.txt",
 	})
 
-	require.NoError(t, makefs.Ext4(t.Context(),
+	require.NoError(t, makefs.Ext4(
+		t.Context(),
 		tempFile,
 		makefs.WithReproducible(true),
 		makefs.WithLabel("TESTLABEL"),
@@ -132,7 +133,8 @@ func TestExt4WithLargeInput(t *testing.T) {
 	done := make(chan error, 1)
 
 	go func() {
-		done <- makefs.Ext4(t.Context(), tempFile,
+		done <- makefs.Ext4(
+			t.Context(), tempFile,
 			makefs.WithLabel("REPROTEST"),
 			makefs.WithForce(true),
 			makefs.WithSourceDirectory(sourceDirectory),
@@ -166,7 +168,8 @@ func TestExt4Oversized(t *testing.T) {
 		0o644,
 	))
 
-	err = makefs.Ext4(t.Context(), tempFile,
+	err = makefs.Ext4(
+		t.Context(), tempFile,
 		makefs.WithLabel("REPROTEST"),
 		makefs.WithForce(true),
 		makefs.WithSourceDirectory(sourceDirectory),

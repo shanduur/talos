@@ -18,7 +18,8 @@ func TestGetSBAT(t *testing.T) {
 	data, err := uki.GetSBAT("internal/pe/testdata/linuxx64.efi.stub")
 	require.NoError(t, err)
 
-	require.Equal(t,
+	require.Equal(
+		t,
 		"sbat,1,SBAT Version,sbat,1,https://github.com/rhboot/shim/blob/main/SBAT.md\nsystemd-stub,1,The systemd Developers,systemd,257,https://systemd.io/\nsystemd-stub.talos,1,Talos Linux,systemd,257.2257.2,https://github.com/siderolabs/tools/issues\n", //nolint:lll
 		string(data),
 	)

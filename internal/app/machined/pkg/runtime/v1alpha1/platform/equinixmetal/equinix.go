@@ -256,7 +256,8 @@ func (p *EquinixMetal) ParseMetadata(ctx context.Context, equinixMetadata *Metad
 			family = nethelpers.FamilyInet6
 		}
 
-		networkConfig.Addresses = append(networkConfig.Addresses,
+		networkConfig.Addresses = append(
+			networkConfig.Addresses,
 			network.AddressSpecSpec{
 				ConfigLayer: network.ConfigPlatform,
 				LinkName:    firstBond,

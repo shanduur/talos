@@ -49,7 +49,8 @@ func dashboardMain() error {
 
 	ctx = metadata.NewOutgoingContext(ctx, md)
 
-	c, err := client.New(ctx,
+	c, err := client.New(
+		ctx,
 		client.WithUnixSocket(constants.MachineSocketPath),
 		client.WithGRPCDialOptions(
 			grpc.WithTransportCredentials(insecure.NewCredentials()),

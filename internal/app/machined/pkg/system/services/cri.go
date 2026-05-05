@@ -92,7 +92,8 @@ func (c *CRI) Volumes(r runtime.Runtime) []string {
 	}
 
 	if !r.State().Platform().Mode().InContainer() {
-		volumes = append(volumes,
+		volumes = append(
+			volumes,
 			xslices.Map(constants.Overlays, func(target constants.SELinuxLabeledPath) string {
 				return target.Path
 			})...,
@@ -116,19 +117,20 @@ func (c *CRI) Runner(r runtime.Runtime) (runner.Runner, error) {
 		},
 	}
 
-	return restart.New(process.NewRunner(
-		r.Config().Debug(),
-		args,
-		runner.WithLoggingManager(r.Logging()),
-		runner.WithEnv(append(
-			environment.Get(r.Config()),
-			constants.EnvXDGRuntimeDir,
-		)),
-		runner.WithOOMScoreAdj(-500),
-		runner.WithCgroupPath(constants.CgroupPodRuntime),
-		runner.WithSelinuxLabel(constants.SelinuxLabelPodRuntime),
-		runner.WithDroppedCapabilities(constants.DefaultDroppedCapabilities),
-	),
+	return restart.New(
+		process.NewRunner(
+			r.Config().Debug(),
+			args,
+			runner.WithLoggingManager(r.Logging()),
+			runner.WithEnv(append(
+				environment.Get(r.Config()),
+				constants.EnvXDGRuntimeDir,
+			)),
+			runner.WithOOMScoreAdj(-500),
+			runner.WithCgroupPath(constants.CgroupPodRuntime),
+			runner.WithSelinuxLabel(constants.SelinuxLabelPodRuntime),
+			runner.WithDroppedCapabilities(constants.DefaultDroppedCapabilities),
+		),
 		restart.WithType(restart.Forever),
 	), nil
 }

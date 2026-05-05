@@ -98,7 +98,8 @@ func ShowCluster(cluster provision.Cluster) error {
 
 		ips := xslices.Map(node.IPs, netip.Addr.String)
 
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n",
+		fmt.Fprintf(
+			w, "%s\t%s\t%s\t%s\t%s\t%s\n",
 			node.Name,
 			node.Type,
 			strings.Join(ips, ","),

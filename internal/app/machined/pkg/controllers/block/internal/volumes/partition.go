@@ -110,7 +110,8 @@ func CreatePartition(ctx context.Context, logger *zap.Logger, diskPath string, v
 		return CreatePartitionResult{}, xerrors.NewTaggedf[Retryable]("error wiping partition: %w", err)
 	}
 
-	logger.Info("partition created",
+	logger.Info(
+		"partition created",
 		zap.String("disk", diskPath), zap.Int("partition", partitionIdx),
 		zap.String("label", volumeCfg.TypedSpec().Provisioning.PartitionSpec.Label),
 		zap.String("size", humanize.IBytes(size)),

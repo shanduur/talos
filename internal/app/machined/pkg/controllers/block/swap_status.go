@@ -116,7 +116,8 @@ func (ctrl *SwapStatusController) parseSwaps(ctx context.Context, r controller.R
 
 		swapDevice := fields[0]
 
-		if err = safe.WriterModify(ctx, r, block.NewSwapStatus(block.NamespaceName, swapDevice),
+		if err = safe.WriterModify(
+			ctx, r, block.NewSwapStatus(block.NamespaceName, swapDevice),
 			func(swapStatus *block.SwapStatus) error {
 				swapStatus.TypedSpec().Device = swapDevice
 				swapStatus.TypedSpec().Type = fields[1]

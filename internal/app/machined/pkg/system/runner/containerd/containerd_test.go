@@ -165,10 +165,11 @@ func (suite *ContainerdSuite) getLogContents(filename string) []byte {
 }
 
 func (suite *ContainerdSuite) TestRunSuccess() {
-	r := containerdrunner.NewRunner(false, &runner.Args{
-		ID:          suite.containerID,
-		ProcessArgs: []string{"/bin/sh", "-c", "exit 0"},
-	},
+	r := containerdrunner.NewRunner(
+		false, &runner.Args{
+			ID:          suite.containerID,
+			ProcessArgs: []string{"/bin/sh", "-c", "exit 0"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithNamespace(suite.containerdNamespace),
 		runner.WithContainerImage(busyboxImage),
@@ -185,10 +186,11 @@ func (suite *ContainerdSuite) TestRunSuccess() {
 }
 
 func (suite *ContainerdSuite) TestRunTwice() {
-	r := containerdrunner.NewRunner(false, &runner.Args{
-		ID:          suite.containerID,
-		ProcessArgs: []string{"/bin/sh", "-c", "exit 0"},
-	},
+	r := containerdrunner.NewRunner(
+		false, &runner.Args{
+			ID:          suite.containerID,
+			ProcessArgs: []string{"/bin/sh", "-c", "exit 0"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithNamespace(suite.containerdNamespace),
 		runner.WithContainerImage(busyboxImage),
@@ -219,10 +221,11 @@ func (suite *ContainerdSuite) TestContainerCleanup() {
 	// open first runner, but don't close it; second runner should be
 	// able to start the container by cleaning up container created by the first
 	// runner
-	r1 := containerdrunner.NewRunner(false, &runner.Args{
-		ID:          suite.containerID,
-		ProcessArgs: []string{"/bin/sh", "-c", "exit 1"},
-	},
+	r1 := containerdrunner.NewRunner(
+		false, &runner.Args{
+			ID:          suite.containerID,
+			ProcessArgs: []string{"/bin/sh", "-c", "exit 1"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithNamespace(suite.containerdNamespace),
 		runner.WithContainerImage(busyboxImage),
@@ -231,10 +234,11 @@ func (suite *ContainerdSuite) TestContainerCleanup() {
 
 	suite.Require().NoError(r1.Open())
 
-	r2 := containerdrunner.NewRunner(false, &runner.Args{
-		ID:          suite.containerID,
-		ProcessArgs: []string{"/bin/sh", "-c", "exit 0"},
-	},
+	r2 := containerdrunner.NewRunner(
+		false, &runner.Args{
+			ID:          suite.containerID,
+			ProcessArgs: []string{"/bin/sh", "-c", "exit 0"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithNamespace(suite.containerdNamespace),
 		runner.WithContainerImage(busyboxImage),
@@ -250,10 +254,11 @@ func (suite *ContainerdSuite) TestContainerCleanup() {
 }
 
 func (suite *ContainerdSuite) TestRunLogs() {
-	r := containerdrunner.NewRunner(false, &runner.Args{
-		ID:          suite.containerID,
-		ProcessArgs: []string{"/bin/sh", "-c", "echo -n \"Test 1\nTest 2\n\""},
-	},
+	r := containerdrunner.NewRunner(
+		false, &runner.Args{
+			ID:          suite.containerID,
+			ProcessArgs: []string{"/bin/sh", "-c", "echo -n \"Test 1\nTest 2\n\""},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithNamespace(suite.containerdNamespace),
 		runner.WithContainerImage(busyboxImage),
@@ -286,20 +291,22 @@ func (suite *ContainerdSuite) TestStopFailingAndRestarting() {
 	//nolint:errcheck
 	_ = os.Remove(testFile)
 
-	r := restart.New(containerdrunner.NewRunner(false, &runner.Args{
-		ID:          suite.containerID,
-		ProcessArgs: []string{"/bin/sh", "-c", "test -f " + testFile + " && echo ok || (echo fail; false)"},
-	},
-		runner.WithLoggingManager(suite.loggingManager),
-		runner.WithNamespace(suite.containerdNamespace),
-		runner.WithContainerImage(busyboxImage),
-		runner.WithOCISpecOpts(
-			oci.WithMounts([]specs.Mount{
-				{Type: "bind", Destination: testDir, Source: testDir, Options: []string{"bind", "ro"}},
-			}),
+	r := restart.New(
+		containerdrunner.NewRunner(
+			false, &runner.Args{
+				ID:          suite.containerID,
+				ProcessArgs: []string{"/bin/sh", "-c", "test -f " + testFile + " && echo ok || (echo fail; false)"},
+			},
+			runner.WithLoggingManager(suite.loggingManager),
+			runner.WithNamespace(suite.containerdNamespace),
+			runner.WithContainerImage(busyboxImage),
+			runner.WithOCISpecOpts(
+				oci.WithMounts([]specs.Mount{
+					{Type: "bind", Destination: testDir, Source: testDir, Options: []string{"bind", "ro"}},
+				}),
+			),
+			runner.WithContainerdAddress(suite.containerdAddress),
 		),
-		runner.WithContainerdAddress(suite.containerdAddress),
-	),
 		restart.WithType(restart.Forever),
 		restart.WithRestartInterval(5*time.Millisecond),
 	)
@@ -364,10 +371,11 @@ func (suite *ContainerdSuite) TestStopSigKill() {
 		suite.T().Skip("test doesn't pass under cgroupsv2")
 	}
 
-	r := containerdrunner.NewRunner(false, &runner.Args{
-		ID:          suite.containerID,
-		ProcessArgs: []string{"/bin/sh", "-c", "trap -- '' SIGTERM; while :; do :; done"},
-	},
+	r := containerdrunner.NewRunner(
+		false, &runner.Args{
+			ID:          suite.containerID,
+			ProcessArgs: []string{"/bin/sh", "-c", "trap -- '' SIGTERM; while :; do :; done"},
+		},
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithNamespace(suite.containerdNamespace),
 		runner.WithContainerImage(busyboxImage),
@@ -402,10 +410,11 @@ func (suite *ContainerdSuite) TestStopSigKill() {
 func (suite *ContainerdSuite) TestContainerStdin() {
 	stdin := bytes.Repeat([]byte{0xde, 0xad, 0xbe, 0xef}, 2000)
 
-	r := containerdrunner.NewRunner(false, &runner.Args{
-		ID:          suite.containerID,
-		ProcessArgs: []string{"/bin/cat"},
-	},
+	r := containerdrunner.NewRunner(
+		false, &runner.Args{
+			ID:          suite.containerID,
+			ProcessArgs: []string{"/bin/cat"},
+		},
 		runner.WithStdin(bytes.NewReader(stdin)),
 		runner.WithLoggingManager(suite.loggingManager),
 		runner.WithNamespace(suite.containerdNamespace),

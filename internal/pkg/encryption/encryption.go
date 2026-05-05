@@ -65,7 +65,8 @@ func NewHandler(encryptionConfig block.EncryptionSpec, volumeID string, helpers 
 	keyHandlers := make([]keys.Handler, 0, len(encryptionConfig.Keys))
 
 	for _, cfg := range encryptionConfig.Keys {
-		handler, err := keys.NewHandler(cfg,
+		handler, err := keys.NewHandler(
+			cfg,
 			keys.WithVolumeID(volumeID),
 			keys.WithSystemInformationGetter(helpers.GetSystemInformation),
 			keys.WithTPMLocker(helpers.TPMLocker),

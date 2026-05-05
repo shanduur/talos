@@ -70,7 +70,8 @@ func (ctrl *EventsSinkController) Run(ctx context.Context, r controller.Runtime,
 		}
 	}()
 
-	if err := networkutils.WaitForNetworkReady(ctx, r,
+	if err := networkutils.WaitForNetworkReady(
+		ctx, r,
 		func(status *network.StatusSpec) bool {
 			return status.AddressReady
 		},

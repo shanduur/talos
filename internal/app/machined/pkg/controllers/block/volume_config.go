@@ -94,7 +94,8 @@ func (ctrl *VolumeConfigController) Run(ctx context.Context, r controller.Runtim
 
 		// create a volume mount request for the root user volume mount point
 		// to keep it alive and prevent it from being torn down
-		if err := safe.WriterModify(ctx, r,
+		if err := safe.WriterModify(
+			ctx, r,
 			block.NewVolumeMountRequest(block.NamespaceName, constants.UserVolumeMountPoint),
 			func(v *block.VolumeMountRequest) error {
 				v.TypedSpec().Requester = ctrl.Name()

@@ -80,7 +80,8 @@ func (ctrl *ProbeConfigController) Run(ctx context.Context, r controller.Runtime
 			return fmt.Errorf("error applying specs: %w", err)
 		}
 
-		if err = r.CleanupOutputs(ctx,
+		if err = r.CleanupOutputs(
+			ctx,
 			resource.NewMetadata(network.ConfigNamespaceName, network.ProbeSpecType, "", resource.VersionUndefined),
 		); err != nil {
 			return fmt.Errorf("error cleaning up outputs: %w", err)

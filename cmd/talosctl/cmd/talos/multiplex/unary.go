@@ -23,7 +23,8 @@ func Unary[ResponseT any](ctx context.Context, nodes []string, initiate func(con
 		wg.Go(func() {
 			response, err := initiate(client.WithNode(ctx, node))
 			if err != nil {
-				channel.SendWithContext(ctx, responseCh,
+				channel.SendWithContext(
+					ctx, responseCh,
 					Response[*ResponseT]{
 						Node: node,
 						Err:  err,
@@ -33,7 +34,8 @@ func Unary[ResponseT any](ctx context.Context, nodes []string, initiate func(con
 				return
 			}
 
-			channel.SendWithContext(ctx, responseCh,
+			channel.SendWithContext(
+				ctx, responseCh,
 				Response[*ResponseT]{
 					Node:    node,
 					Payload: response,

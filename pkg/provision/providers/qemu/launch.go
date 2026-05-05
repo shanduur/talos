@@ -161,7 +161,8 @@ func launchVM(config *LaunchConfig) error {
 
 		switch driver {
 		case "virtio":
-			args = append(args,
+			args = append(
+				args,
 				"-drive", fmt.Sprintf("id=virtio%d,format=raw,if=none,file=%s,cache=none", i, disk),
 				"-device", fmt.Sprintf("virtio-blk-pci,drive=virtio%d,logical_block_size=%d,physical_block_size=%d%s", i, blockSize, blockSize, serial),
 			)
@@ -175,7 +176,8 @@ func launchVM(config *LaunchConfig) error {
 				ahciAttached = true
 			}
 
-			args = append(args,
+			args = append(
+				args,
 				"-drive", fmt.Sprintf("id=ide%d,format=raw,if=none,file=%s", i, disk),
 				"-device", fmt.Sprintf("ide-hd,drive=ide%d,bus=ahci0.%d", i, ahciBus),
 			)
@@ -188,7 +190,8 @@ func launchVM(config *LaunchConfig) error {
 				scsiAttached = true
 			}
 
-			args = append(args,
+			args = append(
+				args,
 				"-drive", fmt.Sprintf("id=scsi%d,format=raw,if=none,file=%s,discard=unmap,aio=native,cache=none", i, disk),
 				"-device", fmt.Sprintf("scsi-hd,drive=scsi%d,bus=scsi0.0,logical_block_size=%d,physical_block_size=%d", i, blockSize, blockSize),
 			)
@@ -196,13 +199,15 @@ func launchVM(config *LaunchConfig) error {
 		case "nvme":
 			if !nvmeAttached {
 				// [TODO]: once Talos is fixed, use multipath NVME: https://qemu-project.gitlab.io/qemu/system/devices/nvme.html
-				args = append(args,
+				args = append(
+					args,
 					"-device", "nvme,id=nvme-ctrl-0,serial=deadbeef",
 				)
 				nvmeAttached = true
 			}
 
-			args = append(args,
+			args = append(
+				args,
 				"-drive", fmt.Sprintf("id=nvme%d,format=raw,if=none,file=%s,discard=unmap,aio=native,cache=none", i, disk),
 				"-device", fmt.Sprintf("nvme-ns,drive=nvme%d,logical_block_size=%d,physical_block_size=%d", i, blockSize, blockSize),
 			)
@@ -215,7 +220,8 @@ func launchVM(config *LaunchConfig) error {
 				megaraidAttached = true
 			}
 
-			args = append(args,
+			args = append(
+				args,
 				"-drive", fmt.Sprintf("id=scsi%d,format=raw,if=none,file=%s,discard=unmap,aio=native,cache=none", i, disk),
 				"-device", fmt.Sprintf("scsi-hd,drive=scsi%d,bus=scsi1.0,channel=0,scsi-id=%d,lun=0,logical_block_size=%d,physical_block_size=%d", i, i, blockSize, blockSize),
 			)
@@ -226,7 +232,8 @@ func launchVM(config *LaunchConfig) error {
 			}
 
 			if !virtiofsAttached {
-				args = append(args,
+				args = append(
+					args,
 					"-object", fmt.Sprintf("memory-backend-file,id=mem,size=%sM,mem-path=%s,share=on", strconv.FormatInt(config.MemSize, 10), config.MemShmPath),
 					"-numa", "node,memdev=mem",
 				)
@@ -234,7 +241,8 @@ func launchVM(config *LaunchConfig) error {
 				virtiofsAttached = true
 			}
 
-			args = append(args,
+			args = append(
+				args,
 				"-chardev", fmt.Sprintf("socket,id=char%d,path=%s", i, disk),
 				"-device", fmt.Sprintf("vhost-user-fs-pci,queue-size=1024,chardev=char%d,tag=%s", i, tag),
 			)
@@ -255,7 +263,8 @@ func launchVM(config *LaunchConfig) error {
 	args = append(args, pflashArgs...)
 
 	if config.ExtraISOPath != "" {
-		args = append(args,
+		args = append(
+			args,
 			"-drive",
 			fmt.Sprintf("id=cdrom1,file=%s,media=cdrom", config.ExtraISOPath),
 		)
@@ -298,14 +307,16 @@ func launchVM(config *LaunchConfig) error {
 			return err
 		}
 
-		args = append(args,
+		args = append(
+			args,
 			config.ArchitectureData.TPMDeviceArgs(tpm2SocketPath)...,
 		)
 	}
 
 	// ref: https://wiki.qemu.org/Features/VT-d
 	if config.IOMMUEnabled {
-		args = append(args,
+		args = append(
+			args,
 			"-device", "intel-iommu,intremap=on,device-iotlb=on",
 			"-device", "ioh3420,id=pcie.1,chassis=1",
 			"-device", "e1000,bus=pcie.1,netdev=net1",
@@ -320,24 +331,28 @@ func launchVM(config *LaunchConfig) error {
 
 		switch {
 		case config.ISOPath != "" && !skipBootloader:
-			args = append(args,
+			args = append(
+				args,
 				"-drive",
 				fmt.Sprintf("id=cdrom0,file=%s,media=cdrom", config.ISOPath),
 			)
 		case config.USBPath != "" && !skipBootloader:
-			args = append(args,
+			args = append(
+				args,
 				"-drive", fmt.Sprintf("if=none,id=stick,format=raw,read-only=on,file=%s", config.USBPath),
 				"-device", "nec-usb-xhci,id=xhci",
 				"-device", "usb-storage,bus=xhci.0,drive=stick,removable=on",
 			)
 		case config.UKIPath != "":
-			args = append(args,
+			args = append(
+				args,
 				"-kernel", config.UKIPath,
 				"-append", config.KernelArgs,
 			)
 			config.sdStubExtraCmdline += config.sdStubExtraCmdlineConfig
 		case config.KernelImagePath != "":
-			args = append(args,
+			args = append(
+				args,
 				"-kernel", config.KernelImagePath,
 				"-initrd", config.InitrdPath,
 				"-append", config.KernelArgs,
@@ -347,13 +362,15 @@ func launchVM(config *LaunchConfig) error {
 	}
 
 	if !config.SkipInjectingExtraCmdline {
-		args = append(args,
+		args = append(
+			args,
 			"-smbios", fmt.Sprintf("type=11,value=%s=%s", constants.SDStubCmdlineExtraOEMVar, config.sdStubExtraCmdline),
 		)
 	}
 
 	if config.BadRTC {
-		args = append(args,
+		args = append(
+			args,
 			"-rtc",
 			"base=2011-11-11T11:11:00,clock=rt",
 		)

@@ -132,7 +132,8 @@ func rebootGetActorID(opts ...client.RebootMode) func(ctx context.Context, c *cl
 
 func init() {
 	rebootCmd.Flags().Var(rebootCmdFlags.progress, "progress", fmt.Sprintf("output mode for upgrade progress. Values: %v", rebootCmdFlags.progress.Options()))
-	rebootCmd.Flags().VarP(rebootCmdFlags.rebootMode, "mode", "m",
+	rebootCmd.Flags().VarP(
+		rebootCmdFlags.rebootMode, "mode", "m",
 		fmt.Sprintf(
 			"select the reboot mode during upgrade. Mode %q bypasses kexec. Values: %v",
 			strings.ToLower(machine.UpgradeRequest_POWERCYCLE.String()),

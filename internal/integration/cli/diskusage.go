@@ -132,10 +132,11 @@ func (suite *DiskUsageSuite) TestSuccess() {
 
 // TestError runs comand with error.
 func (suite *DiskUsageSuite) TestError() {
-	suite.RunCLI([]string{
-		"usage", "--nodes",
-		suite.RandomDiscoveredNodeInternalIP(), "/no/such/folder/here/just/for/sure",
-	},
+	suite.RunCLI(
+		[]string{
+			"usage", "--nodes",
+			suite.RandomDiscoveredNodeInternalIP(), "/no/such/folder/here/just/for/sure",
+		},
 		base.ShouldFail(),
 		base.StderrNotEmpty(),
 		base.StdoutEmpty(),

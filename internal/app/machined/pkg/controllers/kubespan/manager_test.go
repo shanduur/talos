@@ -91,7 +91,8 @@ func (suite *ManagerSuite) TestReconcile() {
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), localIdentity))
 
 	// initial setup: link should be created without any peers
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(network.ConfigOperator, network.LinkID(constants.KubeSpanLinkName)),
 		func(res *network.LinkSpec, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
@@ -127,7 +128,8 @@ func (suite *ManagerSuite) TestReconcile() {
 			asrt.Equal(nethelpers.ScopeGlobal, spec.Scope)
 		}, rtestutils.WithNamespace(network.ConfigNamespaceName))
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(
 			network.ConfigOperator,
 			network.RouteID(
@@ -143,7 +145,8 @@ func (suite *ManagerSuite) TestReconcile() {
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
 	)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(
 			network.ConfigOperator,
 			network.RouteID(
@@ -160,7 +163,8 @@ func (suite *ManagerSuite) TestReconcile() {
 	)
 
 	// check routing rules (IPv4 + IPv6)
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(
 			network.ConfigOperator,
 			network.RoutingRuleID(
@@ -182,7 +186,8 @@ func (suite *ManagerSuite) TestReconcile() {
 		rtestutils.WithNamespace(network.ConfigNamespaceName),
 	)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(
 			network.ConfigOperator,
 			network.RoutingRuleID(
@@ -233,7 +238,8 @@ func (suite *ManagerSuite) TestReconcile() {
 	key2, err := wgtypes.ParseKey(peer2.Metadata().ID())
 	suite.Require().NoError(err)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		network.LayeredID(network.ConfigOperator, network.LinkID(constants.KubeSpanLinkName)),
 		func(res *network.LinkSpec, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
@@ -255,7 +261,8 @@ func (suite *ManagerSuite) TestReconcile() {
 	)
 
 	for _, peer := range []*kubespan.PeerSpec{peer1, peer2} {
-		ctest.AssertResource(suite,
+		ctest.AssertResource(
+			suite,
 			peer.Metadata().ID(),
 			func(res *kubespan.PeerStatus, asrt *assert.Assertions) {
 				spec := res.TypedSpec()
@@ -270,7 +277,8 @@ func (suite *ManagerSuite) TestReconcile() {
 	}
 
 	// check firewall rules
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		"kubespan_prerouting",
 		func(res *network.NfTablesChain, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
@@ -320,7 +328,8 @@ func (suite *ManagerSuite) TestReconcile() {
 	cfg.TypedSpec().ForceRouting = false
 	suite.Require().NoError(suite.State().Update(suite.Ctx(), cfg))
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		"kubespan_prerouting",
 		func(res *network.NfTablesChain, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
@@ -360,7 +369,8 @@ func (suite *ManagerSuite) TestReconcile() {
 	)
 
 	for _, peer := range []*kubespan.PeerSpec{peer1, peer2} {
-		ctest.AssertResource(suite,
+		ctest.AssertResource(
+			suite,
 			peer.Metadata().ID(),
 			func(res *kubespan.PeerStatus, asrt *assert.Assertions) {
 				spec := res.TypedSpec()
@@ -370,7 +380,8 @@ func (suite *ManagerSuite) TestReconcile() {
 		)
 	}
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		"kubespan_prerouting",
 		func(res *network.NfTablesChain, asrt *assert.Assertions) {
 			spec := res.TypedSpec()

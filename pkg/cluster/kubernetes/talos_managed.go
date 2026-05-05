@@ -521,7 +521,8 @@ func syncManifestsSSA(ctx context.Context, objects []*unstructured.Unstructured,
 
 	options.Log("%s", updatingManifestsLogline)
 
-	manager, err := ssa.NewManager(ctx, config,
+	manager, err := ssa.NewManager(
+		ctx, config,
 		constants.KubernetesFieldManagerName,
 		constants.KubernetesInventoryNamespace,
 		constants.KubernetesBootstrapManifestsInventoryName,

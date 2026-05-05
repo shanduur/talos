@@ -27,7 +27,8 @@ func (suite *DebugSuite) SuiteName() string {
 
 // TestSuccess runs comand with success.
 func (suite *DebugSuite) TestSuccess() {
-	suite.RunCLI([]string{"debug", debugImage, "--nodes", suite.RandomDiscoveredNodeInternalIP()},
+	suite.RunCLI(
+		[]string{"debug", debugImage, "--nodes", suite.RandomDiscoveredNodeInternalIP()},
 		base.StdoutShouldMatch(regexp.MustCompile("Linux")),
 		base.StderrNotEmpty(),
 		base.WithStdin(strings.NewReader("uname\n")),

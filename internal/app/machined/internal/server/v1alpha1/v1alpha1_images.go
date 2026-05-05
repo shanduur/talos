@@ -96,7 +96,8 @@ func (s *Server) ImagePull(ctx context.Context, req *machine.ImagePullRequest) (
 		return nil, err
 	}
 
-	_, err = image.Pull(ctx,
+	_, err = image.Pull(
+		ctx,
 		cri.RegistryBuilder(s.Controller.Runtime().State().V1Alpha2().Resources()),
 		s.Controller.Runtime().State().V1Alpha2().Resources(),
 		client, req.Reference,

@@ -78,7 +78,8 @@ func (ctrl *ImageGCController) Inputs() []controller.Input {
 	}
 
 	if ctrl.buildExpectedImages {
-		inputs = append(inputs,
+		inputs = append(
+			inputs,
 			controller.Input{
 				Namespace: k8s.NamespaceName,
 				Type:      k8s.KubeletSpecType,

@@ -122,7 +122,8 @@ func getTrustedRoot(ctx context.Context, resources state.State) (root.TrustedMat
 	ctx, cancel := context.WithTimeout(ctx, tufTimeout)
 	defer cancel()
 
-	r, err := resources.WatchFor(ctx, security.NewTUFTrustedRoot(security.TrustedRootID).Metadata(),
+	r, err := resources.WatchFor(
+		ctx, security.NewTUFTrustedRoot(security.TrustedRootID).Metadata(),
 		state.WithEventTypes(state.Created, state.Updated),
 	)
 	if err != nil {

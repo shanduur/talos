@@ -44,7 +44,8 @@ func (suite *NodeAddressSuite) TestDefaults() {
 	suite.Require().NoError(suite.Runtime().RegisterController(&netctrl.AddressStatusController{}))
 	suite.Require().NoError(suite.Runtime().RegisterController(&netctrl.LinkStatusController{}))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		[]resource.ID{
 			network.NodeAddressDefaultID,
 			network.NodeAddressCurrentID,
@@ -150,7 +151,8 @@ func (suite *NodeAddressSuite) TestFilters() {
 	}
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), filter2))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		[]resource.ID{
 			network.NodeAddressDefaultID,
 			network.NodeAddressCurrentID,
@@ -249,7 +251,8 @@ func (suite *NodeAddressSuite) TestSortAlgorithmV2() {
 		suite.newExternalAddress(netip.MustParsePrefix(addr))
 	}
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		[]resource.ID{
 			network.NodeAddressDefaultID,
 			network.NodeAddressCurrentID,
@@ -304,7 +307,8 @@ func (suite *NodeAddressSuite) TestFilterOverlappingSubnets() {
 	filter2.TypedSpec().IncludeSubnets = []netip.Prefix{netip.MustParsePrefix("10.96.0.0/12")}
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), filter2))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		[]resource.ID{
 			network.NodeAddressCurrentID,
 			network.NodeAddressRoutedID,
@@ -366,7 +370,8 @@ func (suite *NodeAddressSuite) TestDefaultAddressChange() {
 		suite.newAddress(netip.MustParsePrefix(addr), linkUp)
 	}
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		[]resource.ID{
 			network.NodeAddressDefaultID,
 			network.NodeAddressCurrentID,
@@ -394,7 +399,8 @@ func (suite *NodeAddressSuite) TestDefaultAddressChange() {
 	// add another address which is "smaller", but default address shouldn't change
 	suite.newAddress(netip.MustParsePrefix("1.1.1.1/32"), linkUp)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		[]resource.ID{
 			network.NodeAddressDefaultID,
 			network.NodeAddressCurrentID,
@@ -420,12 +426,14 @@ func (suite *NodeAddressSuite) TestDefaultAddressChange() {
 	)
 
 	// remove the previous default address, now default address should change
-	suite.Require().NoError(suite.State().Destroy(suite.Ctx(),
+	suite.Require().NoError(suite.State().Destroy(
+		suite.Ctx(),
 		network.NewAddressStatus(network.NamespaceName, network.AddressID(linkUp.Metadata().ID(), netip.MustParsePrefix("10.0.0.5/8"))).Metadata(),
 		state.WithDestroyOwner(addressStatusController.Name()),
 	))
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(),
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
 		[]resource.ID{
 			network.NodeAddressDefaultID,
 			network.NodeAddressCurrentID,

@@ -246,5 +246,6 @@ func init() {
 	rootCmd.PersistentFlags().StringArrayVar(&cmdFlags.OverlayOptions, "overlay-option", []string{}, "Extra options to pass to the overlay")
 	rootCmd.PersistentFlags().StringVar(&cmdFlags.EmbeddedConfigPath, "embedded-config-path", "", "Path to a file containing the machine configuration to embed into the image")
 	rootCmd.PersistentFlags().BoolVar(
-		&cmdFlags.SecurebootIncludeWellKnownCerts, "secureboot-include-well-known-certs", false, "Include well-known (Microsoft) UEFI certificates when generating a secure boot database")
+		&cmdFlags.SecurebootIncludeWellKnownCerts, "secureboot-include-well-known-certs", false, "Include well-known (Microsoft) UEFI certificates when generating a secure boot database",
+	)
 }

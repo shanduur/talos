@@ -24,10 +24,12 @@ func TestBuildIPSet(t *testing.T) {
 		},
 		[]netip.Prefix{
 			netip.MustParsePrefix("10.4.0.0/16"),
-		})
+		},
+	)
 	require.NoError(t, err)
 
-	assert.Equal(t,
+	assert.Equal(
+		t,
 		[]string{"10.0.0.0-10.3.255.255", "10.5.0.0-10.255.255.255", "2001:db8::-2001:db8:ffff:ffff:ffff:ffff:ffff:ffff"},
 		xslices.Map(ipset.Ranges(), netipx.IPRange.String),
 	)
@@ -41,17 +43,20 @@ func TestSplitIPSet(t *testing.T) {
 		},
 		[]netip.Prefix{
 			netip.MustParsePrefix("10.4.0.0/16"),
-		})
+		},
+	)
 	require.NoError(t, err)
 
 	v4, v6 := network.SplitIPSet(ipset)
 
-	assert.Equal(t,
+	assert.Equal(
+		t,
 		[]string{"10.0.0.0-10.3.255.255", "10.5.0.0-10.255.255.255"},
 		xslices.Map(v4, netipx.IPRange.String),
 	)
 
-	assert.Equal(t,
+	assert.Equal(
+		t,
 		[]string{"2001:db8::-2001:db8:ffff:ffff:ffff:ffff:ffff:ffff"},
 		xslices.Map(v6, netipx.IPRange.String),
 	)

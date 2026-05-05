@@ -42,7 +42,8 @@ func (ctrl *EthernetSpecController) Outputs() []controller.Output {
 // Run implements controller.Controller interface.
 func (ctrl *EthernetSpecController) Run(ctx context.Context, r controller.Runtime, logger *zap.Logger) error {
 	// wait for udevd to be healthy, which implies that all link renames are done
-	if err := runtime.WaitForDevicesReady(ctx, r,
+	if err := runtime.WaitForDevicesReady(
+		ctx, r,
 		[]controller.Input{
 			{
 				Namespace: network.NamespaceName,

@@ -69,7 +69,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileDefaults() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
 		func(apiServer *k8s.APIServerConfig, assert *assert.Assertions) {
 			apiServerCfg := apiServer.TypedSpec()
 
@@ -77,20 +78,23 @@ func (suite *K8sControlPlaneSuite) TestReconcileDefaults() {
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ControllerManagerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ControllerManagerConfigID},
 		func(controllerManager *k8s.ControllerManagerConfig, assert *assert.Assertions) {
 			assert.Empty(controllerManager.TypedSpec().CloudProvider)
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
 		func(bootstrapConfig *k8s.BootstrapManifestsConfig, assert *assert.Assertions) {
 			assert.Equal("10.96.0.10", bootstrapConfig.TypedSpec().DNSServiceIP)
 			assert.Equal("", bootstrapConfig.TypedSpec().DNSServiceIPv6)
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
 		func(authorizationConfig *k8s.AuthorizationConfig, assert *assert.Assertions) {
 			assert.Equal(v1alpha1.APIServerDefaultAuthorizationConfigAuthorizers, authorizationConfig.TypedSpec().Config)
 		},
@@ -159,7 +163,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileEmptyAuthorizationConfigAuthoriz
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
 		func(authorizationConfig *k8s.AuthorizationConfig, assert *assert.Assertions) {
 			assert.Equal(v1alpha1.APIServerDefaultAuthorizationConfigAuthorizers, authorizationConfig.TypedSpec().Config)
 		},
@@ -225,7 +230,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileAdditionalAuthorizationConfigAut
 		},
 	})
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
 		func(authorizationConfig *k8s.AuthorizationConfig, assert *assert.Assertions) {
 			assert.Equal(expectedAuthorizers, authorizationConfig.TypedSpec().Config)
 		},
@@ -307,7 +313,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileAdditionalAuthorizationConfigAut
 		},
 	}
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
 		func(authorizationConfig *k8s.AuthorizationConfig, assert *assert.Assertions) {
 			assert.Equal(expectedAuthorizers, authorizationConfig.TypedSpec().Config)
 		},
@@ -385,7 +392,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileAdditionalAuthorizationConfigAut
 		},
 	}
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.AuthorizationConfigID},
 		func(authorizationConfig *k8s.AuthorizationConfig, assert *assert.Assertions) {
 			assert.Equal(expectedAuthorizers, authorizationConfig.TypedSpec().Config)
 		},
@@ -457,7 +465,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileIPv6() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
 		func(bootstrapConfig *k8s.BootstrapManifestsConfig, assert *assert.Assertions) {
 			assert.Equal("", bootstrapConfig.TypedSpec().DNSServiceIP)
 			assert.Equal("fc00:db8:20::a", bootstrapConfig.TypedSpec().DNSServiceIPv6)
@@ -493,7 +502,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileDualStack() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
 		func(bootstrapConfig *k8s.BootstrapManifestsConfig, assert *assert.Assertions) {
 			assert.Equal("10.96.0.10", bootstrapConfig.TypedSpec().DNSServiceIP)
 			assert.Equal("fc00:db8:20::a", bootstrapConfig.TypedSpec().DNSServiceIPv6)
@@ -537,7 +547,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileExtraVolumes() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
 		func(apiServer *k8s.APIServerConfig, assert *assert.Assertions) {
 			apiServerCfg := apiServer.TypedSpec()
 
@@ -590,7 +601,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileEnvironment() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
 		func(apiServer *k8s.APIServerConfig, assert *assert.Assertions) {
 			apiServerCfg := apiServer.TypedSpec()
 
@@ -675,7 +687,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileResources() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
 		func(apiServer *k8s.APIServerConfig, assert *assert.Assertions) {
 			apiServerCfg := apiServer.TypedSpec()
 
@@ -694,7 +707,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileResources() {
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ControllerManagerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ControllerManagerConfigID},
 		func(controllerManager *k8s.ControllerManagerConfig, assert *assert.Assertions) {
 			controllerManagerCfg := controllerManager.TypedSpec()
 
@@ -713,7 +727,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileResources() {
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.SchedulerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.SchedulerConfigID},
 		func(scheduler *k8s.SchedulerConfig, assert *assert.Assertions) {
 			schedulerCfg := scheduler.TypedSpec()
 
@@ -764,7 +779,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileExternalCloudProvider() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.APIServerConfigID},
 		func(apiServer *k8s.APIServerConfig, assert *assert.Assertions) {
 			apiServerCfg := apiServer.TypedSpec()
 
@@ -772,13 +788,15 @@ func (suite *K8sControlPlaneSuite) TestReconcileExternalCloudProvider() {
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ControllerManagerConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ControllerManagerConfigID},
 		func(controllerManager *k8s.ControllerManagerConfig, assert *assert.Assertions) {
 			assert.Equal(k8sctrl.CloudProviderExternal, controllerManager.TypedSpec().CloudProvider)
 		},
 	)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ExtraManifestsConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ExtraManifestsConfigID},
 		func(extraManifests *k8s.ExtraManifestsConfig, assert *assert.Assertions) {
 			assert.Equal(
 				&k8s.ExtraManifestsConfigSpec{
@@ -794,7 +812,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileExternalCloudProvider() {
 							Priority: "30",
 						},
 					},
-				}, extraManifests.TypedSpec())
+				}, extraManifests.TypedSpec(),
+			)
 		},
 	)
 }
@@ -836,7 +855,8 @@ metadata:
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ExtraManifestsConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.ExtraManifestsConfigID},
 		func(extraManifests *k8s.ExtraManifestsConfig, assert *assert.Assertions) {
 			assert.Equal(
 				&k8s.ExtraManifestsConfigSpec{
@@ -848,7 +868,8 @@ metadata:
 						},
 					},
 				},
-				extraManifests.TypedSpec())
+				extraManifests.TypedSpec(),
+			)
 		},
 	)
 }
@@ -877,7 +898,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileKubeProxyMode() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
 		func(cfg *k8s.BootstrapManifestsConfig, assert *assert.Assertions) {
 			assert.Contains(
 				cfg.TypedSpec().ProxyArgs,
@@ -914,7 +936,8 @@ func (suite *K8sControlPlaneSuite) TestReconcileKubeProxyModeLegacy() {
 
 	suite.setupMachine(cfg)
 
-	rtestutils.AssertResources(suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(), []resource.ID{k8s.BootstrapManifestsConfigID},
 		func(cfg *k8s.BootstrapManifestsConfig, assert *assert.Assertions) {
 			assert.Contains(
 				cfg.TypedSpec().ProxyArgs,

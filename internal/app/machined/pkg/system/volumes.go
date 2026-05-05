@@ -77,7 +77,8 @@ func (cond *volumesMountedCondition) Wait(ctx context.Context) error {
 		}
 
 		// wait for the mount status
-		_, err := cond.st.WatchFor(ctx,
+		_, err := cond.st.WatchFor(
+			ctx,
 			block.NewVolumeMountStatus(block.NamespaceName, req.requestID).Metadata(),
 			state.WithEventTypes(state.Created, state.Updated),
 			state.WithPhases(resource.PhaseRunning),

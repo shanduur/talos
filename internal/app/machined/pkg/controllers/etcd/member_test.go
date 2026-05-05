@@ -91,9 +91,10 @@ func (suite *MemberSuite) TestEtcdRunning() {
 	expectedMember := etcd.NewMember(etcd.NamespaceName, etcd.LocalMemberID)
 	expectedMember.TypedSpec().MemberID = "000000000000007b"
 
-	suite.Assert().NoError(retry.Constant(3*time.Second, retry.WithUnits(100*time.Millisecond)).Retry(
-		suite.assertEtcdMember(expectedMember),
-	),
+	suite.Assert().NoError(
+		retry.Constant(3*time.Second, retry.WithUnits(100*time.Millisecond)).Retry(
+			suite.assertEtcdMember(expectedMember),
+		),
 	)
 }
 
@@ -112,9 +113,10 @@ func (suite *MemberSuite) TestEtcdNotRunning() {
 	expectedMember := etcd.NewMember(etcd.NamespaceName, etcd.LocalMemberID)
 	expectedMember.TypedSpec().MemberID = ""
 
-	suite.Assert().NoError(retry.Constant(3*time.Second, retry.WithUnits(100*time.Millisecond)).Retry(
-		suite.assertInexistentEtcdMember(expectedMember),
-	),
+	suite.Assert().NoError(
+		retry.Constant(3*time.Second, retry.WithUnits(100*time.Millisecond)).Retry(
+			suite.assertInexistentEtcdMember(expectedMember),
+		),
 	)
 }
 
@@ -132,9 +134,10 @@ func (suite *MemberSuite) TestCleanup() {
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), etcdService))
 
-	suite.Assert().NoError(retry.Constant(3*time.Second, retry.WithUnits(100*time.Millisecond)).Retry(
-		suite.assertEtcdMember(expectedMember),
-	),
+	suite.Assert().NoError(
+		retry.Constant(3*time.Second, retry.WithUnits(100*time.Millisecond)).Retry(
+			suite.assertEtcdMember(expectedMember),
+		),
 	)
 
 	// when

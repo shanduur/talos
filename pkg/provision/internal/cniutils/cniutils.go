@@ -60,7 +60,8 @@ func VMTapPair(result *types100.Result, vmID string) (vmIface, tapIface *types10
 	if len(vmIfaces) > 1 {
 		return nil, nil, fmt.Errorf(
 			"expected to find at most 1 interface in sandbox %q, but instead found %d",
-			vmID, len(vmIfaces))
+			vmID, len(vmIfaces),
+		)
 	} else if len(vmIfaces) == 0 {
 		return nil, nil, fmt.Errorf("no pseudo-device for %s", vmID)
 	}
@@ -76,7 +77,8 @@ func VMTapPair(result *types100.Result, vmID string) (vmIface, tapIface *types10
 	if len(tapIfaces) > 1 {
 		return nil, nil, fmt.Errorf(
 			"expected to find at most 1 interface with name %q, but instead found %d",
-			tapName, len(tapIfaces))
+			tapName, len(tapIfaces),
+		)
 	} else if len(tapIfaces) == 0 {
 		return nil, nil, fmt.Errorf("device not found: %s", tapName)
 	}

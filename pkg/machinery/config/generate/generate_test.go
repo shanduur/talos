@@ -142,7 +142,8 @@ func (suite *GenerateSuite) TestGenerateTalosconfigSuccess() {
 func TestGenerateRegistryMirrorsOrder(t *testing.T) {
 	t.Parallel()
 
-	input, err := generate.NewInput("test", "https://10.0.1.5", constants.DefaultKubernetesVersion,
+	input, err := generate.NewInput(
+		"test", "https://10.0.1.5", constants.DefaultKubernetesVersion,
 		generate.WithRegistryMirror("b.com", "http://127.0.0.1:5004"),
 		generate.WithRegistryMirror("a.com", "http://127.0.0.1:5005"),
 	)

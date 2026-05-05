@@ -144,7 +144,8 @@ func (manager *CircularBufferLoggingManager) getBuffer(id string, create bool) (
 		circular.WithInitialCapacity(InitialCapacity),
 		circular.WithMaxCapacity(ChunkCapacity),
 		circular.WithNumCompressedChunks(NumCompressedChunks, manager.compressor),
-		circular.WithSafetyGap(SafetyGap))
+		circular.WithSafetyGap(SafetyGap),
+	)
 	if err != nil {
 		return nil, false, err // only configuration issue might raise error
 	}

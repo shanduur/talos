@@ -171,7 +171,8 @@ func (ctrl *NodeStatusController) Run(ctx context.Context, r controller.Runtime,
 		if nodewatcher != nil && watcherKubeconfigVer != currentKubeconfigVer {
 			// kubelet kubeconfig on disk changed — the cached client may be pinned
 			// to a stale endpoint, so rebuild the watcher with a fresh client.
-			logger.Info("kubelet kubeconfig changed, restarting node watcher",
+			logger.Info(
+				"kubelet kubeconfig changed, restarting node watcher",
 				zap.String("old_hash", watcherKubeconfigVer),
 				zap.String("new_hash", currentKubeconfigVer),
 			)
@@ -228,7 +229,8 @@ func (ctrl *NodeStatusController) Run(ctx context.Context, r controller.Runtime,
 				podCIDRs = append(podCIDRs, prefix)
 			}
 
-			if err = safe.WriterModify(ctx, r, k8s.NewNodeStatus(k8s.NamespaceName, node.Name),
+			if err = safe.WriterModify(
+				ctx, r, k8s.NewNodeStatus(k8s.NamespaceName, node.Name),
 				func(res *k8s.NodeStatus) error {
 					res.TypedSpec().Nodename = node.Name
 					res.TypedSpec().Unschedulable = node.Spec.Unschedulable

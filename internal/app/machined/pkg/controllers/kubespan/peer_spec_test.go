@@ -103,7 +103,8 @@ func (suite *PeerSpecSuite) TestReconcile() {
 	}
 
 	// affiliate2 shouldn't be rendered as a peer, as it doesn't have kubespan data
-	ctest.AssertResources(suite,
+	ctest.AssertResources(
+		suite,
 		[]resource.ID{
 			affiliate1.TypedSpec().KubeSpan.PublicKey,
 			affiliate3.TypedSpec().KubeSpan.PublicKey,
@@ -112,7 +113,8 @@ func (suite *PeerSpecSuite) TestReconcile() {
 	)
 	ctest.AssertNoResource[*kubespan.PeerSpec](suite, affiliate2.TypedSpec().KubeSpan.PublicKey)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		affiliate1.TypedSpec().KubeSpan.PublicKey,
 		func(res *kubespan.PeerSpec, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
@@ -124,7 +126,8 @@ func (suite *PeerSpecSuite) TestReconcile() {
 		},
 	)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		affiliate3.TypedSpec().KubeSpan.PublicKey,
 		func(res *kubespan.PeerSpec, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
@@ -190,7 +193,8 @@ func (suite *PeerSpecSuite) TestIPOverlap() {
 	}
 
 	// affiliate2 should be rendered as a peer, but with reduced address as its AdditionalAddresses overlap with affiliate1 addresses
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		affiliate1.TypedSpec().KubeSpan.PublicKey,
 		func(res *kubespan.PeerSpec, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
@@ -199,7 +203,8 @@ func (suite *PeerSpecSuite) TestIPOverlap() {
 		},
 	)
 
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		affiliate2.TypedSpec().KubeSpan.PublicKey,
 		func(res *kubespan.PeerSpec, asrt *assert.Assertions) {
 			spec := res.TypedSpec()

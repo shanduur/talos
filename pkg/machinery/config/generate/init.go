@@ -106,7 +106,8 @@ func (in *Input) init() ([]config.Document, error) {
 	var admissionControlConfig []*v1alpha1.AdmissionPluginConfig
 
 	if in.Options.VersionContract.PodSecurityAdmissionEnabled() {
-		admissionControlConfig = append(admissionControlConfig,
+		admissionControlConfig = append(
+			admissionControlConfig,
 			&v1alpha1.AdmissionPluginConfig{
 				PluginName: "PodSecurity",
 				PluginConfiguration: meta.Unstructured{

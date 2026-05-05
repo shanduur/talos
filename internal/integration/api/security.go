@@ -54,7 +54,8 @@ func (suite *SecuritySuite) TestSecurityState() {
 	node := suite.RandomDiscoveredNodeInternalIP()
 	ctx := client.WithNode(suite.ctx, node)
 
-	rtestutils.AssertResources(ctx, suite.T(), suite.Client.COSI, []resource.ID{runtimeres.SecurityStateID},
+	rtestutils.AssertResources(
+		ctx, suite.T(), suite.Client.COSI, []resource.ID{runtimeres.SecurityStateID},
 		func(r *runtimeres.SecurityState, asrt *assert.Assertions) {
 			asrt.True(r.TypedSpec().ModuleSignatureEnforced, "module signature enforcement should be enabled")
 		},

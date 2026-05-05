@@ -31,7 +31,8 @@ func (suite *CgroupsSuite) TestPresets() {
 					"cgroups", "--nodes", suite.RandomDiscoveredNodeInternalIP(),
 					"--preset", preset,
 				},
-				base.StdoutShouldMatch(regexp.MustCompile(`apid`)))
+				base.StdoutShouldMatch(regexp.MustCompile(`apid`)),
+			)
 		})
 	}
 }

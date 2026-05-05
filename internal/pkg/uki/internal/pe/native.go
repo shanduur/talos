@@ -186,19 +186,20 @@ func AssembleNative(srcPath, dstPath string, sections []Section) error {
 	}
 
 	// 3. Section headers
-	rawSections := xslices.Map(newSections, func(section *peSectionWithPath) pe.SectionHeader32 {
-		var rawName [8]byte
+	rawSections := xslices.Map(
+		newSections, func(section *peSectionWithPath) pe.SectionHeader32 {
+			var rawName [8]byte
 
-		copy(rawName[:], section.Name)
+			copy(rawName[:], section.Name)
 
-		return pe.SectionHeader32{
-			Name:            rawName,
-			VirtualSize:     section.VirtualSize,
-			VirtualAddress:  section.VirtualAddress,
-			SizeOfRawData:   section.Size,
-			Characteristics: section.Characteristics,
-		}
-	},
+			return pe.SectionHeader32{
+				Name:            rawName,
+				VirtualSize:     section.VirtualSize,
+				VirtualAddress:  section.VirtualAddress,
+				SizeOfRawData:   section.Size,
+				Characteristics: section.Characteristics,
+			}
+		},
 	)
 
 	sectionOffset := newHeader.SizeOfHeaders

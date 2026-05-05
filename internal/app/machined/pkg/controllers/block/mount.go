@@ -415,7 +415,8 @@ func (ctrl *MountController) handleBindMountOperation(
 			}
 		}
 
-		logger.Info("bind mount",
+		logger.Info(
+			"bind mount",
 			zap.String("volume", volumeStatus.Metadata().ID()),
 			zap.String("source", mountSource),
 			zap.String("target", mountTarget),
@@ -578,13 +579,15 @@ func (ctrl *MountController) handleDiskMountOperation(
 			fsOpts []fsopen.Option
 		)
 
-		fsOpts = append(fsOpts,
+		fsOpts = append(
+			fsOpts,
 			fsopen.WithSource(mountSource),
 			fsopen.WithProjectQuota(volumeStatus.TypedSpec().MountSpec.ProjectQuotaSupport),
 		)
 
 		for _, param := range volumeStatus.TypedSpec().MountSpec.Parameters {
-			logger.Info("adding new parameter",
+			logger.Info(
+				"adding new parameter",
 				zap.String("parameter", param.Name),
 				zap.String("parameter.type", param.Type.String()),
 				zap.String("parameter.string", pointer.SafeDeref(param.String)),
@@ -613,7 +616,8 @@ func (ctrl *MountController) handleDiskMountOperation(
 			}
 		}
 
-		opts = append(opts,
+		opts = append(
+			opts,
 			mount.WithSelinuxLabel(volumeStatus.TypedSpec().MountSpec.SelinuxLabel),
 		)
 
@@ -658,7 +662,8 @@ func (ctrl *MountController) handleDiskMountOperation(
 			}
 		}
 
-		logger.Info("volume mount",
+		logger.Info(
+			"volume mount",
 			zap.String("volume", volumeStatus.Metadata().ID()),
 			zap.String("source", mountSource),
 			zap.String("target", mountTarget),
@@ -693,7 +698,8 @@ func (ctrl *MountController) handleDiskMountOperation(
 			return fmt.Errorf("failed to remount %q: %w", mountRequest.Metadata().ID(), err)
 		}
 
-		logger.Info("volume remounted",
+		logger.Info(
+			"volume remounted",
 			zap.String("volume", volumeStatus.Metadata().ID()),
 			zap.String("read_only", fmt.Sprintf("%v -> %v", mountCtx.readOnly, mountRequest.TypedSpec().ReadOnly)),
 		)
@@ -708,7 +714,8 @@ func (ctrl *MountController) handleDiskMountOperation(
 			return fmt.Errorf("failed to update disableAccessTime for %q: %w", mountRequest.Metadata().ID(), err)
 		}
 
-		logger.Info("volume mount attributes updated",
+		logger.Info(
+			"volume mount attributes updated",
 			zap.String("volume", volumeStatus.Metadata().ID()),
 			zap.String("disable_access_time", fmt.Sprintf("%v -> %v", mountCtx.disableAccessTime, mountRequest.TypedSpec().DisableAccessTime)),
 		)
@@ -723,7 +730,8 @@ func (ctrl *MountController) handleDiskMountOperation(
 			return fmt.Errorf("failed to update secure for %q: %w", mountRequest.Metadata().ID(), err)
 		}
 
-		logger.Info("volume mount attributes updated",
+		logger.Info(
+			"volume mount attributes updated",
 			zap.String("volume", volumeStatus.Metadata().ID()),
 			zap.String("secure", fmt.Sprintf("%v -> %v", mountCtx.secure, mountRequest.TypedSpec().Secure)),
 		)
@@ -766,7 +774,8 @@ func (ctrl *MountController) handleOverlayMountOperation(
 		return fmt.Errorf("failed to update target settings %q: %w", mountRequest.Metadata().ID(), err)
 	}
 
-	logger.Info("overlay mount",
+	logger.Info(
+		"overlay mount",
 		zap.String("volume", volumeStatus.Metadata().ID()),
 		zap.String("target", mountTarget),
 		zap.String("parent", volumeStatus.TypedSpec().ParentID),
@@ -799,7 +808,8 @@ func (ctrl *MountController) handleSwapMountOperation(
 		point: mount.NewPoint(mountSource, 0, "", 0, "swap"),
 	}
 
-	logger.Info("swap enabled",
+	logger.Info(
+		"swap enabled",
 		zap.String("volume", volumeStatus.Metadata().ID()),
 		zap.String("source", mountSource),
 	)
@@ -853,7 +863,8 @@ func (ctrl *MountController) handleDiskUnmountOperation(
 
 	delete(ctrl.activeMounts, mountRequest.Metadata().ID())
 
-	logger.Info("volume unmount",
+	logger.Info(
+		"volume unmount",
 		zap.String("volume", mountRequest.Metadata().ID()),
 		zap.String("source", mountCtx.point.Source()),
 		zap.String("target", mountCtx.point.Target()),
@@ -879,7 +890,8 @@ func (ctrl *MountController) handleDirectoryUnmountOperation(
 
 	delete(ctrl.activeMounts, mountRequest.Metadata().ID())
 
-	logger.Info("volume unmount",
+	logger.Info(
+		"volume unmount",
 		zap.String("volume", mountRequest.Metadata().ID()),
 		zap.String("source", mountCtx.point.Source()),
 		zap.String("target", mountCtx.point.Target()),
@@ -912,7 +924,8 @@ func (ctrl *MountController) handleSwapUmountOperation(
 
 	delete(ctrl.activeMounts, mountRequest.Metadata().ID())
 
-	logger.Info("swap disabled",
+	logger.Info(
+		"swap disabled",
 		zap.String("volume", volumeStatus.Metadata().ID()),
 		zap.String("source", mountCtx.point.Source()),
 	)

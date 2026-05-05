@@ -105,7 +105,8 @@ func (ctrl *KubernetesPushController) Run(ctx context.Context, r controller.Runt
 			if ctrl.localAffiliateID != localAffiliateID {
 				ctrl.localAffiliateID = localAffiliateID
 
-				if err = r.UpdateInputs(append(ctrl.Inputs(),
+				if err = r.UpdateInputs(append(
+					ctrl.Inputs(),
 					controller.Input{
 						Namespace: cluster.NamespaceName,
 						Type:      cluster.AffiliateType,

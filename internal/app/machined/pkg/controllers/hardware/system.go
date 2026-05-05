@@ -124,7 +124,8 @@ func (ctrl *SystemInfoController) Run(ctx context.Context, r controller.Runtime,
 			return err
 		}
 
-		if err := r.CleanupOutputs(ctx,
+		if err := r.CleanupOutputs(
+			ctx,
 			resource.NewMetadata(hardware.NamespaceName, hardware.SystemInformationType, hardware.SystemInformationID, resource.VersionUndefined),
 			resource.NewMetadata(hardware.NamespaceName, hardware.ProcessorType, "", resource.VersionUndefined),
 			resource.NewMetadata(hardware.NamespaceName, hardware.MemoryModuleType, "", resource.VersionUndefined),

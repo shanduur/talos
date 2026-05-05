@@ -25,7 +25,8 @@ const (
 )
 
 func (o *OpenNebula) contextFromCD(ctx context.Context, r state.State) (oneContext []byte, err error) {
-	err = blockutils.ReadFromVolume(ctx, r,
+	err = blockutils.ReadFromVolume(
+		ctx, r,
 		[]string{strings.ToLower(configISOLabel), strings.ToUpper(configISOLabel)},
 		func(root xfs.Root, volumeStatus *block.VolumeStatus) error {
 			log.Printf("found config disk (context) at %s", volumeStatus.TypedSpec().Location)

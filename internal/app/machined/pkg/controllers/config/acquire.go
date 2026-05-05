@@ -329,7 +329,8 @@ func (ctrl *AcquireController) loadFromDisk(ctx context.Context, r controller.Re
 		)
 	}
 
-	if err := ctrl.stateMachine.Run(ctx, r, logger,
+	if err := ctrl.stateMachine.Run(
+		ctx, r, logger,
 		automaton.WithAfterFunc(func() error {
 			ctrl.stateMachine = nil
 

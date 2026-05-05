@@ -151,13 +151,15 @@ func (suite *DiscoveryServiceSuite) TestReconcile() {
 				Ip:   []byte("\n\x00\x00\x02"),
 				Port: 51820,
 			},
-			affiliates[0].Endpoints[0]), "expected %v", affiliates[0].Endpoints[0])
+			affiliates[0].Endpoints[0],
+		), "expected %v", affiliates[0].Endpoints[0])
 		suite.Assert().True(proto.Equal(
 			&pb.Endpoint{
 				Ip:   []byte("\xc0\xa8\x03\x04"),
 				Port: 51820,
 			},
-			affiliates[0].Endpoints[1]), "expected %v", affiliates[0].Endpoints[1])
+			affiliates[0].Endpoints[1],
+		), "expected %v", affiliates[0].Endpoints[1])
 
 		return nil
 	})

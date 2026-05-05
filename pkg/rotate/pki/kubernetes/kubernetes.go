@@ -150,13 +150,15 @@ func (r *rotator) printIntro() {
 
 	r.opts.Printf("> Cluster topology:\n")
 
-	r.opts.Printf("  - control plane nodes: %q\n",
+	r.opts.Printf(
+		"  - control plane nodes: %q\n",
 		append(
 			helpers.MapToInternalIP(r.opts.ClusterInfo.NodesByType(machine.TypeInit)),
 			helpers.MapToInternalIP(r.opts.ClusterInfo.NodesByType(machine.TypeControlPlane))...,
 		),
 	)
-	r.opts.Printf("  - worker nodes: %q\n",
+	r.opts.Printf(
+		"  - worker nodes: %q\n",
 		helpers.MapToInternalIP(r.opts.ClusterInfo.NodesByType(machine.TypeWorker)),
 	)
 }

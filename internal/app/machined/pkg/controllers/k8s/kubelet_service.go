@@ -451,7 +451,8 @@ func (ctrl *KubeletServiceController) refreshKubeletCerts(expectedNodename strin
 		valid = valid && expectedCommonName == cert.Subject.CommonName
 
 		if !valid {
-			logger.Info("kubelet client certificate does not match expected nodename, removing",
+			logger.Info(
+				"kubelet client certificate does not match expected nodename, removing",
 				zap.String("expected", expectedCommonName),
 				zap.String("actual", cert.Subject.CommonName),
 			)

@@ -188,7 +188,8 @@ func (ctrl *MachineStatusController) getReadinessChecks(stage runtime.MachineSta
 	}
 
 	if machineType.IsControlPlane() {
-		requiredServices = append(requiredServices,
+		requiredServices = append(
+			requiredServices,
 			"etcd",
 			"trustd",
 		)

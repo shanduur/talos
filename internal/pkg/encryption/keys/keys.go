@@ -63,7 +63,8 @@ func NewHandler(cfg block.EncryptionKey, options ...KeyOption) (Handler, error) 
 			key,
 			cfg.TPMCheckSecurebootStatusOnEnroll,
 			cfg.TPMPCRs,
-			opts.TPMLocker)
+			opts.TPMLocker,
+		)
 		if err != nil {
 			return nil, err
 		}

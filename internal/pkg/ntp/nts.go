@@ -15,7 +15,8 @@ import (
 // DefaultNTSNewSession creates a real NTS session using beevik/nts.
 // This is the default NTSNewSessionFunc used in production.
 func DefaultNTSNewSession(address string) (NTSSession, error) {
-	return nts.NewSessionWithOptions(address,
+	return nts.NewSessionWithOptions(
+		address,
 		&nts.SessionOptions{
 			TLSConfig: &tls.Config{
 				RootCAs: httpdefaults.RootCAs(),

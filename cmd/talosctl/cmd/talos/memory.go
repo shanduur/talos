@@ -70,7 +70,8 @@ func briefRender(remotePeer *peer.Peer, resp *machineapi.MemoryResponse) error {
 		}
 
 		// Default to displaying output as MB
-		fmt.Fprintf(w, "%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
+		fmt.Fprintf(
+			w, "%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n",
 			node,
 			msg.Meminfo.Memtotal/1024,
 			(msg.Meminfo.Memtotal-msg.Meminfo.Memfree-msg.Meminfo.Cached-msg.Meminfo.Buffers)/1024,

@@ -82,7 +82,8 @@ func (suite *ImageCacheConfigSuite) TestReconcileFeatureEnabled() {
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), vs2))
 
 	// controller should create mount requests
-	ctest.AssertResources(suite,
+	ctest.AssertResources(
+		suite,
 		[]string{
 			ctrlName + "-" + crictrl.VolumeImageCacheISO,
 			ctrlName + "-" + crictrl.VolumeImageCacheDISK,
@@ -200,7 +201,8 @@ func (suite *ImageCacheConfigSuite) TestReconcileJustDiskVolume() {
 	})
 
 	// volume mount status should have a finalizer
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		ctrlName+"-"+crictrl.VolumeImageCacheDISK,
 		func(vms *block.VolumeMountStatus, asrt *assert.Assertions) {
 			asrt.True(vms.Metadata().Finalizers().Has(ctrlName))
@@ -216,7 +218,8 @@ func (suite *ImageCacheConfigSuite) TestReconcileJustDiskVolume() {
 	suite.Require().NoError(err)
 
 	// controller should remove its finalizer
-	ctest.AssertResource(suite,
+	ctest.AssertResource(
+		suite,
 		ctrlName+"-"+crictrl.VolumeImageCacheDISK,
 		func(vms *block.VolumeMountStatus, asrt *assert.Assertions) {
 			asrt.True(vms.Metadata().Finalizers().Empty())

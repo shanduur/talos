@@ -91,13 +91,15 @@ func (p *provisioner) GenOptions(networkReq provision.NetworkRequest, contract *
 	var genOptions []generate.Option
 
 	if contract.HostDNSEnabled() {
-		genOptions = append(genOptions,
+		genOptions = append(
+			genOptions,
 			generate.WithHostDNSForwardKubeDNSToHost(true),
 		)
 	}
 
 	if !contract.MultidocNetworkConfigSupported() {
-		genOptions = append(genOptions,
+		genOptions = append(
+			genOptions,
 			generate.WithNetworkOptions(
 				v1alpha1.WithNetworkInterfaceIgnore(v1alpha1.IfaceByName("eth0")),
 			),

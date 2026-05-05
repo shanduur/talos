@@ -177,7 +177,8 @@ func withNetworkContext(ctx context.Context, config *LaunchConfig, f func(config
 	if err != nil {
 		return errors.New(
 			"failed to parse VM network configuration from CNI output, ensure CNI is configured with a plugin " +
-				"that supports automatic VM network configuration such as tc-redirect-tap")
+				"that supports automatic VM network configuration such as tc-redirect-tap",
+		)
 	}
 
 	if !config.Network.Airgapped {

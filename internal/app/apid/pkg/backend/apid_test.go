@@ -210,7 +210,8 @@ func TestAPIDSuite(t *testing.T) {
 }
 
 func TestAPIIdiosyncrasies(t *testing.T) {
-	for _, services := range xslices.Map(api.TalosAPIdOne2ManyAPIs(),
+	for _, services := range xslices.Map(
+		api.TalosAPIdOne2ManyAPIs(),
 		func(fd protoreflect.FileDescriptor) protoreflect.ServiceDescriptors {
 			return fd.Services()
 		},

@@ -158,12 +158,14 @@ func assertConfigDefaultness[ExtraOps any](t *testing.T, cOps clusterops.Common,
 	require.NoError(t, err)
 
 	// The only allowed differences from the default machine config.
-	desiredExtraGenOps = append(desiredExtraGenOps,
+	desiredExtraGenOps = append(
+		desiredExtraGenOps,
 		generate.WithSecretsBundle(secretsBundle),
 		generate.WithVersionContract(versionContract),
 	)
 
-	in, err := generate.NewInput(cOps.RootOps.ClusterName, "controlplane-endpoint.test", cOps.KubernetesVersion,
+	in, err := generate.NewInput(
+		cOps.RootOps.ClusterName, "controlplane-endpoint.test", cOps.KubernetesVersion,
 		desiredExtraGenOps...,
 	)
 	require.NoError(t, err)

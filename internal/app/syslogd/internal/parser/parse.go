@@ -85,17 +85,18 @@ func enhanceRFC3164WithTag(buf []byte) []byte {
 		spaces = 4
 	}
 
-	i := bytes.IndexFunc(buf, func(r rune) bool {
-		if r == rune(' ') {
-			count++
-		}
+	i := bytes.IndexFunc(
+		buf, func(r rune) bool {
+			if r == rune(' ') {
+				count++
+			}
 
-		if count == spaces {
-			return true
-		}
+			if count == spaces {
+				return true
+			}
 
-		return false
-	},
+			return false
+		},
 	)
 
 	initial := buf[:i]

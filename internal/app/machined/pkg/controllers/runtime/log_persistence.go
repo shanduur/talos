@@ -139,7 +139,8 @@ func (ctrl *LogPersistenceController) Run(ctx context.Context, r controller.Runt
 
 		// create a volume mount request for the logs volume mount point
 		// to keep it alive and prevent it from being torn down
-		if err := safe.WriterModify(ctx, r,
+		if err := safe.WriterModify(
+			ctx, r,
 			block.NewVolumeMountRequest(block.NamespaceName, requestID),
 			func(v *block.VolumeMountRequest) error {
 				v.TypedSpec().Requester = ctrl.Name()

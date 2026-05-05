@@ -75,7 +75,9 @@ func (suite *ConfigSuite) TestReconcileDisabled() {
 				ConfigVersion: "v1alpha1",
 				MachineConfig: &v1alpha1.MachineConfig{},
 				ClusterConfig: &v1alpha1.ClusterConfig{},
-			}))
+			},
+		),
+	)
 	suite.Create(cfg)
 
 	ctest.AssertResource(suite, kubespan.ConfigID, func(res *kubespan.Config, asrt *assert.Assertions) {
@@ -109,7 +111,8 @@ func (suite *ConfigSuite) TestReconcileMultiDoc() {
 
 	suite.Create(config.NewMachineConfig(ctr))
 
-	ctest.AssertResource(suite, kubespan.ConfigID,
+	ctest.AssertResource(
+		suite, kubespan.ConfigID,
 		func(res *kubespan.Config, asrt *assert.Assertions) {
 			spec := res.TypedSpec()
 
