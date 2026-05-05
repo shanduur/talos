@@ -33,6 +33,7 @@ linters:
     - gocognit
     - godoclint
     - godox
+    - gomodguard # new version gomodguard_v2
     - gosec
     - inamedparam
     - ireturn
@@ -71,7 +72,44 @@ linters:
         - fmt.Fprint
     goconst:
       min-len: 3
-      min-occurrences: 3
+      min-occurrences: 5
+      ignore-tests: true
+      ignore-string-values:
+        - "^-[a-zA-Z]"
+        - "^--" # various flags
+        - localhost
+        - "127\\.0\\.0\\.1" # common localhost IP
+        - ^false$
+        - ^true$
+        - ^kubeconfig$
+        - ^coredns$
+        - ^flannel$
+        - ^ServiceAccount$
+        - ^ClusterRole
+        - "^\\$patch$"
+        - "^delete$"
+        - "^secrets$"
+        - "^config$"
+        - "^list$"
+        - "^node(s|)$"
+        - "^k8s-app$"
+        - "^kube-proxy$"
+        - "^apiVersion$"
+        - "^kind$"
+        - "^name$"
+        - "^type$"
+        - "^image$"
+        - "^control-plane$"
+        - "^kube-dns$"
+        - "^kube-system$"
+        - "^watch$"
+        - "^tier$"
+        - "^Group$"
+        - "^eth0$"
+        - "^containerd$"
+        - "^(r|)bind$"
+        - "^siderolabs/sbc-"
+        - "^raw\\.xz$"
     gocyclo:
       min-complexity: 10
     gomoddirectives:
@@ -418,6 +456,10 @@ linters:
         text: ^ST1000
       - path: (.+)\.go$
         text: parameter '\w+' seems to be unused, consider removing or renaming it as _
+      - linters:
+          - goconst
+        path: integration/
+        text: make it a constant
     paths:
       - .*\\.pb\\.go$
       - third_party$
