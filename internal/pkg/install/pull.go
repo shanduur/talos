@@ -16,6 +16,7 @@ import (
 	"github.com/containerd/errdefs"
 	"github.com/cosi-project/runtime/pkg/state"
 
+	containerdrunner "github.com/siderolabs/talos/internal/app/machined/pkg/system/runner/containerd"
 	"github.com/siderolabs/talos/internal/pkg/containers/image"
 	"github.com/siderolabs/talos/internal/pkg/containers/image/console"
 	"github.com/siderolabs/talos/internal/pkg/selinux"
@@ -68,7 +69,7 @@ func PullAndValidateInstallerImage(ctx context.Context, resources state.State, r
 	}
 
 	specOpts := []oci.SpecOpts{
-		oci.WithImageConfig(img),
+		containerdrunner.WithImageConfigStripped(img),
 		oci.WithProcessArgs(args...),
 	}
 

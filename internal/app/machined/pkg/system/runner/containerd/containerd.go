@@ -331,7 +331,7 @@ func (c *containerdRunner) newOCISpecOpts(image oci.Image) []oci.SpecOpts {
 	if image != nil {
 		specOpts = append(
 			specOpts,
-			oci.WithImageConfig(image),
+			WithImageConfigStripped(image),
 		)
 	}
 

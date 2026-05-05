@@ -238,7 +238,7 @@ func (o *APID) Runner(r runtime.Runtime) (runner.Runner, error) {
 				oci.WithMounts(mounts),
 				oci.WithRootFSPath(filepath.Join(constants.SystemLibexecPath, o.ID(r))),
 				oci.WithRootFSReadonly(),
-				oci.WithUser(fmt.Sprintf("%d:%d", constants.ApidUserID, constants.ApidUserID)),
+				oci.WithUIDGID(constants.ApidUserID, constants.ApidUserID),
 			),
 			runner.WithOOMScoreAdj(-998),
 		),

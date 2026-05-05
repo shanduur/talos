@@ -175,7 +175,7 @@ func RunInstallerContainer(
 	}
 
 	specOpts := []oci.SpecOpts{
-		oci.WithImageConfig(img),
+		containerdrunner.WithImageConfigStripped(img),
 		oci.WithProcessArgs(args...),
 		oci.WithHostNamespace(specs.NetworkNamespace),
 		oci.WithHostNamespace(specs.PIDNamespace),

@@ -119,7 +119,6 @@ linters:
         - github.com/mdlayher/kobject
         - golang.zx2c4.com/wireguard/wgctrl
         - github.com/mdlayher/ethtool
-        - github.com/containerd/containerd/v2
       replace-local: true
       exclude-forbidden: false
       retract-allow-no-explanation: false

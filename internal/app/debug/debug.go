@@ -171,7 +171,7 @@ func createDebugContainer(
 		oci.WithSelinuxLabel(""), // SELinux will automatically transition the debug container into the proper context
 		oci.WithApparmorProfile(""),
 		oci.WithSeccompUnconfined,
-		oci.WithImageConfig(image),
+		containerd.WithImageConfigStripped(image),
 		oci.WithCgroup(cgroupPath),
 	}
 

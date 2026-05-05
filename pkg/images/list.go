@@ -33,7 +33,7 @@ type Versions struct {
 // DefaultSandboxImage is defined as a constant in cri package of containerd, and it's not exported.
 //
 // The integration test verifies that our constant is accurate.
-const DefaultSandboxImage = "registry.k8s.io/pause:3.10.1"
+const DefaultSandboxImage = "registry.k8s.io/pause:3.10.2"
 
 // List returns default image versions.
 func List(config config.Config) Versions {

@@ -228,7 +228,7 @@ func (e *Etcd) Runner(r runtime.Runtime) (runner.Runner, error) {
 				oci.WithDroppedCapabilities(cap.Known()),
 				oci.WithHostNamespace(specs.NetworkNamespace),
 				oci.WithMounts(mounts),
-				oci.WithUser(fmt.Sprintf("%d:%d", constants.EtcdUserID, constants.EtcdUserID)),
+				oci.WithUIDGID(constants.EtcdUserID, constants.EtcdUserID),
 			),
 			runner.WithOOMScoreAdj(-998),
 		),

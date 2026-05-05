@@ -318,7 +318,7 @@ func buildInstallerArgs(disk, platform string, options *install.Options) []strin
 // buildSpecOpts constructs the OCI spec options for the installer container.
 func buildSpecOpts(img client.Image, args []string, mounts []specs.Mount) []oci.SpecOpts {
 	specOpts := []oci.SpecOpts{
-		oci.WithImageConfig(img),
+		containerdrunner.WithImageConfigStripped(img),
 		oci.WithProcessArgs(args...),
 		oci.WithHostNamespace(specs.NetworkNamespace),
 		oci.WithHostNamespace(specs.PIDNamespace),
