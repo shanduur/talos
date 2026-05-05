@@ -350,7 +350,6 @@ func (d *DHCP4) requestRenew(ctx context.Context, hostname network.HostnameStatu
 	opts := []dhcpv4.OptionCode{
 		dhcpv4.OptionClasslessStaticRoute,
 		dhcpv4.OptionDomainNameServer,
-		// TODO(twelho): This is unused until network.ResolverSpec supports search domains
 		dhcpv4.OptionDNSDomainSearchList,
 		dhcpv4.OptionNTPServers,
 	}

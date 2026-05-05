@@ -185,6 +185,8 @@ func TestParseDHCP4Ack(t *testing.T) {
 			},
 			specs.Resolvers[0].DNSServers,
 		)
+		assert.Equal(t, []string{"example.com"}, specs.Resolvers[0].SearchDomains,
+			"DomainName feeds the search list when DomainSearch is absent")
 
 		require.Len(t, specs.TimeServers, 1)
 		assert.Equal(t, []string{"169.254.169.123"}, specs.TimeServers[0].NTPServers)
@@ -192,6 +194,86 @@ func TestParseDHCP4Ack(t *testing.T) {
 		require.Len(t, specs.Hostname, 1)
 		assert.Equal(t, "myhost", specs.Hostname[0].Hostname)
 		assert.Equal(t, "example.com", specs.Hostname[0].Domainname)
+	})
+
+	t.Run("search domains from DomainSearch option", func(t *testing.T) {
+		ack := must.Value(dhcpv4.New(
+			dhcpv4.WithMessageType(dhcpv4.MessageTypeAck),
+			dhcpv4.WithYourIP(net.IPv4(10, 0, 0, 5)),
+			dhcpv4.WithNetmask(net.CIDRMask(24, 32)),
+			dhcpv4.WithOption(dhcpv4.OptDNS(net.IPv4(8, 8, 8, 8))),
+			dhcpv4.WithDomainSearchList("corp.example.com", "example.com"),
+		))(t)
+
+		specs := dhcpparse.ParseDHCP4Ack(ack, linkName, routeMetric, false)
+
+		require.Len(t, specs.Resolvers, 1)
+		assert.Equal(t, []string{"corp.example.com", "example.com"}, specs.Resolvers[0].SearchDomains)
+	})
+
+	t.Run("DomainName appended to DomainSearch when not already present", func(t *testing.T) {
+		// Both options present, DomainName not in DomainSearch → appended.
+		ack := must.Value(dhcpv4.New(
+			dhcpv4.WithMessageType(dhcpv4.MessageTypeAck),
+			dhcpv4.WithYourIP(net.IPv4(10, 0, 0, 5)),
+			dhcpv4.WithNetmask(net.CIDRMask(24, 32)),
+			dhcpv4.WithDomainSearchList("corp.example.com"),
+			dhcpv4.WithOption(dhcpv4.OptDomainName("example.com")),
+		))(t)
+
+		specs := dhcpparse.ParseDHCP4Ack(ack, linkName, routeMetric, false)
+
+		require.Len(t, specs.Resolvers, 1)
+		assert.Equal(t, []string{"corp.example.com", "example.com"}, specs.Resolvers[0].SearchDomains)
+	})
+
+	t.Run("DomainName not duplicated when already in DomainSearch", func(t *testing.T) {
+		ack := must.Value(dhcpv4.New(
+			dhcpv4.WithMessageType(dhcpv4.MessageTypeAck),
+			dhcpv4.WithYourIP(net.IPv4(10, 0, 0, 5)),
+			dhcpv4.WithNetmask(net.CIDRMask(24, 32)),
+			dhcpv4.WithDomainSearchList("example.com", "corp.example.com"),
+			dhcpv4.WithOption(dhcpv4.OptDomainName("example.com")),
+		))(t)
+
+		specs := dhcpparse.ParseDHCP4Ack(ack, linkName, routeMetric, false)
+
+		require.Len(t, specs.Resolvers, 1)
+		assert.Equal(t, []string{"example.com", "corp.example.com"}, specs.Resolvers[0].SearchDomains)
+	})
+
+	t.Run("search domains alone still emit a resolver spec", func(t *testing.T) {
+		// No DNS servers, just a DomainName — the resolver spec must still
+		// be emitted so the search list reaches resolv.conf.
+		ack := must.Value(dhcpv4.New(
+			dhcpv4.WithMessageType(dhcpv4.MessageTypeAck),
+			dhcpv4.WithYourIP(net.IPv4(10, 0, 0, 5)),
+			dhcpv4.WithNetmask(net.CIDRMask(24, 32)),
+			dhcpv4.WithOption(dhcpv4.OptDomainName("example.com")),
+		))(t)
+
+		specs := dhcpparse.ParseDHCP4Ack(ack, linkName, routeMetric, false)
+
+		require.Len(t, specs.Resolvers, 1)
+		assert.Empty(t, specs.Resolvers[0].DNSServers)
+		assert.Equal(t, []string{"example.com"}, specs.Resolvers[0].SearchDomains)
+	})
+
+	t.Run("blank/null-padded DomainName does not become a search domain", func(t *testing.T) {
+		// Some DHCP servers null-pad the DomainName option; after trimming
+		// it should be treated as absent.
+		ack := must.Value(dhcpv4.New(
+			dhcpv4.WithMessageType(dhcpv4.MessageTypeAck),
+			dhcpv4.WithYourIP(net.IPv4(10, 0, 0, 5)),
+			dhcpv4.WithNetmask(net.CIDRMask(24, 32)),
+			dhcpv4.WithOption(dhcpv4.OptDNS(net.IPv4(8, 8, 8, 8))),
+			dhcpv4.WithOption(dhcpv4.OptGeneric(dhcpv4.OptionDomainName, []byte("\x00\x00"))),
+		))(t)
+
+		specs := dhcpparse.ParseDHCP4Ack(ack, linkName, routeMetric, false)
+
+		require.Len(t, specs.Resolvers, 1)
+		assert.Empty(t, specs.Resolvers[0].SearchDomains)
 	})
 
 	t.Run("useHostname=false ignores hostname even when present", func(t *testing.T) {

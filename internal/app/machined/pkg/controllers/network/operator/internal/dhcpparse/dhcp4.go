@@ -12,6 +12,7 @@ package dhcpparse
 import (
 	"net"
 	"net/netip"
+	"slices"
 	"strings"
 
 	"github.com/insomniacslk/dhcp/dhcpv4"
@@ -183,7 +184,9 @@ func ParseDHCP4Ack(ack *dhcpv4.DHCPv4, linkName string, routeMetric uint32, useH
 		}
 	}
 
-	if len(ack.DNS()) > 0 {
+	searchDomains := dhcpSearchDomains(ack)
+
+	if len(ack.DNS()) > 0 || len(searchDomains) > 0 {
 		convertIP := func(ip net.IP) netip.Addr {
 			result, _ := netipx.FromStdIP(ip)
 
@@ -192,8 +195,9 @@ func ParseDHCP4Ack(ack *dhcpv4.DHCPv4, linkName string, routeMetric uint32, useH
 
 		specs.Resolvers = []network.ResolverSpecSpec{
 			{
-				DNSServers:  xslices.Map(ack.DNS(), convertIP),
-				ConfigLayer: network.ConfigOperator,
+				DNSServers:    xslices.Map(ack.DNS(), convertIP),
+				SearchDomains: searchDomains,
+				ConfigLayer:   network.ConfigOperator,
 			},
 		}
 	}
@@ -214,4 +218,18 @@ func ParseDHCP4Ack(ack *dhcpv4.DHCPv4, linkName string, routeMetric uint32, useH
 	}
 
 	return specs
+}
+
+func dhcpSearchDomains(ack *dhcpv4.DHCPv4) []string {
+	var searchDomains []string
+
+	if labels := ack.DomainSearch(); labels != nil {
+		searchDomains = append(searchDomains, labels.Labels...)
+	}
+
+	if domainName := strings.TrimRight(ack.DomainName(), "\x00"); domainName != "" && !slices.Contains(searchDomains, domainName) {
+		searchDomains = append(searchDomains, domainName)
+	}
+
+	return searchDomains
 }

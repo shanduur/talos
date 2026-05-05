@@ -71,6 +71,12 @@ List of changes:
 - `.cluster.secretboxEncryptionSecret` field was removed from the v1alpha1 config, and full etcd encryption configuration is available with `KubeEtcdEncryptionConfig`.
 """
 
+    [notes.dhcpsearchdomains]
+        title = "DHCP Search Domains"
+        description = """\
+DHCPv4 search domains are now applied to the resolver configuration.
+"""
+
 [make_deps]
 
     [make_deps.tools]
