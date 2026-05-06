@@ -5,12 +5,16 @@
 package vm
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net"
 	"os"
+	"syscall"
+	"time"
 
 	"github.com/miekg/dns"
+	"github.com/siderolabs/go-retry/retry"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/siderolabs/talos/pkg/provision"
@@ -43,9 +47,24 @@ func DNSd(ips []net.IP, resolvConfPath string) error {
 			Handler: dns.HandlerFunc(forwardHandler(mode, log, config)),
 		}
 
-		log.Info("starting DNS forwarder server")
+		// IPv6 address takes longer to become ready, and therefore might need a retry
+		return retry.Constant(
+			time.Minute,
+			retry.WithUnits(time.Second),
+		).Retry(func() error {
+			log.Info("starting DNS forwarder server")
 
-		return server.ListenAndServe()
+			err := server.ListenAndServe()
+			if err != nil {
+				log.Warn("Failed to listen", slog.String("err", err.Error()))
+			}
+
+			if errors.Is(err, syscall.EADDRNOTAVAIL) {
+				return retry.ExpectedErrorf("address %s unavailable", addr)
+			}
+
+			return err
+		})
 	}
 
 	for _, ip := range ips {
