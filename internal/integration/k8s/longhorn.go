@@ -22,6 +22,9 @@ var (
 	//go:embed testdata/longhorn-v2-storageclass.yaml
 	longhornV2StorageClassManifest []byte
 
+	//go:embed testdata/longhorn-v2-ublk-storageclass.yaml
+	longhornV2UblkStorageClassManifest []byte
+
 	//go:embed testdata/longhorn-v2-disk-patch.yaml
 	longhornNodeDiskPatch []byte
 )
@@ -71,12 +74,15 @@ func (suite *LongHornSuite) TestDeploy() {
 		suite.T().Fatalf("failed to install Longhorn chart: %v", err)
 	}
 
-	longhornV2StorageClassunstructured := suite.ParseManifests(longhornV2StorageClassManifest)
+	longhornV2StorageClassUnstructured := suite.ParseManifests(longhornV2StorageClassManifest)
+	longhornV2UblkStorageClassUnstructured := suite.ParseManifests(longhornV2UblkStorageClassManifest)
 
-	suite.ApplyManifests(ctx, longhornV2StorageClassunstructured)
+	suite.ApplyManifests(ctx, longhornV2StorageClassUnstructured)
+	suite.ApplyManifests(ctx, longhornV2UblkStorageClassUnstructured)
 
 	suite.T().Cleanup(func() {
-		suite.DeleteManifests(ctx, longhornV2StorageClassunstructured)
+		suite.DeleteManifests(ctx, longhornV2StorageClassUnstructured)
+		suite.DeleteManifests(ctx, longhornV2UblkStorageClassUnstructured)
 	})
 
 	nodes := suite.DiscoverNodeInternalIPsByType(ctx, machine.TypeWorker)
@@ -121,6 +127,10 @@ func (suite *LongHornSuite) TestDeploy() {
 
 	suite.Run("fio-v2", func() {
 		suite.Require().NoError(suite.RunFIOTest(ctx, "longhorn-v2", "10G"))
+	})
+
+	suite.Run("fio-v2-ublk", func() {
+		suite.Require().NoError(suite.RunFIOTest(ctx, "longhorn-v2-ublk", "10G"))
 	})
 }
 

@@ -7,6 +7,7 @@ machine:
       - name: nvme_tcp
       - name: vfio_pci
       - name: uio_pci_generic
+      - name: ublk_drv
   kubelet:
     extraMounts:
       - destination: /var/lib/longhorn

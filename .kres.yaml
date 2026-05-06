@@ -89,8 +89,6 @@ spec:
     integration/qemu-csi: "Run QEMU CSI integration tests"
     integration/qemu-csi-openebs: "Run QEMU CSI OpenEBS integration tests"
     integration/qemu-csi-longhorn: "Run QEMU CSI Longhorn integration tests"
-    integration/qemu-csi-longhorn-v1: "Run QEMU CSI Longhorn v1 integration tests"
-    integration/qemu-csi-longhorn-v2: "Run QEMU CSI Longhorn v2 integration tests"
     integration/qemu-csi-rook-ceph: "Run QEMU CSI Rook Ceph integration tests"
     integration/qemu-default: "Run QEMU integration tests on default variant"
     integration/qemu-encrypted-vip: "Run QEMU integration tests with disk encryption and virtual IP"
@@ -1482,20 +1480,21 @@ spec:
         - integration/release-gate
       matrix:
         maxParallel: 2
-        labelKeys: [longhornEngine]
+        flatJobMatrix: true
+        labelKeys: [csi]
         # v2 (SPDK) is the default-secure path; v1 needs noexec disabled on
         # /var so the instance-manager can exec engine binaries it drops
         # under /var/lib/longhorn/engine-binaries/. The v1 path also tells
         # MountsSuite to skip the /var policy check via
         # -talos.skip-ephemeral-policy.
         include:
-          - longhornEngine: v2
-            csi: longhorn
+          - csi: longhorn
+            longhornEngine: v2
             extraWorkerPatch: ""
             extraTestArgs: ""
-          - longhornEngine: v1
-            csi: longhorn-v1
-            extraWorkerPatch: ":@hack/test/patches/ephemeral-insecure.yaml"
+          - csi: longhorn-v1
+            longhornEngine: v1
+            extraWorkerPatch: ":@_out/kubelet-fat-patch.yaml:@hack/test/patches/ephemeral-insecure.yaml"
             extraTestArgs: "-talos.skip-ephemeral-policy"
       steps:
         - name: download-artifacts
@@ -1531,7 +1530,7 @@ spec:
           command: e2e-qemu
           withSudo: true
           environment:
-            GITHUB_STEP_NAME: ${{ github.job}}-e2e-qemu-csi-longhorn-${{ matrix.longhornEngine }}
+            GITHUB_STEP_NAME: ${{ github.job}}-e2e-qemu-csi-longhorn-${{ matrix.csi }}
             SHORT_INTEGRATION_TEST: yes
             QEMU_WORKERS: 3
             QEMU_MEMORY_WORKERS: 10240
@@ -1541,13 +1540,13 @@ spec:
             QEMU_EXTRA_DISKS_SIZE: 12288
             QEMU_EXTRA_DISKS_DRIVERS: nvme
             WITH_CONFIG_PATCH_CONTROLPLANE: "@hack/test/patches/longhorn-cp.yaml"
-            WITH_CONFIG_PATCH_WORKER: "@_out/installer-extensions-patch.yaml:@_out/kubelet-fat-patch.yaml:@hack/test/patches/longhorn.yaml${{ matrix.extraWorkerPatch }}"
+            WITH_CONFIG_PATCH_WORKER: "@_out/installer-extensions-patch.yaml:@hack/test/patches/longhorn.yaml${{ matrix.extraWorkerPatch }}"
             EXTRA_TEST_ARGS: -talos.csi=${{ matrix.csi }} ${{ matrix.extraTestArgs }}
             IMAGE_REGISTRY: registry.dev.siderolabs.io
         - name: save-fio-benchmark
           artifactStep:
             type: upload
-            artifactName: fio-integration-qemu-csi-longhorn-${{ matrix.longhornEngine }}
+            artifactName: fio-integration-qemu-csi-longhorn-${{ matrix.csi }}
             disableExecutableListGeneration: true
             artifactPath: /tmp/fio-*.json
             retentionDays: "180"
@@ -1556,7 +1555,7 @@ spec:
             - always
           artifactStep:
             type: upload
-            artifactName: talos-logs-integration-qemu-csi-longhorn-${{ matrix.longhornEngine }}
+            artifactName: talos-logs-integration-qemu-csi-longhorn-${{ matrix.csi }}
             disableExecutableListGeneration: true
             artifactPath: /tmp/logs-*.tar.gz
             additionalArtifacts:
