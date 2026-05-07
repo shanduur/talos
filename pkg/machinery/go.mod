@@ -3,12 +3,12 @@ module github.com/siderolabs/talos/pkg/machinery
 go 1.26.1
 
 // forked ethtool introduces missing APIs
-replace github.com/mdlayher/ethtool => github.com/siderolabs/ethtool v0.4.0-sidero
+replace github.com/mdlayher/ethtool => github.com/siderolabs/ethtool v0.6.0-sidero
 
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/containerd/go-cni v1.1.13
-	github.com/cosi-project/runtime v1.14.1
+	github.com/cosi-project/runtime v1.14.2
 	github.com/dustin/go-humanize v1.0.1
 	github.com/emicklei/dot v1.11.0
 	github.com/evanphx/json-patch v5.9.11+incompatible
@@ -16,7 +16,7 @@ require (
 	github.com/google/cel-go v0.28.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jsimonetti/rtnetlink/v2 v2.2.1-0.20260317095713-310581b9c6ac
-	github.com/mdlayher/ethtool v0.5.1
+	github.com/mdlayher/ethtool v0.6.0
 	github.com/neticdk/go-stdlib v1.0.1
 	github.com/opencontainers/runtime-spec v1.3.0
 	github.com/planetscale/vtprotobuf v0.6.1-0.20250313105119-ba97887b0a25
@@ -29,12 +29,12 @@ require (
 	github.com/siderolabs/net v0.4.0
 	github.com/siderolabs/protoenc v0.2.4
 	github.com/stretchr/testify v1.11.1
-	go.uber.org/zap v1.27.1
+	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	golang.org/x/net v0.53.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20260414002931-afd174a4e478
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478
-	google.golang.org/grpc v1.80.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20260504160031-60b97b32f348
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348
+	google.golang.org/grpc v1.81.0
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 )
 
@@ -53,10 +53,9 @@ require (
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.28.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/josharian/native v1.1.0 // indirect
-	github.com/mdlayher/genetlink v1.3.2 // indirect
-	github.com/mdlayher/netlink v1.9.0 // indirect
-	github.com/mdlayher/socket v0.5.1 // indirect
+	github.com/mdlayher/genetlink v1.4.0 // indirect
+	github.com/mdlayher/netlink v1.10.0 // indirect
+	github.com/mdlayher/socket v0.6.0 // indirect
 	github.com/petermattis/goid v0.0.0-20240813172612-4fcff4a6cae7 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect

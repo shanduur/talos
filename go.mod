@@ -7,7 +7,7 @@ replace (
 	github.com/coredns/coredns => github.com/siderolabs/coredns v1.14.53
 
 	// forked ethtool introduces missing APIs
-	github.com/mdlayher/ethtool => github.com/siderolabs/ethtool v0.4.0-sidero
+	github.com/mdlayher/ethtool => github.com/siderolabs/ethtool v0.6.0-sidero
 
 	// see https://github.com/mdlayher/kobject/pull/5
 	github.com/mdlayher/kobject => github.com/smira/kobject v0.0.0-20240304111826-49c8d4613389
@@ -36,17 +36,17 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.1
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates v1.4.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v1.4.0
 	github.com/alexflint/go-filemutex v1.3.0
-	github.com/aws/aws-sdk-go-v2 v1.41.5
-	github.com/aws/aws-sdk-go-v2/config v1.32.14
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.21
-	github.com/aws/aws-sdk-go-v2/service/acm v1.38.1
-	github.com/aws/aws-sdk-go-v2/service/kms v1.50.4
-	github.com/aws/smithy-go v1.25.0
+	github.com/aws/aws-sdk-go-v2 v1.41.7
+	github.com/aws/aws-sdk-go-v2/config v1.32.17
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.23
+	github.com/aws/aws-sdk-go-v2/service/acm v1.38.3
+	github.com/aws/aws-sdk-go-v2/service/kms v1.51.1
+	github.com/aws/smithy-go v1.25.1
 	github.com/beevik/ntp v1.5.0
 	github.com/beevik/nts v0.3.0
 	github.com/blang/semver/v4 v4.0.0
@@ -60,12 +60,12 @@ require (
 	github.com/containerd/typeurl/v2 v2.2.3
 	github.com/containernetworking/cni v1.3.0
 	github.com/containernetworking/plugins v1.9.1
-	github.com/coredns/coredns v1.14.2
+	github.com/coredns/coredns v1.14.3
 	github.com/coreos/go-iptables v0.8.0
-	github.com/cosi-project/runtime v1.14.1
+	github.com/cosi-project/runtime v1.14.2
 	github.com/detailyang/go-fallocate v0.0.0-20180908115635-432fa640bd2e
 	github.com/distribution/reference v0.6.0
-	github.com/docker/cli v29.4.0+incompatible
+	github.com/docker/cli v29.4.3+incompatible
 	github.com/dustin/go-humanize v1.0.1
 	github.com/elastic/go-libaudit/v2 v2.6.2
 	github.com/equinix-ms/go-vmw-guestrpc v1.0.0
@@ -73,9 +73,9 @@ require (
 	github.com/florianl/go-tc v0.4.8
 	github.com/foxboron/go-uefi v0.0.0-20251010190908-d29549a44f29
 	github.com/freddierice/go-losetup/v2 v2.0.1
-	github.com/fsnotify/fsnotify v1.9.0
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/g0rbe/go-chattr v1.0.1
-	github.com/gdamore/tcell/v2 v2.13.8
+	github.com/gdamore/tcell/v2 v2.13.9
 	github.com/gertd/go-pluralize v0.2.1
 	github.com/godbus/dbus/v5 v5.2.2
 	github.com/golang/mock v1.7.0-rc.1
@@ -97,28 +97,28 @@ require (
 	github.com/jeromer/syslogparser v1.1.0
 	github.com/jsimonetti/rtnetlink/v2 v2.2.1-0.20260317095713-310581b9c6ac
 	github.com/jxskiss/base62 v1.1.0
-	github.com/klauspost/compress v1.18.5
+	github.com/klauspost/compress v1.18.6
 	github.com/klauspost/cpuid/v2 v2.3.0
 	github.com/linode/go-metadata v0.2.4
 	github.com/martinlindhe/base36 v1.1.1
-	github.com/mattn/go-isatty v0.0.20
+	github.com/mattn/go-isatty v0.0.22
 	github.com/mdlayher/arp v0.0.0-20220512170110-6706a2966875
-	github.com/mdlayher/ethtool v0.5.1
+	github.com/mdlayher/ethtool v0.6.0
 	github.com/mdlayher/genetlink v1.4.0
 	github.com/mdlayher/kobject v0.0.0-20200520190114-19ca17470d7d
-	github.com/mdlayher/netlink v1.11.0
+	github.com/mdlayher/netlink v1.11.1
 	github.com/mdlayher/netx v0.0.0-20230430222610-7e21880baee8
 	github.com/mdp/qrterminal/v3 v3.2.1
 	github.com/miekg/dns v1.1.72
-	github.com/moby/moby/api v1.54.1
-	github.com/moby/moby/client v0.4.0
+	github.com/moby/moby/api v1.54.2
+	github.com/moby/moby/client v0.4.1
 	github.com/navidys/tvxwidgets v0.13.0
 	github.com/nberlee/go-netstat v0.1.2
 	github.com/opencontainers/go-digest v1.0.0
 	github.com/opencontainers/image-spec v1.1.1
 	github.com/opencontainers/runtime-spec v1.3.0
 	github.com/packethost/packngo v0.31.0
-	github.com/pelletier/go-toml/v2 v2.3.0
+	github.com/pelletier/go-toml/v2 v2.3.1
 	github.com/pin/tftp/v3 v3.2.0
 	github.com/pkg/xattr v0.4.12
 	github.com/pmorjan/kmod v1.1.1
@@ -173,7 +173,7 @@ require (
 	go.etcd.io/etcd/client/v3 v3.6.11
 	go.etcd.io/etcd/etcdutl/v3 v3.6.11
 	go.uber.org/goleak v1.3.0
-	go.uber.org/zap v1.27.1
+	go.uber.org/zap v1.28.0
 	go.yaml.in/yaml/v4 v4.0.0-rc.4
 	go4.org/netipx v0.0.0-20231129151722-fdeea329fbba
 	golang.org/x/net v0.53.0
@@ -184,7 +184,7 @@ require (
 	golang.org/x/text v0.36.0
 	golang.org/x/time v0.15.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20241231184526-a9ab2273dd10
-	google.golang.org/grpc v1.80.0
+	google.golang.org/grpc v1.81.0
 	google.golang.org/protobuf v1.36.12-0.20260120151049-f2248ac996af
 	gopkg.in/typ.v4 v4.4.0
 	k8s.io/klog/v2 v2.140.0
@@ -195,7 +195,7 @@ require (
 require (
 	al.essio.dev/pkg/shellescape v1.6.0 // indirect
 	cel.dev/expr v0.25.1 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/internal v1.11.2 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.12.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/internal v1.2.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.6.0 // indirect
@@ -211,16 +211,16 @@ require (
 	github.com/apparentlymart/go-cidr v1.1.0 // indirect
 	github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.14 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.21 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.6 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.7 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.21 // indirect
-	github.com/aws/aws-sdk-go-v2/service/signin v1.0.9 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.30.15 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.19 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.41.10 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.16 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.4.23 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.7.23 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.4.24 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.13.9 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.13.23 // indirect
+	github.com/aws/aws-sdk-go-v2/service/signin v1.0.11 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.30.17 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.35.21 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.42.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
@@ -245,7 +245,7 @@ require (
 	github.com/digitorus/pkcs7 v0.0.0-20230818184609-3a137a874352 // indirect
 	github.com/digitorus/timestamp v0.0.0-20231217203849-220c5c2851b7 // indirect
 	github.com/docker/docker-credential-helpers v0.9.5 // indirect
-	github.com/docker/go-connections v0.6.0 // indirect
+	github.com/docker/go-connections v0.7.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emicklei/dot v1.11.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
@@ -396,8 +396,8 @@ require (
 	golang.org/x/tools v0.44.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	golang.zx2c4.com/wireguard v0.0.0-20250521234502-f333402bd9cb // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260414002931-afd174a4e478 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260414002931-afd174a4e478 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260504160031-60b97b32f348 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260504160031-60b97b32f348 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.13.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

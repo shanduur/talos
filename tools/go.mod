@@ -290,7 +290,7 @@ require (
 	github.com/golangci/dupl v0.0.0-20260401084720-c99c5cf5c202 // indirect
 	github.com/golangci/go-printf-func-name v0.1.1 // indirect
 	github.com/golangci/gofmt v0.0.0-20250106114630-d62b90e6713d // indirect
-	github.com/golangci/golangci-lint/v2 v2.12.1 // indirect
+	github.com/golangci/golangci-lint/v2 v2.12.2 // indirect
 	github.com/golangci/golines v0.15.0 // indirect
 	github.com/golangci/misspell v0.8.0 // indirect
 	github.com/golangci/plugin-module-register v0.1.2 // indirect
@@ -298,7 +298,7 @@ require (
 	github.com/golangci/rowserrcheck v0.0.0-20260419091836-c5f79b8a11ba // indirect
 	github.com/golangci/swaggoswag v0.0.0-20250504205917-77f2aca3143e // indirect
 	github.com/golangci/unconvert v0.0.0-20250410112200-a129a6e6413e // indirect
-	github.com/gomarkdown/markdown v0.0.0-20260412113850-134a5b2cce7f // indirect
+	github.com/gomarkdown/markdown v0.0.0-20260417124207-7d523f7318df // indirect
 	github.com/google/cel-go v0.28.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/go-containerregistry v0.21.5 // indirect
@@ -334,7 +334,7 @@ require (
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/in-toto/attestation v1.2.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/invopop/jsonschema v0.13.0 // indirect
+	github.com/invopop/jsonschema v0.14.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jdx/go-netrc v1.0.0 // indirect
 	github.com/jedib0t/go-pretty/v6 v6.7.8 // indirect
@@ -367,7 +367,6 @@ require (
 	github.com/leonklingele/grouper v1.1.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.4.0 // indirect
 	github.com/macabu/inamedparam v0.2.0 // indirect
-	github.com/mailru/easyjson v0.9.1 // indirect
 	github.com/manuelarte/embeddedstructfieldcheck v0.4.0 // indirect
 	github.com/manuelarte/funcorder v0.6.0 // indirect
 	github.com/maratori/testableexamples v1.0.1 // indirect
@@ -425,9 +424,10 @@ require (
 	github.com/package-url/packageurl-go v0.1.5 // indirect
 	github.com/pandatix/go-cvss v0.6.2 // indirect
 	github.com/pascaldekloe/name v1.0.1 // indirect
+	github.com/pb33f/ordered-map/v2 v2.3.1 // indirect
 	github.com/pborman/indent v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.3.0 // indirect
+	github.com/pelletier/go-toml/v2 v2.3.1 // indirect
 	github.com/petermattis/goid v0.0.0-20260330135022-df67b199bc81 // indirect
 	github.com/pierrec/lz4/v4 v4.1.25 // indirect
 	github.com/pjbgf/sha1cd v0.5.0 // indirect
@@ -457,7 +457,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/rust-secure-code/go-rustaudit v0.0.0-20250226111315-e20ec32e963c // indirect
 	github.com/ryancurrah/gomodguard v1.4.1 // indirect
-	github.com/ryancurrah/gomodguard/v2 v2.1.0 // indirect
+	github.com/ryancurrah/gomodguard/v2 v2.1.3 // indirect
 	github.com/ryanrolds/sqlclosecheck v0.6.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
 	github.com/saintfish/chardet v0.0.0-20230101081208-5e3ef4b5456d // indirect
@@ -476,10 +476,10 @@ require (
 	github.com/siderolabs/deep-copy v0.5.8 // indirect
 	github.com/siderolabs/gen v0.8.6 // indirect
 	github.com/siderolabs/importvet v0.2.0 // indirect
-	github.com/siderolabs/talos/tools/docgen v0.0.0-20260504165749-1371596d750b // indirect
-	github.com/siderolabs/talos/tools/gotagsrewrite v0.0.0-20260504165749-1371596d750b // indirect
-	github.com/siderolabs/talos/tools/labeled-squashfs v0.0.0-00010101000000-000000000000 // indirect
-	github.com/siderolabs/talos/tools/structprotogen v0.0.0-20260504165749-1371596d750b // indirect
+	github.com/siderolabs/talos/tools/docgen v0.0.0-20260507085923-6b6f7978be5b // indirect
+	github.com/siderolabs/talos/tools/gotagsrewrite v0.0.0-20260507085923-6b6f7978be5b // indirect
+	github.com/siderolabs/talos/tools/labeled-squashfs v0.0.0-20260507112736-2b6c06ef51fd // indirect
+	github.com/siderolabs/talos/tools/structprotogen v0.0.0-20260507085923-6b6f7978be5b // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
 	github.com/sivchari/containedctx v1.0.3 // indirect
 	github.com/skeema/knownhosts v1.3.2 // indirect
@@ -514,14 +514,13 @@ require (
 	github.com/ultraware/funlen v0.2.0 // indirect
 	github.com/ultraware/whitespace v0.2.0 // indirect
 	github.com/uudashr/gocognit v1.2.1 // indirect
-	github.com/uudashr/iface v1.4.1 // indirect
+	github.com/uudashr/iface v1.4.2 // indirect
 	github.com/vbatts/go-mtree v0.7.0 // indirect
 	github.com/vbatts/tar-split v0.12.3 // indirect
 	github.com/vifraa/gopom v1.0.0 // indirect
 	github.com/wagoodman/go-partybus v0.0.0-20230516145632-8ccac152c651 // indirect
 	github.com/wagoodman/go-presenter v0.0.0-20211015174752-f9c01afc824b // indirect
 	github.com/wagoodman/go-progress v0.0.0-20260303201901-10176f79b2c0 // indirect
-	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xen0n/gosmopolitan v1.3.0 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect

@@ -17,8 +17,8 @@ import (
 	"github.com/gomarkdown/markdown/html"
 	"github.com/invopop/jsonschema"
 	"github.com/microcosm-cc/bluemonday"
+	orderedmap "github.com/pb33f/ordered-map/v2"
 	validatejsonschema "github.com/santhosh-tekuri/jsonschema/v6"
-	orderedmap "github.com/wk8/go-ordered-map/v2"
 )
 
 const ConfigSchemaURLFormat = "https://talos.dev/%s/schemas/%s"
