@@ -116,7 +116,7 @@ spec:
             PLATFORM: linux/amd64
         - name: check-dirty
         - name: build
-          command: talosctl-linux-amd64 kernel sd-boot sd-stub initramfs installer-base imager talos _out/integration-test-linux-amd64
+          command: talosctl kernel sd-boot sd-stub initramfs installer-base imager talos integration-test
           environment:
             PLATFORM: linux/amd64,linux/arm64
             IMAGE_REGISTRY: registry.dev.siderolabs.io
@@ -393,7 +393,7 @@ spec:
           environment:
             PLATFORM: linux/amd64
         - name: build
-          command: talosctl-linux-amd64 kernel sd-boot sd-stub initramfs installer-base imager talos _out/integration-test-linux-amd64
+          command: talosctl kernel sd-boot sd-stub initramfs installer-base imager talos integration-test
           environment:
             PLATFORM: linux/amd64,linux/arm64
             IMAGE_REGISTRY: registry.dev.siderolabs.io

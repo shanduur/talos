@@ -101,7 +101,6 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 TALOSCTL_DEFAULT_TARGET := talosctl-$(OPERATING_SYSTEM)
 TALOSCTL_EXECUTABLE := $(PWD)/$(ARTIFACTS)/$(TALOSCTL_DEFAULT_TARGET)-$(ARCH)
 INTEGRATION_TEST := integration-test
-INTEGRATION_TEST_DEFAULT_TARGET := $(INTEGRATION_TEST)-$(OPERATING_SYSTEM)
 INTEGRATION_TEST_PROVISION_DEFAULT_TARGET := integration-test-provision-$(OPERATING_SYSTEM)
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
 KUBECTL_VERSION ?= v1.36.0
@@ -493,11 +492,11 @@ talosctl-cni-bundle: ## Creates a compressed tarball that includes CNI bundle fo
 .PHONY: cloud-images
 cloud-images: ## Uploads cloud images (AMIs, etc.) to the cloud registry.
 	@docker run --rm -v $(PWD):/src -w /src \
-		-e TAG=$(TAG) -e ARTIFACTS=$(ARTIFACTS) -e ABBREV_TAG=$(ABBREV_TAG) \
+		-e ABBREV_TAG=$(ABBREV_TAG) \
 		-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY \
 		-e GOOGLE_PROJECT_ID -e GOOGLE_CREDENTIALS \
 		golang:$(GO_VERSION) \
-		./hack/cloud-image-uploader.sh $(CLOUD_IMAGES_EXTRA_ARGS)
+		go tool github.com/siderolabs/talos/tools/cloud-image-uploader --artifacts-path=$(ARTIFACTS) --tag=$(TAG) $(CLOUD_IMAGES_EXTRA_ARGS)
 
 .PHONY: uki-certs
 uki-certs: talosctl ## Generate test certificates for SecureBoot/PCR Signing
@@ -551,9 +550,6 @@ lint-fmt: ## Run all linter formatters and fix up the source tree.
 check-dirty: ## Verifies that source tree is not dirty
 	@if test -n "`git status --porcelain`"; then echo "Source tree is dirty"; git status; git diff; exit 1 ; fi
 
-go-mod-outdated: ## Runs the go-mod-oudated to show outdated dependencies.
-	@$(MAKE) target-go-mod-outdated PLATFORM=linux/$(ARCH)
-
 # Tests
 
 .PHONY: unit-tests
@@ -568,14 +564,16 @@ unit-tests-race: ## Performs unit tests with race detection enabled.
 unit-tests-fips: ## Performs unit tests with FIPS strict mode.
 	@$(MAKE) target-$@ TARGET_ARGS="--allow security.insecure" PLATFORM=linux/$(ARCH)
 
-$(ARTIFACTS)/$(INTEGRATION_TEST_DEFAULT_TARGET)-amd64:
-	@$(MAKE) local-$(INTEGRATION_TEST_DEFAULT_TARGET)-amd64 DEST=$(ARTIFACTS) PLATFORM=linux/amd64 WITH_RACE=true PUSH=false
+$(INTEGRATION_TEST)-linux-amd64:
+	@$(MAKE) local-$(INTEGRATION_TEST)-linux-amd64 DEST=$(ARTIFACTS) PLATFORM=linux/amd64 WITH_RACE=true PUSH=false
 
-$(ARTIFACTS)/$(INTEGRATION_TEST_DEFAULT_TARGET)-arm64:
-	@$(MAKE) local-$(INTEGRATION_TEST_DEFAULT_TARGET)-arm64 DEST=$(ARTIFACTS) PLATFORM=linux/arm64 WITH_RACE=true PUSH=false
+$(INTEGRATION_TEST)-linux-arm64:
+	@$(MAKE) local-$(INTEGRATION_TEST)-linux-arm64 DEST=$(ARTIFACTS) PLATFORM=linux/arm64 WITH_RACE=true PUSH=false
 
-$(ARTIFACTS)/$(INTEGRATION_TEST):
-	@$(MAKE) local-$(INTEGRATION_TEST)-targetarch DEST=$(ARTIFACTS)
+$(INTEGRATION_TEST)-darwin-arm64:
+	@$(MAKE) local-$(INTEGRATION_TEST)-darwin-arm64 DEST=$(ARTIFACTS) PUSH=false
+
+$(INTEGRATION_TEST): $(INTEGRATION_TEST)-$(OPERATING_SYSTEM)-$(ARCH) ## Builds the integration test binary for the host OS/arch.
 
 $(ARTIFACTS)/$(INTEGRATION_TEST_PROVISION_DEFAULT_TARGET)-amd64:
 	@$(MAKE) local-$(INTEGRATION_TEST_PROVISION_DEFAULT_TARGET) DEST=$(ARTIFACTS) PLATFORM=linux/amd64 WITH_RACE=true
@@ -598,7 +596,7 @@ $(ARTIFACTS)/cilium: | $(ARTIFACTS)
 
 external-artifacts: $(ARTIFACTS)/kubectl $(ARTIFACTS)/kubestr $(ARTIFACTS)/helm $(ARTIFACTS)/cilium
 
-e2e-%: $(ARTIFACTS)/$(INTEGRATION_TEST_DEFAULT_TARGET)-amd64 external-artifacts ## Runs the E2E test for the specified platform (e.g. e2e-docker).
+e2e-%: $(INTEGRATION_TEST) external-artifacts ## Runs the E2E test for the specified platform (e.g. e2e-docker).
 	@$(MAKE) hack-test-$@ \
 		PLATFORM=$* \
 		TAG=$(TAG) \
@@ -607,8 +605,8 @@ e2e-%: $(ARTIFACTS)/$(INTEGRATION_TEST_DEFAULT_TARGET)-amd64 external-artifacts 
 		IMAGE=$(REGISTRY_AND_USERNAME)/talos$(IMAGE_NAME_SUFFIX):$(IMAGE_TAG_IN) \
 		INSTALLER_IMAGE=$(REGISTRY_AND_USERNAME)/installer$(IMAGE_NAME_SUFFIX):$(IMAGE_TAG_IN) \
 		ARTIFACTS=$(ARTIFACTS) \
-		TALOSCTL=$(PWD)/$(ARTIFACTS)/$(TALOSCTL_DEFAULT_TARGET)-amd64 \
-		INTEGRATION_TEST=$(PWD)/$(ARTIFACTS)/$(INTEGRATION_TEST_DEFAULT_TARGET)-amd64 \
+		TALOSCTL=$(TALOSCTL_EXECUTABLE) \
+		INTEGRATION_TEST=$(PWD)/$(ARTIFACTS)/$(INTEGRATION_TEST)-$(OPERATING_SYSTEM)-$(ARCH) \
 		SHORT_INTEGRATION_TEST=$(SHORT_INTEGRATION_TEST) \
 		CUSTOM_CNI_URL=$(CUSTOM_CNI_URL) \
 		KUBECTL=$(PWD)/$(ARTIFACTS)/kubectl \

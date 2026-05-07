@@ -70,7 +70,7 @@ ARG PKG_ZSTD=scratch
 
 ARG EMBED_TARGET=embed
 
-# Resolve package images using ${PKGS} to be used later in COPY --from=.
+# Resolve package images using ${PKGS} to be used later in COPY --link --from=.
 
 FROM ${PKG_FHS} AS pkg-fhs
 FROM ${PKG_CA_CERTIFICATES} AS pkg-ca-certificates
@@ -226,20 +226,20 @@ FROM --platform=arm64 ${TOOLS_PREFIX}:${TOOLS} AS tools-arm64
 # Strip CNI package.
 
 FROM scratch AS pkg-cni-stripped-amd64
-COPY --from=pkg-cni-amd64 /opt/cni/bin/bridge /opt/cni/bin/bridge
-COPY --from=pkg-cni-amd64 /opt/cni/bin/firewall /opt/cni/bin/firewall
-COPY --from=pkg-cni-amd64 /opt/cni/bin/host-local /opt/cni/bin/host-local
-COPY --from=pkg-cni-amd64 /opt/cni/bin/loopback /opt/cni/bin/loopback
-COPY --from=pkg-cni-amd64 /opt/cni/bin/portmap /opt/cni/bin/portmap
-COPY --from=pkg-cni-amd64 /usr/share/spdx/cni.spdx.json /usr/share/spdx/cni.spdx.json
+COPY --link --from=pkg-cni-amd64 /opt/cni/bin/bridge /opt/cni/bin/bridge
+COPY --link --from=pkg-cni-amd64 /opt/cni/bin/firewall /opt/cni/bin/firewall
+COPY --link --from=pkg-cni-amd64 /opt/cni/bin/host-local /opt/cni/bin/host-local
+COPY --link --from=pkg-cni-amd64 /opt/cni/bin/loopback /opt/cni/bin/loopback
+COPY --link --from=pkg-cni-amd64 /opt/cni/bin/portmap /opt/cni/bin/portmap
+COPY --link --from=pkg-cni-amd64 /usr/share/spdx/cni.spdx.json /usr/share/spdx/cni.spdx.json
 
 FROM scratch AS pkg-cni-stripped-arm64
-COPY --from=pkg-cni-arm64 /opt/cni/bin/bridge /opt/cni/bin/bridge
-COPY --from=pkg-cni-arm64 /opt/cni/bin/firewall /opt/cni/bin/firewall
-COPY --from=pkg-cni-arm64 /opt/cni/bin/host-local /opt/cni/bin/host-local
-COPY --from=pkg-cni-arm64 /opt/cni/bin/loopback /opt/cni/bin/loopback
-COPY --from=pkg-cni-arm64 /opt/cni/bin/portmap /opt/cni/bin/portmap
-COPY --from=pkg-cni-arm64 /usr/share/spdx/cni.spdx.json /usr/share/spdx/cni.spdx.json
+COPY --link --from=pkg-cni-arm64 /opt/cni/bin/bridge /opt/cni/bin/bridge
+COPY --link --from=pkg-cni-arm64 /opt/cni/bin/firewall /opt/cni/bin/firewall
+COPY --link --from=pkg-cni-arm64 /opt/cni/bin/host-local /opt/cni/bin/host-local
+COPY --link --from=pkg-cni-arm64 /opt/cni/bin/loopback /opt/cni/bin/loopback
+COPY --link --from=pkg-cni-arm64 /opt/cni/bin/portmap /opt/cni/bin/portmap
+COPY --link --from=pkg-cni-arm64 /usr/share/spdx/cni.spdx.json /usr/share/spdx/cni.spdx.json
 
 FROM ${PKG_TALOSCTL_CNI_BUNDLE} AS pkgs-talosctl-cni-bundle
 
@@ -265,8 +265,6 @@ ENV GOCACHE=/.cache/go-build
 ENV GOMODCACHE=/.cache/mod
 ARG SOURCE_DATE_EPOCH
 ENV SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}
-# Go standard library is shipped with Talos, thus it must be tracked in SBOM
-COPY --link --from=tools /usr/share/spdx/golang.spdx.json /rootfs/usr/share/spdx/golang.spdx.json
 WORKDIR /src
 
 # The build-go target creates a container to build Go code with Go modules downloaded and verified.
@@ -274,7 +272,6 @@ WORKDIR /src
 FROM build AS build-go
 COPY ./go.mod ./go.sum ./go.work ./
 COPY ./pkg/machinery/go.mod ./pkg/machinery/go.sum ./pkg/machinery/
-COPY ./hack/cloud-image-uploader/go.mod ./hack/cloud-image-uploader/go.sum ./hack/cloud-image-uploader/
 COPY ./tools ./tools
 WORKDIR /src
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go mod download
@@ -282,7 +279,8 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache go mod verify
 
 # The generate target generates code from protobuf service definitions and machinery config.
 
-FROM build AS embed-generate
+FROM tools AS embed-generate
+WORKDIR /src
 ARG NAME
 ARG SHA
 ARG USERNAME
@@ -304,7 +302,7 @@ RUN mkdir -p pkg/machinery/gendata/data && \
     echo -n ${ARTIFACTS} > pkg/machinery/gendata/data/artifacts
 
 FROM scratch AS embed
-COPY --from=embed-generate /src/pkg/machinery/gendata/data /pkg/machinery/gendata/data
+COPY --link --from=embed-generate /src/pkg/machinery/gendata/data /pkg/machinery/gendata/data
 
 FROM embed-generate AS embed-abbrev-generate
 ARG ABBREV_TAG
@@ -316,8 +314,8 @@ RUN mkdir -p _out && \
     echo TAG=${TAG} >> _out/talos-metadata
 
 FROM scratch AS embed-abbrev
-COPY --from=embed-abbrev-generate /src/pkg/machinery/gendata/data /pkg/machinery/gendata/data
-COPY --from=embed-abbrev-generate /src/_out/talos-metadata /_out/talos-metadata
+COPY --link --from=embed-abbrev-generate /src/pkg/machinery/gendata/data /pkg/machinery/gendata/data
+COPY --link --from=embed-abbrev-generate /src/_out/talos-metadata /_out/talos-metadata
 
 FROM ${EMBED_TARGET} AS embed-target
 
@@ -329,7 +327,7 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/bufbuil
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/bufbuild/buf/cmd/buf build --exclude-source-info -o lock.binpb
 
 FROM --platform=${BUILDPLATFORM} scratch AS api-descriptors
-COPY --from=api-descriptors-build /src/api/lock.binpb /api/lock.binpb
+COPY --link --from=api-descriptors-build /src/api/lock.binpb /api/lock.binpb
 
 # format protobuf service definitions
 FROM build-go AS proto-format-build
@@ -338,13 +336,13 @@ COPY api .
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/bufbuild/buf/cmd/buf format
 
 FROM --platform=${BUILDPLATFORM} scratch AS fmt-protobuf
-COPY --from=proto-format-build /src/api/ /api/
+COPY --link --from=proto-format-build /src/api/ /api/
 
 # run docgen for machinery config
 FROM build-go AS go-generate
 COPY ./pkg ./pkg
 COPY ./hack/boilerplate.txt ./hack/boilerplate.txt
-COPY --from=embed-target / ./
+COPY --link --from=embed-target / ./
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go generate ./pkg/...
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool golang.org/x/tools/cmd/goimports -w -local github.com/siderolabs/talos ./pkg/
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool mvdan.cc/gofumpt -w ./pkg/
@@ -360,8 +358,8 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/siderol
 
 # compile protobuf service definitions
 FROM build-go AS generate-build
-COPY --from=proto-format-build /src/api /src/api/
-COPY --from=gen-proto-go /api/resource/definitions/ /src/api/resource/definitions/
+COPY --link --from=proto-format-build /src/api /src/api/
+COPY --link --from=gen-proto-go /api/resource/definitions/ /src/api/resource/definitions/
 WORKDIR /src/api
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/bufbuild/buf/cmd/buf build
 RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/bufbuild/buf/cmd/buf generate
@@ -370,48 +368,49 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool golang.org/x/tools
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool mvdan.cc/gofumpt -w /src/api/machinery/
 
 FROM scratch AS generate-build-clean
-COPY --from=generate-build /src/api /api/
+COPY --link --from=generate-build /src/api /api/
 
 FROM tools AS selinux
-COPY ./internal/pkg/selinux/policy/* /selinux/
-RUN mkdir /policy; secilc -o /policy/policy.33 -f /policy/file_contexts -c 33 /selinux/**/*.cil -vvvvv -O
+RUN --mount=type=bind,source=internal/pkg/selinux/policy/selinux,target=/selinux \
+    mkdir /policy; secilc -o /policy/policy.33 -f /policy/file_contexts -c 33 /selinux/**/*.cil -vvvvv -O
 
 FROM scratch AS selinux-generate
-COPY --from=selinux /policy /policy
+COPY --link --from=selinux /policy /policy
 
 FROM scratch AS ipxe-generate
-COPY --from=pkg-ipxe-amd64 /usr/libexec/snp.efi /amd64/snp.efi
-COPY --from=pkg-ipxe-arm64 /usr/libexec/snp.efi /arm64/snp.efi
+COPY --link --from=pkg-ipxe-amd64 /usr/libexec/snp.efi /amd64/snp.efi
+COPY --link --from=pkg-ipxe-arm64 /usr/libexec/snp.efi /arm64/snp.efi
 
 FROM scratch AS microsoft-secureboot-database
 ARG MICROSOFT_SECUREBOOT_RELEASE
 ADD https://github.com/microsoft/secureboot_objects.git#${MICROSOFT_SECUREBOOT_RELEASE}:PreSignedObjects /
 
 FROM scratch AS microsoft-key-keys
-COPY --from=microsoft-secureboot-database /KEK/Certificates/*.der /kek/
+COPY --link --from=microsoft-secureboot-database /KEK/Certificates/*.der /kek/
 
 FROM scratch AS microsoft-db-keys
-COPY --from=microsoft-secureboot-database /DB/Certificates/MicCor*.der /db/
-COPY --from=microsoft-secureboot-database /DB/Certificates/microsoft*.der /db/
+COPY --link --from=microsoft-secureboot-database /DB/Certificates/MicCor*.der /db/
+COPY --link --from=microsoft-secureboot-database /DB/Certificates/microsoft*.der /db/
 
 FROM --platform=${BUILDPLATFORM} scratch AS generate
-COPY --from=proto-format-build /src/api /api/
-COPY --from=generate-build-clean /api/resource/definitions/ /api/resource/definitions/
-COPY --from=generate-build-clean /api/machinery /pkg/machinery/
-COPY --from=go-generate /src/pkg/imager/profile/ /pkg/imager/profile/
-COPY --from=go-generate /src/pkg/machinery/resources/ /pkg/machinery/resources/
-COPY --from=go-generate /src/pkg/machinery/config/schemas/ /pkg/machinery/config/schemas/
-COPY --from=go-generate /src/pkg/machinery/config/types/ /pkg/machinery/config/types/
-COPY --from=go-generate /src/pkg/machinery/imager/imageropts/ /pkg/machinery/imager/imageropts/
-COPY --from=go-generate /src/pkg/machinery/nethelpers/ /pkg/machinery/nethelpers/
-COPY --from=go-generate /src/pkg/machinery/extensions/ /pkg/machinery/extensions/
-COPY --from=go-generate /src/pkg/machinery/version/os-release /pkg/machinery/version/os-release
-COPY --from=ipxe-generate / /pkg/provision/providers/vm/internal/ipxe/data/ipxe/
-COPY --from=selinux-generate / /internal/pkg/selinux/
-COPY --from=embed-abbrev / /
-COPY --from=pkg-ca-certificates /etc/ssl/certs/ca-certificates /internal/app/machined/pkg/controllers/secrets/data/
-COPY --from=microsoft-key-keys / /internal/pkg/secureboot/database/certs/
-COPY --from=microsoft-db-keys / /internal/pkg/secureboot/database/certs/
+COPY --link --from=proto-format-build /src/api /api/
+COPY --link --from=generate-build-clean /api/resource/definitions/ /api/resource/definitions/
+COPY --link --from=generate-build-clean /api/machinery /pkg/machinery/
+COPY --link --from=generate-build-clean /api/docs/api.md /website/content/v1.14/reference/api.md
+COPY --link --from=go-generate /src/pkg/imager/profile/ /pkg/imager/profile/
+COPY --link --from=go-generate /src/pkg/machinery/resources/ /pkg/machinery/resources/
+COPY --link --from=go-generate /src/pkg/machinery/config/schemas/ /pkg/machinery/config/schemas/
+COPY --link --from=go-generate /src/pkg/machinery/config/types/ /pkg/machinery/config/types/
+COPY --link --from=go-generate /src/pkg/machinery/imager/imageropts/ /pkg/machinery/imager/imageropts/
+COPY --link --from=go-generate /src/pkg/machinery/nethelpers/ /pkg/machinery/nethelpers/
+COPY --link --from=go-generate /src/pkg/machinery/extensions/ /pkg/machinery/extensions/
+COPY --link --from=go-generate /src/pkg/machinery/version/os-release /pkg/machinery/version/os-release
+COPY --link --from=ipxe-generate / /pkg/provision/providers/vm/internal/ipxe/data/ipxe/
+COPY --link --from=selinux-generate / /internal/pkg/selinux/
+COPY --link --from=embed-abbrev / /
+COPY --link --from=pkg-ca-certificates /etc/ssl/certs/ca-certificates /internal/app/machined/pkg/controllers/secrets/data/
+COPY --link --from=microsoft-key-keys / /internal/pkg/secureboot/database/certs/
+COPY --link --from=microsoft-db-keys / /internal/pkg/secureboot/database/certs/
 
 # The base target provides a container that can be used to build all Talos
 # assets.
@@ -420,7 +419,7 @@ FROM build-go AS base
 COPY ./cmd ./cmd
 COPY ./pkg ./pkg
 COPY ./internal ./internal
-COPY --from=embed / ./
+COPY --link --from=embed / ./
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go list all >/dev/null
 WORKDIR /src/pkg/machinery
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go list all >/dev/null
@@ -430,8 +429,7 @@ WORKDIR /src
 # The vulncheck target runs the vulnerability check tool.
 
 FROM base AS lint-vulncheck
-COPY .disvulncheck.yaml .
-RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/shanduur/dis-vulncheck ./...
+RUN --mount=type=bind,source=.disvulncheck.yaml,target=/src/.disvulncheck.yaml --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/shanduur/dis-vulncheck ./...
 
 # The lint-deadcode target runs the deadcode elimination check.
 FROM base AS lint-deadcode
@@ -468,7 +466,7 @@ RUN chmod +x /init
 FROM init-build-${TARGETARCH} AS init-build
 
 FROM scratch AS init
-COPY --from=init-build /init /init
+COPY --link --from=init-build /init /init
 
 # The machined target builds the machined binary.
 
@@ -492,7 +490,7 @@ RUN chmod +x /machined
 FROM machined-build-${TARGETARCH} AS machined-build
 
 FROM scratch AS machined
-COPY --from=machined-build /machined /machined
+COPY --link --from=machined-build /machined /machined
 
 # The labeled-squashfs target builds a build-time helper that walks the rootfs,
 # resolves each path's SELinux context against file_contexts, and invokes
@@ -588,52 +586,52 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache GOOS=freebsd GOARCH=arm64 
 RUN touch --date="@${SOURCE_DATE_EPOCH}" /talosctl-freebsd-arm64
 
 FROM scratch AS talosctl-linux-amd64
-COPY --from=talosctl-linux-amd64-build /talosctl-linux-amd64 /talosctl-linux-amd64
+COPY --link --from=talosctl-linux-amd64-build /talosctl-linux-amd64 /talosctl-linux-amd64
 
 FROM scratch AS talosctl-linux-arm64
-COPY --from=talosctl-linux-arm64-build /talosctl-linux-arm64 /talosctl-linux-arm64
+COPY --link --from=talosctl-linux-arm64-build /talosctl-linux-arm64 /talosctl-linux-arm64
 
 FROM scratch AS talosctl-linux-armv7
-COPY --from=talosctl-linux-armv7-build /talosctl-linux-armv7 /talosctl-linux-armv7
+COPY --link --from=talosctl-linux-armv7-build /talosctl-linux-armv7 /talosctl-linux-armv7
 
 FROM scratch AS talosctl-linux-riscv64
-COPY --from=talosctl-linux-riscv64-build /talosctl-linux-riscv64 /talosctl-linux-riscv64
+COPY --link --from=talosctl-linux-riscv64-build /talosctl-linux-riscv64 /talosctl-linux-riscv64
 
 FROM scratch AS talosctl-darwin-amd64
-COPY --from=talosctl-darwin-amd64-build /talosctl-darwin-amd64 /talosctl-darwin-amd64
+COPY --link --from=talosctl-darwin-amd64-build /talosctl-darwin-amd64 /talosctl-darwin-amd64
 
 FROM scratch AS talosctl-darwin-arm64
-COPY --from=talosctl-darwin-arm64-build /talosctl-darwin-arm64 /talosctl-darwin-arm64
+COPY --link --from=talosctl-darwin-arm64-build /talosctl-darwin-arm64 /talosctl-darwin-arm64
 
 FROM scratch AS talosctl-freebsd-amd64
-COPY --from=talosctl-freebsd-amd64-build /talosctl-freebsd-amd64 /talosctl-freebsd-amd64
+COPY --link --from=talosctl-freebsd-amd64-build /talosctl-freebsd-amd64 /talosctl-freebsd-amd64
 
 FROM scratch AS talosctl-freebsd-arm64
-COPY --from=talosctl-freebsd-arm64-build /talosctl-freebsd-arm64 /talosctl-freebsd-arm64
+COPY --link --from=talosctl-freebsd-arm64-build /talosctl-freebsd-arm64 /talosctl-freebsd-arm64
 
 FROM scratch AS talosctl-windows-amd64
-COPY --from=talosctl-windows-amd64-build /talosctl-windows-amd64.exe /talosctl-windows-amd64.exe
+COPY --link --from=talosctl-windows-amd64-build /talosctl-windows-amd64.exe /talosctl-windows-amd64.exe
 
 FROM scratch AS talosctl-windows-arm64
-COPY --from=talosctl-windows-arm64-build /talosctl-windows-arm64.exe /talosctl-windows-arm64.exe
+COPY --link --from=talosctl-windows-arm64-build /talosctl-windows-arm64.exe /talosctl-windows-arm64.exe
 
 FROM --platform=${BUILDPLATFORM} talosctl-${TARGETOS}-${TARGETARCH} AS talosctl-targetarch
 
 FROM scratch AS talosctl-all
-COPY --from=talosctl-linux-amd64 / /
-COPY --from=talosctl-linux-arm64 / /
-COPY --from=talosctl-linux-armv7 / /
-COPY --from=talosctl-linux-riscv64 / /
-COPY --from=talosctl-darwin-amd64 / /
-COPY --from=talosctl-darwin-arm64 / /
-COPY --from=talosctl-freebsd-amd64 / /
-COPY --from=talosctl-freebsd-arm64 / /
-COPY --from=talosctl-windows-amd64 / /
-COPY --from=talosctl-windows-arm64 / /
+COPY --link --from=talosctl-linux-amd64 / /
+COPY --link --from=talosctl-linux-arm64 / /
+COPY --link --from=talosctl-linux-armv7 / /
+COPY --link --from=talosctl-linux-riscv64 / /
+COPY --link --from=talosctl-darwin-amd64 / /
+COPY --link --from=talosctl-darwin-arm64 / /
+COPY --link --from=talosctl-freebsd-amd64 / /
+COPY --link --from=talosctl-freebsd-arm64 / /
+COPY --link --from=talosctl-windows-amd64 / /
+COPY --link --from=talosctl-windows-arm64 / /
 
 FROM scratch AS talosctl
 ARG TARGETARCH
-COPY --from=talosctl-all /talosctl-linux-${TARGETARCH} /talosctl
+COPY --link --from=talosctl-all /talosctl-linux-${TARGETARCH} /talosctl
 ARG TAG
 ENV VERSION=${TAG}
 LABEL "alpha.talos.dev/version"="${VERSION}"
@@ -643,24 +641,23 @@ ENTRYPOINT ["/talosctl"]
 # The kernel target is the linux kernel.
 FROM scratch AS kernel
 ARG TARGETARCH
-COPY --from=pkg-kernel /boot/vmlinuz /vmlinuz-${TARGETARCH}
+COPY --link --from=pkg-kernel /boot/vmlinuz /vmlinuz-${TARGETARCH}
 
 # The sd-boot target is the systemd-boot asset.
 FROM scratch AS sd-boot
 ARG TARGETARCH
-COPY --from=pkg-sd-boot /*.efi /sd-boot-${TARGETARCH}.efi
+COPY --link --from=pkg-sd-boot /*.efi /sd-boot-${TARGETARCH}.efi
 
 # The sd-stub target is the systemd-stub asset.
 FROM scratch AS sd-stub
 ARG TARGETARCH
-COPY --from=pkg-sd-boot /*.efi.stub /sd-stub-${TARGETARCH}.efi
+COPY --link --from=pkg-sd-boot /*.efi.stub /sd-stub-${TARGETARCH}.efi
 
 FROM tools AS depmod-amd64
 WORKDIR /staging
-COPY hack/modules-amd64.txt .
-COPY --from=pkg-kernel-amd64 /usr/lib/modules usr/lib/modules
-COPY --from=pkg-kernel-amd64 /boot/System.map /staging
-RUN <<EOF
+COPY --link --from=pkg-kernel-amd64 /usr/lib/modules usr/lib/modules
+COPY --link --from=pkg-kernel-amd64 /boot/System.map /staging/
+RUN --mount=type=bind,source=hack/modules-amd64.txt,target=/staging/modules-amd64.txt <<EOF
 set -euo pipefail
 
 KERNEL_VERSION=$(ls usr/lib/modules)
@@ -681,14 +678,13 @@ fi
 EOF
 
 FROM scratch AS modules-amd64
-COPY --from=depmod-amd64 /build/usr/lib/modules /usr/lib/modules
+COPY --link --from=depmod-amd64 /build/usr/lib/modules /usr/lib/modules
 
 FROM tools AS depmod-arm64
 WORKDIR /staging
-COPY hack/modules-arm64.txt .
-COPY --from=pkg-kernel-arm64 /usr/lib/modules usr/lib/modules
-COPY --from=pkg-kernel-arm64 /boot/System.map /staging
-RUN <<EOF
+COPY --link --from=pkg-kernel-arm64 /usr/lib/modules usr/lib/modules
+COPY --link --from=pkg-kernel-arm64 /boot/System.map /staging/
+RUN --mount=type=bind,source=hack/modules-arm64.txt,target=/staging/modules-arm64.txt <<EOF
 set -euo pipefail
 
 KERNEL_VERSION=$(ls usr/lib/modules)
@@ -709,10 +705,11 @@ fi
 EOF
 
 FROM scratch AS modules-arm64
-COPY --from=depmod-arm64 /build/usr/lib/modules /usr/lib/modules
+COPY --link --from=depmod-arm64 /build/usr/lib/modules /usr/lib/modules
 
 # The rootfs target provides the Talos rootfs.
-FROM build AS rootfs-base-amd64
+FROM tools AS rootfs-base-amd64
+SHELL ["/bin/bash", "-c"]
 COPY --link --from=pkg-fhs / /rootfs
 COPY --link --from=pkg-apparmor-amd64 / /rootfs
 COPY --link --from=pkg-cni-stripped-amd64 / /rootfs
@@ -769,12 +766,13 @@ RUN <<END
 END
 # NB: We run the cleanup step before creating extra directories, files, and
 # symlinks to avoid accidentally cleaning them up.
-COPY ./hack/cleanup.sh /usr/bin/cleanup.sh
-RUN <<END
+RUN --mount=type=bind,source=hack/cleanup.sh,target=/usr/bin/cleanup.sh <<END
     cleanup.sh /rootfs
     mkdir -pv /rootfs/{boot/EFI,etc/{iscsi,nvme,cri/conf.d/hosts},usr/lib/firmware,usr/etc,usr/local/share,usr/share/zoneinfo/Etc,mnt,system,opt,.extra}
     mkdir -pv /rootfs/{etc/kubernetes/manifests,etc/cni/net.d,etc/ssl/certs,usr/libexec/kubernetes,/usr/local/lib/kubelet/credentialproviders,etc/selinux/targeted/contexts/files}
     mkdir -pv /rootfs/opt/{containerd/bin,containerd/lib}
+    # Go standard library is shipped with Talos, thus it must be tracked in SBOM
+    install -D /usr/share/spdx/golang.spdx.json /rootfs/usr/share/spdx/golang.spdx.json
 END
 COPY --chmod=0644 hack/zoneinfo/Etc/UTC /rootfs/usr/share/zoneinfo/Etc/UTC
 COPY --chmod=0644 hack/nfsmount.conf /rootfs/etc/nfsmount.conf
@@ -784,7 +782,7 @@ COPY --chmod=0644 hack/cri-plugin.part /rootfs/etc/cri/conf.d/00-base.part
 COPY --chmod=0644 hack/udevd/99-default.link /rootfs/usr/lib/systemd/network/
 COPY --chmod=0644 hack/udevd/40-vm-hotadd.rules hack/udevd/90-selinux.rules /rootfs/usr/lib/udev/rules.d/
 COPY --chmod=0644 hack/lvm.conf /rootfs/etc/lvm/lvm.conf
-COPY --chmod=0644 --from=base /src/pkg/machinery/version/os-release /rootfs/etc/os-release
+COPY --link --chmod=0644 --from=base /src/pkg/machinery/version/os-release /rootfs/etc/os-release
 RUN <<END
     ln -s /usr/share/zoneinfo/Etc/UTC /rootfs/etc/localtime
     touch /rootfs/etc/{extensions.yaml,resolv.conf,hosts,machine-id,cri/conf.d/cri.toml,cri/conf.d/01-registries.part,cri/conf.d/20-customization.part,cri/conf.d/base-spec.json,ssl/certs/ca-certificates.crt,selinux/targeted/contexts/files/file_contexts,iscsi/initiatorname.iscsi,nvme/{hostid,hostnqn}}
@@ -795,7 +793,8 @@ RUN <<END
     ln -s /etc/ssl /rootfs/etc/ca-certificates
 END
 
-FROM build AS rootfs-base-arm64
+FROM tools AS rootfs-base-arm64
+SHELL ["/bin/bash", "-c"]
 COPY --link --from=pkg-fhs / /rootfs
 COPY --link --from=pkg-apparmor-arm64 / /rootfs
 COPY --link --from=pkg-cni-stripped-arm64 / /rootfs
@@ -853,12 +852,13 @@ RUN <<END
 END
 # NB: We run the cleanup step before creating extra directories, files, and
 # symlinks to avoid accidentally cleaning them up.
-COPY ./hack/cleanup.sh /usr/bin/cleanup.sh
-RUN <<END
+RUN --mount=type=bind,source=hack/cleanup.sh,target=/usr/bin/cleanup.sh <<END
     cleanup.sh /rootfs
     mkdir -pv /rootfs/{boot/EFI,etc/{iscsi,nvme,cri/conf.d/hosts},usr/lib/firmware,usr/etc,usr/local/share,usr/share/zoneinfo/Etc,mnt,system,opt,.extra}
     mkdir -pv /rootfs/{etc/kubernetes/manifests,etc/cni/net.d,etc/ssl/certs,usr/libexec/kubernetes,/usr/local/lib/kubelet/credentialproviders,etc/selinux/targeted/contexts/files}
     mkdir -pv /rootfs/opt/{containerd/bin,containerd/lib}
+    # Go standard library is shipped with Talos, thus it must be tracked in SBOM
+    install -D /usr/share/spdx/golang.spdx.json /rootfs/usr/share/spdx/golang.spdx.json
 END
 COPY --chmod=0644 hack/zoneinfo/Etc/UTC /rootfs/usr/share/zoneinfo/Etc/UTC
 COPY --chmod=0644 hack/nfsmount.conf /rootfs/etc/nfsmount.conf
@@ -868,7 +868,7 @@ COPY --chmod=0644 hack/cri-plugin.part /rootfs/etc/cri/conf.d/00-base.part
 COPY --chmod=0644 hack/udevd/99-default.link /rootfs/usr/lib/systemd/network/
 COPY --chmod=0644 hack/udevd/40-vm-hotadd.rules hack/udevd/90-selinux.rules /rootfs/usr/lib/udev/rules.d/
 COPY --chmod=0644 hack/lvm.conf /rootfs/etc/lvm/lvm.conf
-COPY --chmod=0644 --from=base /src/pkg/machinery/version/os-release /rootfs/etc/os-release
+COPY --link --chmod=0644 --from=base /src/pkg/machinery/version/os-release /rootfs/etc/os-release
 RUN <<END
     ln -s /usr/share/zoneinfo/Etc/UTC /rootfs/etc/localtime
     touch /rootfs/etc/{extensions.yaml,resolv.conf,hosts,machine-id,cri/conf.d/cri.toml,cri/conf.d/01-registries.part,cri/conf.d/20-customization.part,cri/conf.d/base-spec.json,ssl/certs/ca-certificates.crt,selinux/targeted/contexts/files/file_contexts,iscsi/initiatorname.iscsi,nvme/{hostid,hostnqn}}
@@ -885,46 +885,75 @@ ENV SYFT_FORMAT_SPDX_JSON_CREATED_TIME=${SOURCE_DATE_EPOCH}
 ARG NAME
 ARG TAG
 
-COPY ./hack/sbom.sh /usr/bin/sbom.sh
-
-RUN mkdir -p /tmp/sbom-src /rootfs/usr/share/spdx
-RUN cp go.mod go.sum /tmp/sbom-src/
-
 FROM build-sbom AS sbom-container-arm64-generate
-COPY --from=rootfs-base-arm64 /rootfs/usr/share/spdx /tmp/sbom-src/
-RUN --mount=type=cache,target=/.cache,id=talos/.cache sbom.sh /tmp/sbom-src/ talos-container-arm64.spdx.json
+RUN --mount=type=tmpfs,target=/tmp/sbom-src \
+    --mount=type=bind,from=rootfs-base-arm64,source=/rootfs/usr/share/spdx,target=/mnt/spdx \
+    --mount=type=bind,source=hack/sbom.sh,target=/usr/bin/sbom.sh \
+    --mount=type=cache,target=/.cache,id=talos/.cache <<EOF
+set -euo pipefail
+mkdir -p /rootfs/usr/share/spdx
+cp -r /mnt/spdx/. /tmp/sbom-src/
+cp go.mod go.sum /tmp/sbom-src/
+sbom.sh /tmp/sbom-src/ talos-container-arm64.spdx.json
+EOF
 
 FROM scratch AS sbom-container-arm64
-COPY --from=sbom-container-arm64-generate /rootfs/usr/share/spdx/talos-container-arm64.spdx.json /
+COPY --link --from=sbom-container-arm64-generate /rootfs/usr/share/spdx/talos-container-arm64.spdx.json /
 
 FROM build-sbom AS sbom-container-amd64-generate
-COPY --from=rootfs-base-amd64 /rootfs/usr/share/spdx /tmp/sbom-src/
-RUN --mount=type=cache,target=/.cache,id=talos/.cache sbom.sh /tmp/sbom-src/ talos-container-amd64.spdx.json
+RUN --mount=type=tmpfs,target=/tmp/sbom-src \
+    --mount=type=bind,from=rootfs-base-amd64,source=/rootfs/usr/share/spdx,target=/mnt/spdx \
+    --mount=type=bind,source=hack/sbom.sh,target=/usr/bin/sbom.sh \
+    --mount=type=cache,target=/.cache,id=talos/.cache <<EOF
+set -euo pipefail
+mkdir -p /rootfs/usr/share/spdx
+cp -r /mnt/spdx/. /tmp/sbom-src/
+cp go.mod go.sum /tmp/sbom-src/
+sbom.sh /tmp/sbom-src/ talos-container-amd64.spdx.json
+EOF
 
 FROM scratch AS sbom-container-amd64
-COPY --from=sbom-container-amd64-generate /rootfs/usr/share/spdx/talos-container-amd64.spdx.json /
+COPY --link --from=sbom-container-amd64-generate /rootfs/usr/share/spdx/talos-container-amd64.spdx.json /
 
 FROM build-sbom AS sbom-arm64-generate
-COPY --from=rootfs-base-arm64 /rootfs/usr/share/spdx /tmp/sbom-src/
-COPY --from=pkg-kernel-arm64 /usr/share/spdx/kernel.spdx.json /tmp/sbom-src/
-RUN --mount=type=cache,target=/.cache,id=talos/.cache sbom.sh /tmp/sbom-src/ talos-arm64.spdx.json
+RUN --mount=type=tmpfs,target=/tmp/sbom-src \
+    --mount=type=bind,from=rootfs-base-arm64,source=/rootfs/usr/share/spdx,target=/mnt/spdx \
+    --mount=type=bind,from=pkg-kernel-arm64,source=/usr/share/spdx/kernel.spdx.json,target=/mnt/kernel.spdx.json \
+    --mount=type=bind,source=hack/sbom.sh,target=/usr/bin/sbom.sh \
+    --mount=type=cache,target=/.cache,id=talos/.cache <<EOF
+set -euo pipefail
+mkdir -p /rootfs/usr/share/spdx
+cp -r /mnt/spdx/. /tmp/sbom-src/
+cp /mnt/kernel.spdx.json /tmp/sbom-src/
+cp go.mod go.sum /tmp/sbom-src/
+sbom.sh /tmp/sbom-src/ talos-arm64.spdx.json
+EOF
 
 FROM scratch AS sbom-arm64
-COPY --from=sbom-arm64-generate /rootfs/usr/share/spdx/talos-arm64.spdx.json /
+COPY --link --from=sbom-arm64-generate /rootfs/usr/share/spdx/talos-arm64.spdx.json /
 
 FROM build-sbom AS sbom-amd64-generate
-COPY --from=rootfs-base-amd64 /rootfs/usr/share/spdx /tmp/sbom-src/
-COPY --from=pkg-kernel-amd64 /usr/share/spdx/kernel.spdx.json /tmp/sbom-src/
-RUN --mount=type=cache,target=/.cache,id=talos/.cache sbom.sh /tmp/sbom-src/ talos-amd64.spdx.json
+RUN --mount=type=tmpfs,target=/tmp/sbom-src \
+    --mount=type=bind,from=rootfs-base-amd64,source=/rootfs/usr/share/spdx,target=/mnt/spdx \
+    --mount=type=bind,from=pkg-kernel-amd64,source=/usr/share/spdx/kernel.spdx.json,target=/mnt/kernel.spdx.json \
+    --mount=type=bind,source=hack/sbom.sh,target=/usr/bin/sbom.sh \
+    --mount=type=cache,target=/.cache,id=talos/.cache <<EOF
+set -euo pipefail
+mkdir -p /rootfs/usr/share/spdx
+cp -r /mnt/spdx/. /tmp/sbom-src/
+cp /mnt/kernel.spdx.json /tmp/sbom-src/
+cp go.mod go.sum /tmp/sbom-src/
+sbom.sh /tmp/sbom-src/ talos-amd64.spdx.json
+EOF
 
 FROM scratch AS sbom-amd64
-COPY --from=sbom-amd64-generate /rootfs/usr/share/spdx/talos-amd64.spdx.json /
+COPY --link --from=sbom-amd64-generate /rootfs/usr/share/spdx/talos-amd64.spdx.json /
 
 FROM scratch AS sbom
-COPY --from=sbom-container-arm64 / /
-COPY --from=sbom-container-amd64 / /
-COPY --from=sbom-arm64 / /
-COPY --from=sbom-amd64 / /
+COPY --link --from=sbom-container-arm64 / /
+COPY --link --from=sbom-container-amd64 / /
+COPY --link --from=sbom-arm64 / /
+COPY --link --from=sbom-amd64 / /
 
 FROM sbom-container-${TARGETARCH} AS sbom-container-target
 
@@ -933,37 +962,37 @@ FROM ${GENERATE_VEX_PREFIX}:${GENERATE_VEX} AS talos-vex
 
 FROM build-go AS vex-generate
 ARG TAG
-COPY --from=talos-vex /generate-vex /generate-vex
-RUN /generate-vex gen --target-version $TAG > /talos.vex.json
+RUN --mount=type=bind,from=talos-vex,source=/generate-vex,target=/generate-vex /generate-vex gen --target-version $TAG > /talos.vex.json
 # This config contains IDs of the tracked, but affected vulnerabilities.
 # Once an advisory is made, the CI should go back to passing status.
-RUN /generate-vex grype-config --target-version $TAG > /talos.grype.yaml
+RUN --mount=type=bind,from=talos-vex,source=/generate-vex,target=/generate-vex /generate-vex grype-config --target-version $TAG > /talos.grype.yaml
 
 FROM scratch AS vex
-COPY --from=vex-generate /talos.vex.json /talos.vex.json
-COPY --from=vex-generate /talos.grype.yaml /talos.grype.yaml
+COPY --link --from=vex-generate /talos.vex.json /talos.vex.json
+COPY --link --from=vex-generate /talos.grype.yaml /talos.grype.yaml
 
 FROM build-go AS grype-scan
-COPY --from=sbom-arm64 /talos-arm64.spdx.json /talos-arm64.spdx.json
-COPY --from=vex /talos.vex.json /talos.vex.json
+COPY --link --from=sbom-arm64 /talos-arm64.spdx.json /talos-arm64.spdx.json
+COPY --link --from=vex /talos.vex.json /talos.vex.json
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool \
     github.com/anchore/grype/cmd/grype sbom:/talos-arm64.spdx.json \
     --vex /talos.vex.json -vv 2>&1 | tee /grype-scan.log
 
 FROM scratch AS grype-scan-result
-COPY --from=grype-scan /grype-scan.log /grype-scan.log
+COPY --link --from=grype-scan /grype-scan.log /grype-scan.log
 
 FROM build-go AS grype-validate
-COPY --from=sbom-arm64 /talos-arm64.spdx.json /talos-arm64.spdx.json
-COPY --from=vex /talos.vex.json /talos.vex.json
-COPY --from=vex /talos.grype.yaml /talos.grype.yaml
+COPY --link --from=sbom-arm64 /talos-arm64.spdx.json /talos-arm64.spdx.json
+COPY --link --from=vex /talos.vex.json /talos.vex.json
+COPY --link --from=vex /talos.grype.yaml /talos.grype.yaml
 RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool \
     github.com/anchore/grype/cmd/grype sbom:/talos-arm64.spdx.json \
     --vex /talos.vex.json -vv --fail-on negligible --config /talos.grype.yaml
 
 FROM rootfs-base-${TARGETARCH} AS rootfs-base
+ARG SOURCE_DATE_EPOCH
 RUN rm -rf /rootfs/usr/share/spdx/*
-COPY --from=sbom-container-target / /rootfs/usr/share/spdx/
+COPY --link --from=sbom-container-target / /rootfs/usr/share/spdx/
 RUN echo "true" > /rootfs/usr/etc/in-container
 RUN rm -rf /rootfs/usr/lib/modules/*
 RUN find /rootfs -print0 \
@@ -971,36 +1000,36 @@ RUN find /rootfs -print0 \
 
 FROM rootfs-base-arm64 AS rootfs-squashfs-arm64
 RUN rm -rf /rootfs/usr/share/spdx/*
-COPY --from=sbom-arm64 / /rootfs/usr/share/spdx/
+COPY --link --from=sbom-arm64 / /rootfs/usr/share/spdx/
 ARG ZSTD_COMPRESSION_LEVEL
-COPY --from=selinux-generate /policy/file_contexts /file_contexts
+COPY --link --from=selinux-generate /policy/file_contexts /file_contexts
 RUN --mount=from=labeled-squashfs-build,source=/labeled-squashfs,target=/usr/local/bin/labeled-squashfs \
     labeled-squashfs /rootfs /rootfs.sqsh /file_contexts ${ZSTD_COMPRESSION_LEVEL}
 
 FROM rootfs-base-amd64 AS rootfs-squashfs-amd64
 RUN rm -rf /rootfs/usr/share/spdx/*
-COPY --from=sbom-amd64 / /rootfs/usr/share/spdx/
+COPY --link --from=sbom-amd64 / /rootfs/usr/share/spdx/
 ARG ZSTD_COMPRESSION_LEVEL
-COPY --from=selinux-generate /policy/file_contexts /file_contexts
+COPY --link --from=selinux-generate /policy/file_contexts /file_contexts
 RUN --mount=from=labeled-squashfs-build,source=/labeled-squashfs,target=/usr/local/bin/labeled-squashfs \
     labeled-squashfs /rootfs /rootfs.sqsh /file_contexts ${ZSTD_COMPRESSION_LEVEL}
 
 FROM scratch AS squashfs-arm64
-COPY --from=rootfs-squashfs-arm64 /rootfs.sqsh /
+COPY --link --from=rootfs-squashfs-arm64 /rootfs.sqsh /
 
 FROM scratch AS squashfs-amd64
-COPY --from=rootfs-squashfs-amd64 /rootfs.sqsh /
+COPY --link --from=rootfs-squashfs-amd64 /rootfs.sqsh /
 
 FROM scratch AS rootfs
-COPY --from=rootfs-base /rootfs /
+COPY --link --from=rootfs-base /rootfs /
 
 # The initramfs target provides the Talos initramfs image.
 
 FROM build AS initramfs-archive-arm64
 WORKDIR /initramfs
 ARG ZSTD_COMPRESSION_LEVEL
-COPY --from=squashfs-arm64 /rootfs.sqsh .
-COPY --from=init-build-arm64 /init .
+COPY --link --from=squashfs-arm64 /rootfs.sqsh .
+COPY --link --from=init-build-arm64 /init .
 RUN find . -print0 \
     | xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
 RUN set -o pipefail \
@@ -1013,8 +1042,8 @@ RUN set -o pipefail \
 FROM build AS initramfs-archive-amd64
 WORKDIR /initramfs
 ARG ZSTD_COMPRESSION_LEVEL
-COPY --from=squashfs-amd64 /rootfs.sqsh .
-COPY --from=init-build-amd64 /init .
+COPY --link --from=squashfs-amd64 /rootfs.sqsh .
+COPY --link --from=init-build-amd64 /init .
 RUN find . -print0 \
     | xargs -0r touch --no-dereference --date="@${SOURCE_DATE_EPOCH}"
 RUN set -o pipefail \
@@ -1028,13 +1057,13 @@ FROM initramfs-archive-${TARGETARCH} AS initramfs-archive
 
 FROM scratch AS initramfs
 ARG TARGETARCH
-COPY --from=initramfs-archive /initramfs.xz /initramfs-${TARGETARCH}.xz
+COPY --link --from=initramfs-archive /initramfs.xz /initramfs-${TARGETARCH}.xz
 
 # The talos target generates a docker image that can be used to run Talos
 # in containers.
 
 FROM scratch AS talos
-COPY --from=rootfs / /
+COPY --link --from=rootfs / /
 LABEL org.opencontainers.image.source=https://github.com/siderolabs/talos
 ENTRYPOINT ["/sbin/init"]
 
@@ -1052,22 +1081,22 @@ RUN chmod +x /installer
 
 # Make the images containing the boot artifacts.
 FROM scratch AS install-artifacts-amd64
-COPY --from=pkg-kernel-amd64 /boot/vmlinuz /usr/install/amd64/vmlinuz
-COPY --from=initramfs-archive-amd64 /initramfs.xz /usr/install/amd64/initramfs.xz
-COPY --from=pkg-sd-boot-amd64 /linuxx64.efi.stub /usr/install/amd64/systemd-stub.efi
-COPY --from=pkg-sd-boot-amd64 /systemd-bootx64.efi /usr/install/amd64/systemd-boot.efi
-COPY --from=sbom-amd64 /talos-amd64.spdx.json /usr/install/amd64/talos.spdx.json
+COPY --link --from=pkg-kernel-amd64 /boot/vmlinuz /usr/install/amd64/vmlinuz
+COPY --link --from=initramfs-archive-amd64 /initramfs.xz /usr/install/amd64/initramfs.xz
+COPY --link --from=pkg-sd-boot-amd64 /linuxx64.efi.stub /usr/install/amd64/systemd-stub.efi
+COPY --link --from=pkg-sd-boot-amd64 /systemd-bootx64.efi /usr/install/amd64/systemd-boot.efi
+COPY --link --from=sbom-amd64 /talos-amd64.spdx.json /usr/install/amd64/talos.spdx.json
 
 FROM scratch AS install-artifacts-arm64
-COPY --from=pkg-kernel-arm64 /boot/vmlinuz /usr/install/arm64/vmlinuz
-COPY --from=initramfs-archive-arm64 /initramfs.xz /usr/install/arm64/initramfs.xz
-COPY --from=pkg-sd-boot-arm64 /linuxaa64.efi.stub /usr/install/arm64/systemd-stub.efi
-COPY --from=pkg-sd-boot-arm64 /systemd-bootaa64.efi /usr/install/arm64/systemd-boot.efi
-COPY --from=sbom-arm64 /talos-arm64.spdx.json /usr/install/arm64/talos.spdx.json
+COPY --link --from=pkg-kernel-arm64 /boot/vmlinuz /usr/install/arm64/vmlinuz
+COPY --link --from=initramfs-archive-arm64 /initramfs.xz /usr/install/arm64/initramfs.xz
+COPY --link --from=pkg-sd-boot-arm64 /linuxaa64.efi.stub /usr/install/arm64/systemd-stub.efi
+COPY --link --from=pkg-sd-boot-arm64 /systemd-bootaa64.efi /usr/install/arm64/systemd-boot.efi
+COPY --link --from=sbom-arm64 /talos-arm64.spdx.json /usr/install/arm64/talos.spdx.json
 
 FROM scratch AS install-artifacts-all
-COPY --from=install-artifacts-amd64 / /
-COPY --from=install-artifacts-arm64 / /
+COPY --link --from=install-artifacts-amd64 / /
+COPY --link --from=install-artifacts-arm64 / /
 
 FROM install-artifacts-${TARGETARCH} AS install-artifacts-targetarch
 
@@ -1075,7 +1104,7 @@ FROM install-artifacts-${INSTALLER_ARCH} AS install-artifacts
 
 # Add the installer with a symlink as 'imager' and a /rootfs dir containing only the installer.
 FROM tools AS installer-image-gen
-COPY --from=installer-build /installer /rootfs/usr/bin/installer
+COPY --link --from=installer-build /installer /rootfs/usr/bin/installer
 RUN ln -s installer /rootfs/usr/bin/imager
 
 # Add the installer binary and the tools needed to run the installer.
@@ -1098,7 +1127,7 @@ COPY --link --from=installer-image-gen /rootfs /
 
 # Squash the installer-base-image layers to reduce size.
 FROM scratch AS installer-base-image-squashed
-COPY --from=installer-base-image / /
+COPY --link --from=installer-base-image / /
 
 # Add metadata.
 # 'installer-base' only contains the installer binary and the tools it uses.
@@ -1137,10 +1166,10 @@ COPY --link --exclude=**/*.a --exclude=**/*.la  --exclude=usr/include --exclude=
 COPY --link --exclude=**/*.a --exclude=**/*.la  --exclude=usr/include --exclude=usr/lib/pkgconfig --from=pkg-zlib / /
 COPY --link --exclude=**/*.a --exclude=**/*.la  --exclude=usr/include --exclude=usr/lib/pkgconfig --from=pkg-zstd / /
 COPY --chmod=0644 hack/extra-modules.conf /etc/modules.d/10-extra-modules.conf
-COPY --from=install-artifacts / /
+COPY --link --from=install-artifacts / /
 
 FROM scratch AS imager-image-squashed
-COPY --from=imager-image / /
+COPY --link --from=imager-image / /
 
 FROM imager-image-squashed AS imager
 ARG TAG
@@ -1166,17 +1195,17 @@ RUN /bin/installer \
     --output /out
 
 FROM scratch AS iso-amd64
-COPY --from=iso-amd64-build /out /
+COPY --link --from=iso-amd64-build /out /
 
 FROM scratch AS iso-arm64
-COPY --from=iso-arm64-build /out /
+COPY --link --from=iso-arm64-build /out /
 
 FROM --platform=${BUILDPLATFORM} iso-${TARGETARCH} AS iso
 
 # The test target performs tests on the source code.
 FROM base AS unit-tests-runner
-COPY --from=rootfs / /
-COPY --from=pkg-ca-certificates / /
+COPY --link --from=rootfs / /
+COPY --link --from=pkg-ca-certificates / /
 ARG TESTPKGS
 ENV PLATFORM=container
 ARG GO_LDFLAGS
@@ -1184,13 +1213,13 @@ RUN --security=insecure --mount=type=cache,id=testspace,target=/tmp --mount=type
     -ldflags "${GO_LDFLAGS}" \
     -covermode=atomic -coverprofile=coverage.txt -coverpkg=${TESTPKGS} -p 4 ${TESTPKGS}
 FROM scratch AS unit-tests
-COPY --from=unit-tests-runner /src/coverage.txt /coverage.txt
+COPY --link --from=unit-tests-runner /src/coverage.txt /coverage.txt
 
 # The unit-tests-race target performs tests with race detector.
 
 FROM base AS unit-tests-race
-COPY --from=rootfs / /
-COPY --from=pkg-ca-certificates / /
+COPY --link --from=rootfs / /
+COPY --link --from=pkg-ca-certificates / /
 ARG TESTPKGS
 ENV PLATFORM=container
 ENV CGO_ENABLED=1
@@ -1201,8 +1230,8 @@ RUN --security=insecure --mount=type=cache,id=testspace,target=/tmp --mount=type
 
 # The unit-tests-fips target performs tests with FIPS strict mode.
 FROM base AS unit-tests-fips
-COPY --from=rootfs / /
-COPY --from=pkg-ca-certificates / /
+COPY --link --from=rootfs / /
+COPY --link --from=pkg-ca-certificates / /
 ARG TESTPKGS
 ENV PLATFORM=container
 ENV GOFIPS140=latest
@@ -1224,7 +1253,7 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache GOOS=linux GOARCH=amd64 GO
     ./internal/integration
 
 FROM scratch AS integration-test-linux-amd64
-COPY --from=integration-test-linux-amd64-build /src/integration.test /integration-test-linux-amd64
+COPY --link --from=integration-test-linux-amd64-build /src/integration.test /integration-test-linux-amd64
 
 FROM base AS integration-test-linux-arm64-build
 ARG GO_BUILDFLAGS
@@ -1235,7 +1264,7 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache GOOS=linux GOARCH=arm64 go
     ./internal/integration
 
 FROM scratch AS integration-test-linux-arm64
-COPY --from=integration-test-linux-arm64-build /src/integration.test /integration-test-linux-arm64
+COPY --link --from=integration-test-linux-arm64-build /src/integration.test /integration-test-linux-arm64
 
 FROM base AS integration-test-darwin-arm64-build
 ARG GO_BUILDFLAGS
@@ -1246,7 +1275,7 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache GOOS=darwin GOARCH=arm64 g
     ./internal/integration
 
 FROM scratch AS integration-test-darwin-arm64
-COPY --from=integration-test-darwin-arm64-build /src/integration.test /integration-test-darwin-arm64
+COPY --link --from=integration-test-darwin-arm64-build /src/integration.test /integration-test-darwin-arm64
 
 FROM --platform=${BUILDPLATFORM} integration-test-${TARGETOS}-${TARGETARCH} AS integration-test-targetarch
 
@@ -1262,46 +1291,91 @@ RUN --mount=type=cache,target=/.cache,id=talos/.cache GOOS=linux GOARCH=amd64 GO
     ./internal/integration
 
 FROM scratch AS integration-test-provision-linux
-COPY --from=integration-test-provision-linux-build /src/integration.test /integration-test-provision-linux-amd64
+COPY --link --from=integration-test-provision-linux-build /src/integration.test /integration-test-provision-linux-amd64
 
 # The lint target performs linting on the source code.
-FROM base AS lint-go
-COPY .golangci.yml .
-ENV GOGC=50
-ENV GOLANGCI_LINT_CACHE=/.cache/lint
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint config verify --config .golangci.yml
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config .golangci.yml
+# Per-target Go lint stages run in parallel via the buildkit DAG.
+# All depend on lint-go-config (gating) by bind-mounting /verified from it.
+# Cache mounts: Go cache shared (concurrency-safe), lint cache locked (golangci-lint corruption protection).
+
+FROM base AS lint-go-config
+RUN --mount=type=bind,source=.golangci.yml,target=/src/.golangci.yml \
+    --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared \
+    --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked \
+    GOGC=50 GOLANGCI_LINT_CACHE=/.cache/lint go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint config verify --config .golangci.yml \
+    && touch /verified
+
+FROM base AS lint-go-talos
+RUN --mount=type=bind,from=lint-go-config,source=/verified,target=/tmp/.config-verified \
+    --mount=type=bind,source=.golangci.yml,target=/src/.golangci.yml \
+    --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared \
+    --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked \
+    GOGC=50 GOLANGCI_LINT_CACHE=/.cache/lint go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config .golangci.yml \
+    && touch /verified
+
+FROM base AS lint-go-machinery
 WORKDIR /src/pkg/machinery
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config ../../.golangci.yml
-COPY ./hack/cloud-image-uploader /src/hack/cloud-image-uploader
-WORKDIR /src/hack/cloud-image-uploader
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config ../../.golangci.yml
-WORKDIR /src/tools/labeled-squashfs
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config ../../.golangci.yml
-WORKDIR /src
-RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/siderolabs/importvet/cmd/importvet github.com/siderolabs/talos/...
+RUN --mount=type=bind,from=lint-go-config,source=/verified,target=/tmp/.config-verified \
+    --mount=type=bind,source=.golangci.yml,target=/src/.golangci.yml \
+    --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared \
+    --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked \
+    GOGC=50 GOLANGCI_LINT_CACHE=/.cache/lint go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config ../../.golangci.yml \
+    && touch /verified
+
+FROM base AS lint-go-tools
+RUN --mount=type=bind,from=lint-go-config,source=/verified,target=/tmp/.config-verified \
+    --mount=type=bind,source=.golangci.yml,target=/src/.golangci.yml \
+    --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared \
+    --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked <<EOF
+set -euo pipefail
+for d in /src/tools/*/; do
+    [ -f "$d/go.mod" ] || continue
+    echo "::: linting $d"
+    cd "$d"
+    GOGC=50 GOLANGCI_LINT_CACHE=/.cache/lint go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --config /src/.golangci.yml
+done
+touch /verified
+EOF
+
+FROM base AS lint-go-importvet
+RUN --mount=type=bind,from=lint-go-config,source=/verified,target=/tmp/.config-verified \
+    --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared \
+    go tool github.com/siderolabs/importvet/cmd/importvet github.com/siderolabs/talos/... \
+    && touch /verified
+
+FROM scratch AS lint-go
+COPY --link --from=lint-go-talos /verified /lint-go-talos
+COPY --link --from=lint-go-machinery /verified /lint-go-machinery
+COPY --link --from=lint-go-tools /verified /lint-go-tools
+COPY --link --from=lint-go-importvet /verified /lint-go-importvet
 
 # The lint-golangci-lint-fmt target runs the golangci-lint formatter and fixes issues automatically.
 FROM base AS lint-golangci-lint-fmt-run
 COPY .golangci.yml .
 ENV GOGC=50
 ENV GOLANGCI_LINT_CACHE=/.cache/lint
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint fmt --config .golangci.yml
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --fix --issues-exit-code 0 --config .golangci.yml
+RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint fmt --config .golangci.yml
+RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --fix --issues-exit-code 0 --config .golangci.yml
 WORKDIR /src/pkg/machinery
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint fmt --config ../../.golangci.yml
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --fix --issues-exit-code 0 --config ../../.golangci.yml
-COPY ./hack/cloud-image-uploader /src/hack/cloud-image-uploader
-WORKDIR /src/hack/cloud-image-uploader
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint fmt --config ../../.golangci.yml
-RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --fix --issues-exit-code 0 --config ../../.golangci.yml
+RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint fmt --config ../../.golangci.yml
+RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --fix --issues-exit-code 0 --config ../../.golangci.yml
+RUN --mount=type=cache,target=/.cache,id=talos/.cache,sharing=shared \
+    --mount=type=cache,target=/.cache/lint,id=talos/.cache/lint,sharing=locked <<EOF
+set -euo pipefail
+for d in /src/tools/*/; do
+    [ -f "$d/go.mod" ] || continue
+    cd "$d"
+    go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint fmt --config /src/.golangci.yml
+    go tool github.com/golangci/golangci-lint/v2/cmd/golangci-lint run --fix --issues-exit-code 0 --config /src/.golangci.yml
+done
+EOF
 WORKDIR /src
 
 # clean golangci-lint fmt output
 # exclude files populated by the `base` stage (gendata build args, generated os-release)
 # so running this target doesn't dirty the source tree with build-time values.
 FROM scratch AS lint-golangci-lint-fmt
-COPY --from=lint-golangci-lint-fmt-run \
+COPY --link --from=lint-golangci-lint-fmt-run \
     --exclude=pkg/machinery/gendata/data \
     --exclude=pkg/machinery/version/os-release \
     /src .
@@ -1309,11 +1383,10 @@ COPY --from=lint-golangci-lint-fmt-run \
 # The protolint target performs linting on protobuf files.
 
 FROM base AS lint-protobuf
+COPY --link --from=api-descriptors /api/lock.binpb /tmp/current.lock.binpb
 WORKDIR /src/api
-COPY api .
-COPY --from=api-descriptors /api/lock.binpb ./current.lock.binpb
-RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/bufbuild/buf/cmd/buf lint
-RUN --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/bufbuild/buf/cmd/buf breaking current.lock.binpb --against lock.binpb
+RUN --mount=type=bind,source=api,target=/src/api --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/bufbuild/buf/cmd/buf lint
+RUN --mount=type=bind,source=api,target=/src/api --mount=type=cache,target=/.cache,id=talos/.cache go tool github.com/bufbuild/buf/cmd/buf breaking /tmp/current.lock.binpb --against lock.binpb
 
 # The markdownlint target performs linting on Markdown files.
 
@@ -1340,38 +1413,18 @@ FROM base AS docs-build
 ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /src
-COPY --from=talosctl-targetarch /talosctl-${TARGETOS}-${TARGETARCH} /bin/talosctl
-RUN env HOME=/home/user TAG=latest /bin/talosctl docs --config /tmp/configuration \
+RUN --mount=type=bind,from=talosctl-targetarch,source=/talosctl-${TARGETOS}-${TARGETARCH},target=/bin/talosctl \
+    env HOME=/home/user TAG=latest /bin/talosctl docs --config /tmp/configuration \
     && env HOME=/home/user TAG=latest /bin/talosctl docs --cli /tmp
 COPY ./pkg/machinery/config/schemas/*.schema.json /tmp/schemas/
 
-FROM scratch AS proto-docs-build
-COPY --from=generate-build-clean /api/docs/api.md /api.md
-
 FROM scratch AS docs
-COPY --from=docs-build /tmp/configuration/ /website/content/v1.14/reference/configuration/
-COPY --from=docs-build /tmp/cli.md /website/content/v1.14/reference/
-COPY --from=docs-build /tmp/schemas /website/content/v1.14/schemas/
-COPY --from=proto-docs-build /api.md /website/content/v1.14/reference/
+COPY --link --from=docs-build /tmp/configuration/ /website/content/v1.14/reference/configuration/
+COPY --link --from=docs-build /tmp/cli.md /website/content/v1.14/reference/
+COPY --link --from=docs-build /tmp/schemas /website/content/v1.14/schemas/
 
 # The talosctl-cni-bundle builds the CNI bundle for talosctl.
 
 FROM scratch AS talosctl-cni-bundle
 ARG TARGETARCH
-COPY --from=pkgs-talosctl-cni-bundle /opt/cni/bin/ /talosctl-cni-bundle-${TARGETARCH}/
-
-# The go-mod-outdated target lists all outdated modules.
-
-FROM base AS go-mod-outdated
-RUN --mount=type=cache,target=/.cache,id=talos/.cache go install github.com/psampaz/go-mod-outdated@latest \
-    && mv /root/go/bin/go-mod-outdated /usr/bin/go-mod-outdated
-COPY ./hack/cloud-image-uploader ./hack/cloud-image-uploader
-# fail always to get the output back
-RUN --mount=type=cache,target=/.cache,id=talos/.cache <<EOF
-    for project in pkg/machinery . hack/cloud-image-uploader; do
-        echo -e "\n>>>> ${project}:" && \
-        (cd "${project}" && go list -u -m -json all | go-mod-outdated -update -direct)
-    done
-
-    exit 1
-EOF
+COPY --link --from=pkgs-talosctl-cni-bundle /opt/cni/bin/ /talosctl-cni-bundle-${TARGETARCH}/

@@ -1,4 +1,4 @@
-module github.com/siderolabs/cloud-image-uploader
+module github.com/siderolabs/talos/tools/cloud-image-uploader
 
 go 1.26.0
 

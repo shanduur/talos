@@ -2,9 +2,9 @@ go 1.26.3
 
 use (
 	.
-	./hack/cloud-image-uploader
 	./pkg/machinery
 	./tools
+	./tools/cloud-image-uploader
 	./tools/docgen
 	./tools/gotagsrewrite
 	./tools/labeled-squashfs
