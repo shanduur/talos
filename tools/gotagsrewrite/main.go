@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// Package main is a tool to add `protobuf:<n>` tags to structs with //gotagsrewrite:gen comment.
 package main
 
 import (
@@ -10,7 +11,6 @@ import (
 	"go/format"
 	"go/token"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -186,7 +186,9 @@ func findHighestProtoNum(structNode *ast.StructType) (int, error) {
 
 		tag, err := tags.Get("protobuf")
 		if err != nil {
-			return nil, nil
+			// field has no "protobuf" tag, missing fields are expected since this tool is used
+			// to add "protobuf" tags to fields which don't have it, so we just skip such fields.
+			return nil, nil //nolint:nilerr
 		}
 
 		num, err := strconv.Atoi(tag.Name)
@@ -264,7 +266,7 @@ func CopyFile(src, dst string) (err error) {
 
 	defer wrapErr(&err, in.Close)
 
-	tmp, err := ioutil.TempFile(filepath.Dir(dst), "copyfile")
+	tmp, err := os.CreateTemp(filepath.Dir(dst), "copyfile")
 	if err != nil {
 		return err
 	}

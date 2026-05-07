@@ -308,8 +308,8 @@ func toCapitalSnakeCase(str string) string {
 	snake = strings.ToUpper(snake)
 
 	// special case for "SomethingsIps"
-	if strings.HasSuffix(snake, "_i_ps") {
-		snake = strings.TrimSuffix(snake, "_i_ps") + "_ips"
+	if before, ok := strings.CutSuffix(snake, "_i_ps"); ok {
+		snake = before + "_ips"
 	}
 
 	return snake

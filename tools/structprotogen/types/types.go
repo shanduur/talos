@@ -118,7 +118,7 @@ func fieldCmp(left, right FieldData) int { return strings.Compare(left.Name, rig
 func ParseDeclsData(sortedPkgs slices.Sorted[*PkgDecl], taggedStructs ast.TaggedStructs) (slices.Sorted[*Type], error) {
 	result := slices.NewSortedCompare([]*Type{}, pkgTypeCmp)
 
-	for i := 0; i < sortedPkgs.Len(); i++ {
+	for i := range sortedPkgs.Len() {
 		pkg := sortedPkgs.Get(i)
 
 		for _, decl := range pkg.decl {
@@ -134,9 +134,7 @@ func ParseDeclsData(sortedPkgs slices.Sorted[*PkgDecl], taggedStructs ast.Tagged
 				return slices.Sorted[*Type]{}, fmt.Errorf("type %s is unknown struct", structName)
 			}
 
-			for j := 0; j < structType.NumFields(); j++ {
-				field := structType.Field(j)
-
+			for field := range structType.Fields() {
 				if !field.Exported() {
 					continue
 				}
@@ -186,10 +184,10 @@ func externalTypesCmp(left, right ExternalType) int {
 func FindExternalTypes(pkgsTypes slices.Sorted[*Type], taggedStructs ast.TaggedStructs) slices.Sorted[ExternalType] {
 	result := slices.NewSortedCompare([]ExternalType{}, externalTypesCmp)
 
-	for i := 0; i < pkgsTypes.Len(); i++ {
+	for i := range pkgsTypes.Len() {
 		typ := pkgsTypes.Get(i)
 
-		for j := 0; j < typ.fields.Len(); j++ {
+		for j := range typ.fields.Len() {
 			field := typ.fields.Get(j)
 
 			if !field.TypeData.Exported() {

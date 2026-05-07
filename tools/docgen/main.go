@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+// Package main implements a tool for generating documentation for Go types in a format that can be used by the encoder package to generate documentation for configuration types.
 package main
 
 import (
@@ -202,6 +203,7 @@ type aliasType struct {
 	fieldTypeRef string
 }
 
+//nolint:gocyclo
 func collectStructs(node ast.Node) ([]*structType, map[string]aliasType) {
 	var structs []*structType
 
@@ -369,6 +371,7 @@ func escape(value string) string {
 	return strings.TrimSpace(value)
 }
 
+//nolint:gocyclo
 func collectFields(s *structType, aliases map[string]aliasType) (fields []*Field) {
 	fields = []*Field{}
 
@@ -444,33 +447,37 @@ func collectFields(s *structType, aliases map[string]aliasType) (fields []*Field
 	return fields
 }
 
-func renderDoc(doc *Doc, dest string) {
+func renderDoc(doc *Doc, dest string) error {
 	t := template.Must(template.New("docfile.tpl").Parse(tpl))
 	buf := bytes.Buffer{}
 
 	err := t.Execute(&buf, doc)
 	if err != nil {
-		log.Fatalf("failed to render template: %v", err)
+		return fmt.Errorf("failed to render template: %w", err)
 	}
 
 	formatted, err := format.Source(buf.Bytes(), format.Options{})
 	if err != nil {
 		log.Printf("data: %s", buf.Bytes())
-		log.Fatalf("failed to format source: %v", err)
+
+		return fmt.Errorf("failed to format generated source: %w", err)
 	}
 
 	out, err := out(dest)
 	if err != nil {
-		log.Fatalf("failed to create output file: %v", err)
+		return fmt.Errorf("failed to create output file: %w", err)
 	}
-	defer out.Close()
 
-	_, err = out.Write(formatted)
-	if err != nil {
-		log.Fatalf("failed to write output file: %v", err)
+	defer out.Close() //nolint:errcheck
+
+	if _, err := out.Write(formatted); err != nil {
+		return fmt.Errorf("failed to write to output file: %w", err)
 	}
+
+	return nil
 }
 
+//nolint:gocyclo
 func processFiles(inputFiles []string, outputFile, schemaOutputFile, versionTagFile string) {
 	var packageNames []string
 
@@ -541,9 +548,12 @@ func processFiles(inputFiles []string, outputFile, schemaOutputFile, versionTagF
 		log.Fatalf("expected exactly one package to generate docs, got %d", len(docs))
 	}
 
-	renderDoc(docs[0], outputFile)
+	if err := renderDoc(docs[0], outputFile); err != nil {
+		log.Fatalf("failed to render doc: %v", err)
+	}
 }
 
+//nolint:gocyclo
 func packageToDoc(pkg *packageType, aliases map[string]aliasType) *Doc {
 	if len(pkg.structs) == 0 {
 		log.Fatalf("failed to find types that could be documented in %v (package %v)", pkg.file, pkg.name)
@@ -613,7 +623,11 @@ func packageToDoc(pkg *packageType, aliases map[string]aliasType) *Doc {
 func sourcesWithJSONSchema(dir string) []string {
 	var sources []string
 
-	if err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(dir, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+
 		if info.IsDir() || !strings.HasSuffix(info.Name(), ".go") {
 			return nil
 		}
