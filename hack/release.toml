@@ -22,7 +22,7 @@ Linux: 6.18.27
 Kubernetes: 1.36.0
 containerd: 2.3.0
 
-Talos is built with Go 1.26.2.
+Talos is built with Go 1.26.3.
 """
 
     [notes.nts]
