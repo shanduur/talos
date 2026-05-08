@@ -861,8 +861,9 @@ func (NethelpersConntrackState) EnumDescriptor() ([]byte, []int) {
 type NethelpersDNSProtocol int32
 
 const (
-	NethelpersDNSProtocol_DNS_PROTOCOL_DEFAULT      NethelpersDNSProtocol = 0
-	NethelpersDNSProtocol_DNS_PROTOCOL_DNS_OVER_TLS NethelpersDNSProtocol = 1
+	NethelpersDNSProtocol_DNS_PROTOCOL_DEFAULT       NethelpersDNSProtocol = 0
+	NethelpersDNSProtocol_DNS_PROTOCOL_DNS_OVER_TLS  NethelpersDNSProtocol = 1
+	NethelpersDNSProtocol_DNS_PROTOCOL_DNS_OVER_HTTP NethelpersDNSProtocol = 2
 )
 
 // Enum value maps for NethelpersDNSProtocol.
@@ -870,10 +871,12 @@ var (
 	NethelpersDNSProtocol_name = map[int32]string{
 		0: "DNS_PROTOCOL_DEFAULT",
 		1: "DNS_PROTOCOL_DNS_OVER_TLS",
+		2: "DNS_PROTOCOL_DNS_OVER_HTTP",
 	}
 	NethelpersDNSProtocol_value = map[string]int32{
-		"DNS_PROTOCOL_DEFAULT":      0,
-		"DNS_PROTOCOL_DNS_OVER_TLS": 1,
+		"DNS_PROTOCOL_DEFAULT":       0,
+		"DNS_PROTOCOL_DNS_OVER_TLS":  1,
+		"DNS_PROTOCOL_DNS_OVER_HTTP": 2,
 	}
 )
 
@@ -3874,10 +3877,11 @@ const file_resource_definitions_enums_enums_proto_rawDesc = "" +
 	"\x13CONNTRACK_STATE_NEW\x10\b\x12\x1b\n" +
 	"\x17CONNTRACK_STATE_RELATED\x10\x04\x12\x1f\n" +
 	"\x1bCONNTRACK_STATE_ESTABLISHED\x10\x02\x12\x1b\n" +
-	"\x17CONNTRACK_STATE_INVALID\x10\x01*P\n" +
+	"\x17CONNTRACK_STATE_INVALID\x10\x01*p\n" +
 	"\x15NethelpersDNSProtocol\x12\x18\n" +
 	"\x14DNS_PROTOCOL_DEFAULT\x10\x00\x12\x1d\n" +
-	"\x19DNS_PROTOCOL_DNS_OVER_TLS\x10\x01*4\n" +
+	"\x19DNS_PROTOCOL_DNS_OVER_TLS\x10\x01\x12\x1e\n" +
+	"\x1aDNS_PROTOCOL_DNS_OVER_HTTP\x10\x02*4\n" +
 	"\x10NethelpersDuplex\x12\b\n" +
 	"\x04HALF\x10\x00\x12\b\n" +
 	"\x04FULL\x10\x01\x12\f\n" +

@@ -1,6 +1,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED, PLEASE DO NOT EDIT.
 #
-# Generated on 2026-05-07T19:17:55Z by kres 1762ab2.
+# Generated on 2026-05-11T14:12:46Z by kres 1762ab2.
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -3305,6 +3305,8 @@ jobs:
             withTpm12: "true"
           - test: e2e-dns-over-tls
             withConfigPatch: '@hack/test/patches/dns-over-tls.yaml'
+          - test: e2e-dns-over-http
+            withConfigPatch: '@hack/test/patches/dns-over-http.yaml'
       fail-fast: false
       max-parallel: 2
     needs:

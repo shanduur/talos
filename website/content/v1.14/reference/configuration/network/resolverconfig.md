@@ -64,6 +64,19 @@ nameservers:
       tlsServerName: dns.quad9.net # TLS server name to validate the nameserver certificate against.
 {{< /highlight >}}
 
+{{< highlight yaml >}}
+apiVersion: v1alpha1
+kind: ResolverConfig
+# A list of nameservers (DNS servers) to use for resolving domain names.
+nameservers:
+    - address: 1.1.1.1 # The IP address of the nameserver.
+      protocol: DoH # A DNS protocol to use.
+      tlsServerName: cloudflare-dns.com # TLS server name to validate the nameserver certificate against.
+    - address: 2606:4700:4700::1111 # The IP address of the nameserver.
+      protocol: DoH # A DNS protocol to use.
+      tlsServerName: cloudflare-dns.com # TLS server name to validate the nameserver certificate against.
+{{< /highlight >}}
+
 
 | Field | Type | Description | Value(s) |
 |-------|------|-------------|----------|
@@ -86,8 +99,8 @@ NameserverConfig represents a single nameserver configuration.
 |`address` |Addr |The IP address of the nameserver. <details><summary>Show example(s)</summary>{{< highlight yaml >}}
 address: 10.0.0.1
 {{< /highlight >}}</details> | |
-|`protocol` |DNSProtocol |A DNS protocol to use.<br><br>The default protocol is plain DNS (`Do53`) (DNS over TCP/UDP), but this can be set<br>to `DoT` to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.<br><br>Note: DNS over TLS requires a correct system clock to validate certificates.<br>If NTP is configured with hostnames that need to be resolved through DoT, the<br>boot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the<br>hardware clock, configure NTP servers by IP, or keep at least one plain-DNS<br>fallback nameserver.  |`Do53`<br />`DoT`<br /> |
-|`tlsServerName` |string |TLS server name to validate the nameserver certificate against.<br><br>This field should be set, if the protocol is set to `DoT`.<br>The value is used both as the SNI sent during the TLS handshake and as the name<br>verified against the server certificate. <details><summary>Show example(s)</summary>{{< highlight yaml >}}
+|`protocol` |DNSProtocol |A DNS protocol to use.<br><br>The default protocol is plain DNS (`Do53`) (DNS over TCP/UDP). Set this to<br>`DoT` to use DNS over TLS (RFC 7858) on TCP port 853, or `DoH` to use DNS<br>over HTTPS (RFC 8484) on TCP port 443 with the `/dns-query` URL path. Both<br>`DoT` and `DoH` deliver encrypted queries to this nameserver.<br><br>Note: encrypted DNS protocols require a correct system clock to validate<br>certificates. If NTP is configured with hostnames that need to be resolved<br>through DoT/DoH, the boot may stall: NTP needs DNS, and TLS needs valid<br>time. Either rely on the hardware clock, configure NTP servers by IP, or<br>keep at least one plain-DNS fallback nameserver.  |`Do53`<br />`DoT`<br />`DoH`<br /> |
+|`tlsServerName` |string |TLS server name to validate the nameserver certificate against.<br><br>This field should be set if the protocol is set to `DoT` or `DoH`.<br>The value is used both as the SNI sent during the TLS handshake and as the<br>name verified against the server certificate. For `DoH`, it is also used as<br>the host portion of the request URL (`https://<tlsServerName>/dns-query`)<br>while the connection itself is established to the configured `address`. <details><summary>Show example(s)</summary>{{< highlight yaml >}}
 tlsServerName: dns1.example.com
 {{< /highlight >}}</details> | |
 

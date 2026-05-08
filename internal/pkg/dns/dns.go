@@ -29,6 +29,8 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+const requestTimeout = 4500 * time.Millisecond
+
 // Cache is a [dns.Handler] to [plugin.Handler] adapter.
 type Cache struct {
 	cache  *cache.Cache
@@ -51,7 +53,7 @@ func NewCache(next plugin.Handler, l *zap.Logger) *Cache {
 func (c *Cache) ServeDNS(wr dns.ResponseWriter, msg *dns.Msg) {
 	wr = request.NewScrubWriter(msg, wr)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 4500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	defer cancel()
 
 	code, err := c.cache.ServeDNS(ctx, wr, msg)
@@ -90,10 +92,23 @@ func clientWrite(rcode int) bool {
 	}
 }
 
+// Upstream is the abstraction used by [Handler] to forward DNS queries to a
+// concrete upstream resolver.
+//
+// It is implemented by the CoreDNS plugin proxy (used for plain DNS and DoT)
+// and by the DoH proxy in this package, so the handler can iterate uniformly
+// across all configured upstream protocols.
+type Upstream interface {
+	// Connect sends a DNS query to the upstream and returns the response.
+	Connect(ctx context.Context, state request.Request, opts proxy.Options) (*dns.Msg, error)
+	// Addr returns the upstream address (used for logging).
+	Addr() string
+}
+
 // Handler is a dns proxy selector.
 type Handler struct {
 	mx     sync.RWMutex
-	dests  iter.Seq[*proxy.Proxy]
+	dests  iter.Seq[Upstream]
 	logger *zap.Logger
 }
 
@@ -101,7 +116,7 @@ type Handler struct {
 func NewHandler(logger *zap.Logger) *Handler {
 	return &Handler{
 		logger: logger,
-		dests:  xiter.Empty[*proxy.Proxy],
+		dests:  xiter.Empty[Upstream],
 	}
 }
 
@@ -192,7 +207,7 @@ func (h *Handler) ServeDNS(ctx context.Context, wrt dns.ResponseWriter, msg *dns
 }
 
 // SetProxy sets destination dns proxy servers.
-func (h *Handler) SetProxy(prxs iter.Seq[*proxy.Proxy]) bool {
+func (h *Handler) SetProxy(prxs iter.Seq[Upstream]) bool {
 	h.mx.Lock()
 	defer h.mx.Unlock()
 
@@ -206,7 +221,7 @@ func (h *Handler) SetProxy(prxs iter.Seq[*proxy.Proxy]) bool {
 }
 
 // Stop stops and clears dns proxy selector.
-func (h *Handler) Stop() { h.SetProxy(xiter.Empty) }
+func (h *Handler) Stop() { h.SetProxy(xiter.Empty[Upstream]) }
 
 // NewNodeHandler creates a new NodeHandler.
 func NewNodeHandler(next plugin.Handler, hostMapper HostMapper, logger *zap.Logger) *NodeHandler {

@@ -1077,6 +1077,8 @@ spec:
             withTpm12: "true"
           - test: e2e-dns-over-tls
             withConfigPatch: "@hack/test/patches/dns-over-tls.yaml"
+          - test: e2e-dns-over-http
+            withConfigPatch: "@hack/test/patches/dns-over-http.yaml"
       steps:
         - name: download-artifacts
           artifactStep:

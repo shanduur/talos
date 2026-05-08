@@ -17,6 +17,7 @@ import (
 	"github.com/coredns/coredns/plugin/pkg/proxy"
 	dnssrv "github.com/miekg/dns"
 	"github.com/siderolabs/gen/maps"
+	"github.com/siderolabs/gen/xiter"
 	"github.com/siderolabs/gen/xslices"
 	"github.com/siderolabs/gen/xtesting/check"
 	"github.com/stretchr/testify/require"
@@ -190,7 +191,7 @@ func newManager(t *testing.T, nameservers ...string) func() {
 	ctx, cancel := context.WithCancel(context.Background()) //nolint:usetesting
 	t.Cleanup(cancel)
 
-	m.SetUpstreams(slices.Values(pxs))
+	m.SetUpstreams(xiter.Map(func(p *proxy.Proxy) dns.Upstream { return p }, slices.Values(pxs)))
 
 	m.ServeBackground(ctx)
 	m.ServeBackground(ctx)

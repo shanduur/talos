@@ -14,7 +14,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coredns/coredns/plugin/pkg/proxy"
 	"github.com/hashicorp/go-multierror"
 	dnssrv "github.com/miekg/dns"
 	"github.com/siderolabs/gen/xiter"
@@ -135,7 +134,7 @@ func makeResult(cfg AddressPair, s Status) RunResult { return RunResult{AddressP
 func (m *Manager) AllowNodeResolving(enabled bool) { m.nodeHandler.SetEnabled(enabled) }
 
 // SetUpstreams sets the upstreams for the DNS handler. It returns true if the upstreams were updated, false otherwise.
-func (m *Manager) SetUpstreams(prxs iter.Seq[*proxy.Proxy]) bool {
+func (m *Manager) SetUpstreams(prxs iter.Seq[Upstream]) bool {
 	if !m.handler.SetProxy(prxs) {
 		return false
 	}

@@ -229,7 +229,7 @@ func TestResolverV1Alpha1ConflictValidate(t *testing.T) {
 func TestResolverV1Alpha1Validate(t *testing.T) {
 	t.Parallel()
 
-	const dotOnlyWarning = "all configured nameservers use DNS over TLS: validating certificates requires a correct system clock, " +
+	const dotOnlyWarning = "all configured nameservers use encrypted DNS (DoT or DoH): validating certificates requires a correct system clock, " +
 		"so boot may stall when NTP servers are configured by hostname; consider keeping at least one plain-DNS fallback " +
 		"or configuring NTP servers by IP address"
 
@@ -369,6 +369,61 @@ func TestResolverV1Alpha1Validate(t *testing.T) {
 				return cfg
 			},
 			expectedError: "tlsServerName must be empty when protocol is Do53: entry 0",
+		},
+		{
+			name: "DoH with tlsServerName set",
+			cfg: func() *network.ResolverConfigV1Alpha1 {
+				cfg := network.NewResolverConfigV1Alpha1()
+				cfg.ResolverNameservers = []network.NameserverConfig{
+					{
+						Address:       network.Addr{Addr: netip.MustParseAddr("1.1.1.1")},
+						Protocol:      nethelpers.DNSProtocolDNSOverHTTP,
+						TLSServerName: "cloudflare-dns.com",
+					},
+					{
+						Address: network.Addr{Addr: netip.MustParseAddr("8.8.8.8")},
+					},
+				}
+
+				return cfg
+			},
+		},
+		{
+			name: "DoH without tlsServerName",
+			cfg: func() *network.ResolverConfigV1Alpha1 {
+				cfg := network.NewResolverConfigV1Alpha1()
+				cfg.ResolverNameservers = []network.NameserverConfig{
+					{
+						Address:  network.Addr{Addr: netip.MustParseAddr("1.1.1.1")},
+						Protocol: nethelpers.DNSProtocolDNSOverHTTP,
+					},
+				}
+
+				return cfg
+			},
+			expectedError:    "tlsServerName must be set when protocol is DoH: entry 0",
+			expectedWarnings: []string{dotOnlyWarning},
+		},
+		{
+			name: "Mixed DoT and DoH only, warns about clock dependency",
+			cfg: func() *network.ResolverConfigV1Alpha1 {
+				cfg := network.NewResolverConfigV1Alpha1()
+				cfg.ResolverNameservers = []network.NameserverConfig{
+					{
+						Address:       network.Addr{Addr: netip.MustParseAddr("9.9.9.9")},
+						Protocol:      nethelpers.DNSProtocolDNSOverTLS,
+						TLSServerName: "dns.quad9.net",
+					},
+					{
+						Address:       network.Addr{Addr: netip.MustParseAddr("1.1.1.1")},
+						Protocol:      nethelpers.DNSProtocolDNSOverHTTP,
+						TLSServerName: "cloudflare-dns.com",
+					},
+				}
+
+				return cfg
+			},
+			expectedWarnings: []string{dotOnlyWarning},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

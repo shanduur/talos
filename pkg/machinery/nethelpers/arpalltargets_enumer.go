@@ -1127,11 +1127,11 @@ func (i *DefaultAction) UnmarshalText(text []byte) error {
 	return err
 }
 
-const _DNSProtocolName = "Do53DoT"
+const _DNSProtocolName = "Do53DoTDoH"
 
-var _DNSProtocolIndex = [...]uint8{0, 4, 7}
+var _DNSProtocolIndex = [...]uint8{0, 4, 7, 10}
 
-const _DNSProtocolLowerName = "do53dot"
+const _DNSProtocolLowerName = "do53dotdoh"
 
 func (i DNSProtocol) String() string {
 	if i >= DNSProtocol(len(_DNSProtocolIndex)-1) {
@@ -1146,20 +1146,24 @@ func _DNSProtocolNoOp() {
 	var x [1]struct{}
 	_ = x[DNSProtocolDefault-(0)]
 	_ = x[DNSProtocolDNSOverTLS-(1)]
+	_ = x[DNSProtocolDNSOverHTTP-(2)]
 }
 
-var _DNSProtocolValues = []DNSProtocol{DNSProtocolDefault, DNSProtocolDNSOverTLS}
+var _DNSProtocolValues = []DNSProtocol{DNSProtocolDefault, DNSProtocolDNSOverTLS, DNSProtocolDNSOverHTTP}
 
 var _DNSProtocolNameToValueMap = map[string]DNSProtocol{
-	_DNSProtocolName[0:4]:      DNSProtocolDefault,
-	_DNSProtocolLowerName[0:4]: DNSProtocolDefault,
-	_DNSProtocolName[4:7]:      DNSProtocolDNSOverTLS,
-	_DNSProtocolLowerName[4:7]: DNSProtocolDNSOverTLS,
+	_DNSProtocolName[0:4]:       DNSProtocolDefault,
+	_DNSProtocolLowerName[0:4]:  DNSProtocolDefault,
+	_DNSProtocolName[4:7]:       DNSProtocolDNSOverTLS,
+	_DNSProtocolLowerName[4:7]:  DNSProtocolDNSOverTLS,
+	_DNSProtocolName[7:10]:      DNSProtocolDNSOverHTTP,
+	_DNSProtocolLowerName[7:10]: DNSProtocolDNSOverHTTP,
 }
 
 var _DNSProtocolNames = []string{
 	_DNSProtocolName[0:4],
 	_DNSProtocolName[4:7],
+	_DNSProtocolName[7:10],
 }
 
 // DNSProtocolString retrieves an enum value from the enum constants string name.

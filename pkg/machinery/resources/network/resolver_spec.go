@@ -40,6 +40,8 @@ func (ns NameServerSpec) String() string {
 	switch ns.Protocol {
 	case nethelpers.DNSProtocolDNSOverTLS:
 		return ns.Addr.String() + " (DoT, TLS Server Name: " + ns.TLSServerName + ")"
+	case nethelpers.DNSProtocolDNSOverHTTP:
+		return ns.Addr.String() + " (DoH, TLS Server Name: " + ns.TLSServerName + ")"
 	case nethelpers.DNSProtocolDefault:
 		return ns.Addr.String()
 	default:

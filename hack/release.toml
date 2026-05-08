@@ -103,10 +103,10 @@ Upgrade note: apply this `VolumeConfig` patch *before* upgrading, otherwise affe
 """
 
     [notes.DoT]
-        title = "DNS over TLS (DoT) Support"
+        title = "DNS over TLS (DoT) and DNS over HTTPS (DoH) Support"
         description = """\
-Talos now supports DNS over TLS (DoT) for secure DNS resolution.
-This feature allows Talos to encrypt DNS queries and responses, enhancing privacy and security for DNS traffic.
+Talos now supports DNS over TLS (DoT) and DNS over HTTPS (DoH) for secure DNS resolution.
+These features allow Talos to encrypt DNS queries and responses, enhancing privacy and security for DNS traffic.
 The DNS protocol can be configured on a per-name server basis in the `ResolverConfig` document, allowing for flexible configuration of DNS resolution.
 """
 

@@ -5327,6 +5327,7 @@ NethelpersDNSProtocol is a kind of DNS protocol.
 | ---- | ------ | ----------- |
 | DNS_PROTOCOL_DEFAULT | 0 |  |
 | DNS_PROTOCOL_DNS_OVER_TLS | 1 |  |
+| DNS_PROTOCOL_DNS_OVER_HTTP | 2 |  |
 
 
 

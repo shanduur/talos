@@ -36,6 +36,7 @@ require (
 
 require (
 	cloud.google.com/go/compute/metadata v0.9.0
+	codeberg.org/miekg/dns v0.6.75
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.21.1
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates v1.4.0

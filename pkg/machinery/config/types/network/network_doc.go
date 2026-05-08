@@ -1515,6 +1515,8 @@ func (ResolverConfigV1Alpha1) Doc() *encoder.Doc {
 
 	doc.AddExample("", exampleResolverConfigV1Alpha4())
 
+	doc.AddExample("", exampleResolverConfigV1Alpha5())
+
 	return doc
 }
 
@@ -1541,18 +1543,19 @@ func (NameserverConfig) Doc() *encoder.Doc {
 				Name:        "protocol",
 				Type:        "DNSProtocol",
 				Note:        "",
-				Description: "A DNS protocol to use.\n\nThe default protocol is plain DNS (`Do53`) (DNS over TCP/UDP), but this can be set\nto `DoT` to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.\n\nNote: DNS over TLS requires a correct system clock to validate certificates.\nIf NTP is configured with hostnames that need to be resolved through DoT, the\nboot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the\nhardware clock, configure NTP servers by IP, or keep at least one plain-DNS\nfallback nameserver.",
+				Description: "A DNS protocol to use.\n\nThe default protocol is plain DNS (`Do53`) (DNS over TCP/UDP). Set this to\n`DoT` to use DNS over TLS (RFC 7858) on TCP port 853, or `DoH` to use DNS\nover HTTPS (RFC 8484) on TCP port 443 with the `/dns-query` URL path. Both\n`DoT` and `DoH` deliver encrypted queries to this nameserver.\n\nNote: encrypted DNS protocols require a correct system clock to validate\ncertificates. If NTP is configured with hostnames that need to be resolved\nthrough DoT/DoH, the boot may stall: NTP needs DNS, and TLS needs valid\ntime. Either rely on the hardware clock, configure NTP servers by IP, or\nkeep at least one plain-DNS fallback nameserver.",
 				Comments:    [3]string{"" /* encoder.HeadComment */, "A DNS protocol to use." /* encoder.LineComment */, "" /* encoder.FootComment */},
 				Values: []string{
 					"Do53",
 					"DoT",
+					"DoH",
 				},
 			},
 			{
 				Name:        "tlsServerName",
 				Type:        "string",
 				Note:        "",
-				Description: "TLS server name to validate the nameserver certificate against.\n\nThis field should be set, if the protocol is set to `DoT`.\nThe value is used both as the SNI sent during the TLS handshake and as the name\nverified against the server certificate.",
+				Description: "TLS server name to validate the nameserver certificate against.\n\nThis field should be set if the protocol is set to `DoT` or `DoH`.\nThe value is used both as the SNI sent during the TLS handshake and as the\nname verified against the server certificate. For `DoH`, it is also used as\nthe host portion of the request URL (`https://<tlsServerName>/dns-query`)\nwhile the connection itself is established to the configured `address`.",
 				Comments:    [3]string{"" /* encoder.HeadComment */, "TLS server name to validate the nameserver certificate against." /* encoder.LineComment */, "" /* encoder.FootComment */},
 			},
 		},

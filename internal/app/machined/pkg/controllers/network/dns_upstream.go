@@ -19,6 +19,7 @@ import (
 	"github.com/siderolabs/gen/optional"
 	"go.uber.org/zap"
 
+	"github.com/siderolabs/talos/internal/pkg/dns/doh"
 	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/network"
 )
@@ -151,12 +152,10 @@ func existingConnections(ctx context.Context, r controller.Runtime) (func(*netwo
 			port = transport.Port
 		case nethelpers.DNSProtocolDNSOverTLS:
 			port = transport.TLSPort
+		case nethelpers.DNSProtocolDNSOverHTTP:
+			port = transport.HTTPSPort
 		default:
 			panic(fmt.Sprintf("unsupported DNS protocol: %s", protocol))
-		}
-
-		if tlsServerName != "" {
-			port = transport.TLSPort
 		}
 
 		remoteAddr := net.JoinHostPort(remoteHost, port)
@@ -193,7 +192,7 @@ func existingConnections(ctx context.Context, r controller.Runtime) (func(*netwo
 	}, nil
 }
 
-func newUpstreamProxy(protocol nethelpers.DNSProtocol, remoteHost, remoteAddr, tlsServerName string) *proxy.Proxy {
+func newUpstreamProxy(protocol nethelpers.DNSProtocol, remoteHost, remoteAddr, tlsServerName string) network.Proxy {
 	switch protocol {
 	case nethelpers.DNSProtocolDefault:
 		return proxy.NewProxy(remoteHost, remoteAddr, transport.DNS)
@@ -205,6 +204,8 @@ func newUpstreamProxy(protocol nethelpers.DNSProtocol, remoteHost, remoteAddr, t
 		})
 
 		return p
+	case nethelpers.DNSProtocolDNSOverHTTP:
+		return doh.NewProxy(remoteAddr, tlsServerName)
 	default:
 		panic(fmt.Sprintf("unsupported DNS protocol: %s", protocol))
 	}

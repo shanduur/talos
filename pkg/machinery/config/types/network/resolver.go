@@ -54,6 +54,7 @@ var (
 //	  - value: exampleResolverConfigV1Alpha2()
 //	  - value: exampleResolverConfigV1Alpha3()
 //	  - value: exampleResolverConfigV1Alpha4()
+//	  - value: exampleResolverConfigV1Alpha5()
 //	alias: ResolverConfig
 //	schemaRoot: true
 //	schemaMeta: v1alpha1/ResolverConfig
@@ -95,24 +96,29 @@ type NameserverConfig struct {
 	//   description: |
 	//     A DNS protocol to use.
 	//
-	//     The default protocol is plain DNS (`Do53`) (DNS over TCP/UDP), but this can be set
-	//     to `DoT` to use DNS over TLS (RFC 7858) for encrypted DNS queries to this nameserver.
+	//     The default protocol is plain DNS (`Do53`) (DNS over TCP/UDP). Set this to
+	//     `DoT` to use DNS over TLS (RFC 7858) on TCP port 853, or `DoH` to use DNS
+	//     over HTTPS (RFC 8484) on TCP port 443 with the `/dns-query` URL path. Both
+	//     `DoT` and `DoH` deliver encrypted queries to this nameserver.
 	//
-	//     Note: DNS over TLS requires a correct system clock to validate certificates.
-	//     If NTP is configured with hostnames that need to be resolved through DoT, the
-	//     boot may stall: NTP needs DNS, and DoT needs valid time. Either rely on the
-	//     hardware clock, configure NTP servers by IP, or keep at least one plain-DNS
-	//     fallback nameserver.
+	//     Note: encrypted DNS protocols require a correct system clock to validate
+	//     certificates. If NTP is configured with hostnames that need to be resolved
+	//     through DoT/DoH, the boot may stall: NTP needs DNS, and TLS needs valid
+	//     time. Either rely on the hardware clock, configure NTP servers by IP, or
+	//     keep at least one plain-DNS fallback nameserver.
 	//   values:
 	//     - "Do53"
 	//     - "DoT"
+	//     - "DoH"
 	Protocol nethelpers.DNSProtocol `yaml:"protocol,omitempty"`
 	//   description: |
 	//     TLS server name to validate the nameserver certificate against.
 	//
-	//     This field should be set, if the protocol is set to `DoT`.
-	//     The value is used both as the SNI sent during the TLS handshake and as the name
-	//     verified against the server certificate.
+	//     This field should be set if the protocol is set to `DoT` or `DoH`.
+	//     The value is used both as the SNI sent during the TLS handshake and as the
+	//     name verified against the server certificate. For `DoH`, it is also used as
+	//     the host portion of the request URL (`https://<tlsServerName>/dns-query`)
+	//     while the connection itself is established to the configured `address`.
 	//
 	//   examples:
 	//     - value: >
@@ -227,6 +233,24 @@ func exampleResolverConfigV1Alpha4() *ResolverConfigV1Alpha1 {
 	return cfg
 }
 
+func exampleResolverConfigV1Alpha5() *ResolverConfigV1Alpha1 {
+	cfg := NewResolverConfigV1Alpha1()
+	cfg.ResolverNameservers = []NameserverConfig{
+		{
+			Address:       Addr{netip.MustParseAddr("1.1.1.1")},
+			Protocol:      nethelpers.DNSProtocolDNSOverHTTP,
+			TLSServerName: "cloudflare-dns.com",
+		},
+		{
+			Address:       Addr{netip.MustParseAddr("2606:4700:4700::1111")},
+			Protocol:      nethelpers.DNSProtocolDNSOverHTTP,
+			TLSServerName: "cloudflare-dns.com",
+		},
+	}
+
+	return cfg
+}
+
 // Clone implements config.Document interface.
 func (s *ResolverConfigV1Alpha1) Clone() config.Document {
 	return s.DeepCopy()
@@ -287,6 +311,13 @@ func (s *ResolverConfigV1Alpha1) Validate(validation.RuntimeMode, ...validation.
 				errs = errors.Join(errs, fmt.Errorf("tlsServerName must be set when protocol is DoT: entry %d", idx))
 			}
 
+		case nethelpers.DNSProtocolDNSOverHTTP:
+			nonRegularDNS++
+
+			if ns.TLSServerName == "" {
+				errs = errors.Join(errs, fmt.Errorf("tlsServerName must be set when protocol is DoH: entry %d", idx))
+			}
+
 		case nethelpers.DNSProtocolDefault:
 			if ns.TLSServerName != "" {
 				errs = errors.Join(errs, fmt.Errorf("tlsServerName must be empty when protocol is Do53: entry %d", idx))
@@ -303,7 +334,7 @@ func (s *ResolverConfigV1Alpha1) Validate(validation.RuntimeMode, ...validation.
 	if nonRegularDNS > 0 && nonRegularDNS == len(s.ResolverNameservers) {
 		warnings = append(
 			warnings,
-			"all configured nameservers use DNS over TLS: validating certificates requires a correct system clock, "+
+			"all configured nameservers use encrypted DNS (DoT or DoH): validating certificates requires a correct system clock, "+
 				"so boot may stall when NTP servers are configured by hostname; consider keeping at least one plain-DNS fallback "+
 				"or configuring NTP servers by IP address",
 		)

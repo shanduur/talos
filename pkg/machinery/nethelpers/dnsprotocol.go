@@ -11,6 +11,7 @@ type DNSProtocol byte
 //
 //structprotogen:gen_enum
 const (
-	DNSProtocolDefault    DNSProtocol = iota // Do53
-	DNSProtocolDNSOverTLS                    // DoT
+	DNSProtocolDefault     DNSProtocol = iota // Do53
+	DNSProtocolDNSOverTLS                     // DoT
+	DNSProtocolDNSOverHTTP                    // DoH
 )

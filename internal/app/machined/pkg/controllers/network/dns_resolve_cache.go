@@ -12,7 +12,6 @@ import (
 	"net/netip"
 	"sync"
 
-	"github.com/coredns/coredns/plugin/pkg/proxy"
 	"github.com/cosi-project/runtime/pkg/controller"
 	"github.com/cosi-project/runtime/pkg/safe"
 	"github.com/cosi-project/runtime/pkg/state"
@@ -143,8 +142,8 @@ func (ctrl *DNSResolveCacheController) run(ctx context.Context, r controller.Run
 
 	prxs := xiter.Map(
 		// We are using iterator here to preserve finalizer on
-		func(upstream *network.DNSUpstream) *proxy.Proxy {
-			return upstream.TypedSpec().Value.Conn.Proxy().(*proxy.Proxy)
+		func(upstream *network.DNSUpstream) dns.Upstream {
+			return upstream.TypedSpec().Value.Conn.Proxy().(dns.Upstream)
 		},
 		upstreams.All(),
 	)

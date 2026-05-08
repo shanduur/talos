@@ -66,6 +66,21 @@ func (suite *DNSServer) TestResolvingDoT() {
 	})
 }
 
+func (suite *DNSServer) TestResolvingDoH() {
+	suite.testResolving([]network.NameServerSpec{
+		{
+			Addr:          netip.MustParseAddr("1.1.1.1"),
+			Protocol:      nethelpers.DNSProtocolDNSOverHTTP,
+			TLSServerName: "cloudflare-dns.com",
+		},
+		{
+			Addr:          netip.MustParseAddr("8.8.8.8"),
+			Protocol:      nethelpers.DNSProtocolDNSOverHTTP,
+			TLSServerName: "dns.google",
+		},
+	})
+}
+
 func (suite *DNSServer) testResolving(nameservers []network.NameServerSpec) {
 	port := getDynamicPort(suite.T())
 
