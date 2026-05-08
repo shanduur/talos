@@ -30,15 +30,6 @@ func (f *FeaturesConfig) KubePrism() config.KubePrism {
 	return f.KubePrismSupport
 }
 
-// ImageCache implements config.Features interface.
-func (f *FeaturesConfig) ImageCache() config.ImageCache {
-	if f.ImageCacheSupport == nil {
-		return &ImageCacheConfig{}
-	}
-
-	return f.ImageCacheSupport
-}
-
 // NodeAddressSortAlgorithm implements config.Features interface.
 func (f *FeaturesConfig) NodeAddressSortAlgorithm() nethelpers.AddressSortAlgorithm {
 	if f.FeatureNodeAddressSortAlgorithm == "" {

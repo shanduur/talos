@@ -2392,8 +2392,9 @@ type FeaturesConfig struct {
 	//
 	// Deprecated: Use ResolverConfig document instead.
 	HostDNSSupport *HostDNSConfig `yaml:"hostDNS,omitempty"`
-	//   description: |
-	//     Enable Image Cache feature.
+	// docgen:nodoc
+	//
+	// Deprecated: Use ImageCacheConfig document instead.
 	ImageCacheSupport *ImageCacheConfig `yaml:"imageCache,omitempty"`
 	//   description: |
 	//     Select the node address sort algorithm.
@@ -2414,6 +2415,8 @@ type KubePrism struct {
 }
 
 // ImageCacheConfig describes the configuration for the Image Cache feature.
+//
+// docgen:nodoc
 type ImageCacheConfig struct {
 	//   description: |
 	//     Enable local image cache.

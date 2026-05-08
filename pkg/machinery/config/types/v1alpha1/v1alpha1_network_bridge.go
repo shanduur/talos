@@ -111,3 +111,12 @@ func (c *Config) NetworkHostDNSConfig() config.NetworkHostDNSConfig {
 
 	return c.MachineConfig.MachineFeatures.HostDNSSupport
 }
+
+// ImageCacheConfig implements config.ImageCacheConfig interface.
+func (c *Config) ImageCacheConfig() config.ImageCacheConfig {
+	if c.MachineConfig == nil || c.MachineConfig.MachineFeatures == nil || c.MachineConfig.MachineFeatures.ImageCacheSupport == nil {
+		return nil
+	}
+
+	return c.MachineConfig.MachineFeatures.ImageCacheSupport
+}

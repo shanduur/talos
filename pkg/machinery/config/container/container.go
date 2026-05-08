@@ -511,6 +511,22 @@ func (container *Container) RegistryTLSConfigs() map[string]config.RegistryTLSCo
 	return cfg
 }
 
+// ImageCacheConfig implements config.Config interface.
+func (container *Container) ImageCacheConfig() config.ImageCacheConfig {
+	// first check if we have a dedicated document
+	matching := findMatchingDocs[config.ImageCacheConfig](container.documents)
+	if len(matching) > 0 {
+		return matching[0]
+	}
+
+	// fallback to v1alpha1
+	if container.v1alpha1Config != nil {
+		return container.v1alpha1Config.ImageCacheConfig()
+	}
+
+	return nil
+}
+
 // ImageVerificationConfig implements config.Config interface.
 func (container *Container) ImageVerificationConfig() config.ImageVerificationConfig {
 	docs := findMatchingDocs[config.ImageVerificationConfig](container.documents)

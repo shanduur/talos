@@ -51,6 +51,7 @@ type Config interface { //nolint:interfacebloat
 	RegistryMirrorConfigs() map[string]RegistryMirrorConfig
 	RegistryAuthConfigs() map[string]RegistryAuthConfig
 	RegistryTLSConfigs() map[string]RegistryTLSConfig
+	ImageCacheConfig() ImageCacheConfig
 
 	// - misc:
 	ExtensionServiceConfigs() []ExtensionServiceConfig

@@ -1,7 +1,7 @@
-machine:
-  features:
-    imageCache:
-      localEnabled: true
+apiVersion: v1alpha1
+kind: ImageCacheConfig
+local:
+  enabled: true
 ---
 apiVersion: v1alpha1
 kind: RegistryMirrorConfig

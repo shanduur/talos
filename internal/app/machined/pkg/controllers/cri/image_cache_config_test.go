@@ -17,6 +17,7 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/system"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
 	blockcfg "github.com/siderolabs/talos/pkg/machinery/config/types/block"
+	cricfg "github.com/siderolabs/talos/pkg/machinery/config/types/cri"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/resources/block"
@@ -48,15 +49,10 @@ func (suite *ImageCacheConfigSuite) TestReconcileFeatureNotEnabled() {
 func (suite *ImageCacheConfigSuite) TestReconcileFeatureEnabled() {
 	ctrlName := (&crictrl.ImageCacheConfigController{}).Name()
 
-	cfg := config.NewMachineConfig(container.NewV1Alpha1(&v1alpha1.Config{
-		MachineConfig: &v1alpha1.MachineConfig{
-			MachineFeatures: &v1alpha1.FeaturesConfig{
-				ImageCacheSupport: &v1alpha1.ImageCacheConfig{
-					CacheLocalEnabled: new(true),
-				},
-			},
-		},
-	}))
+	imageCacheCfg := cricfg.NewImageCacheConfigV1Alpha1()
+	imageCacheCfg.LocalConfig.ConfigEnabled = new(true)
+
+	cfg := config.NewMachineConfig(must(container.New(imageCacheCfg)))
 
 	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
 

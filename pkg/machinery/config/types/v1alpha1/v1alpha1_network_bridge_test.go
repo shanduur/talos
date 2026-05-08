@@ -15,6 +15,7 @@ import (
 
 	"github.com/siderolabs/talos/pkg/machinery/config/config"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/cri"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/network"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
 	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
@@ -697,6 +698,108 @@ func TestHostDNSConfigBridging(t *testing.T) {
 			require.NotNil(t, hostDNSConfig)
 
 			assert.Equal(t, test.expectedHostDNSEnabled, hostDNSConfig.HostDNSEnabled())
+		})
+	}
+}
+
+func TestImageCacheConfigBridging(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name string
+
+		cfg func(*testing.T) config.Config
+
+		expectedImageCacheConfigExists bool
+		expectedImageCacheEnabled      bool
+	}{
+		{
+			name: "v1alpha1 empty",
+
+			cfg: func(*testing.T) config.Config {
+				return container.NewV1Alpha1(&v1alpha1.Config{
+					MachineConfig: &v1alpha1.MachineConfig{},
+				})
+			},
+
+			expectedImageCacheConfigExists: false,
+		},
+		{
+			name: "v1alpha1 image cache enabled",
+
+			cfg: func(*testing.T) config.Config {
+				return container.NewV1Alpha1(&v1alpha1.Config{
+					MachineConfig: &v1alpha1.MachineConfig{
+						MachineFeatures: &v1alpha1.FeaturesConfig{
+							ImageCacheSupport: &v1alpha1.ImageCacheConfig{ //nolint:staticcheck // testing legacy features
+								CacheLocalEnabled: new(true),
+							},
+						},
+					},
+				})
+			},
+
+			expectedImageCacheConfigExists: true,
+			expectedImageCacheEnabled:      true,
+		},
+		{
+			name: "multi-doc image cache config enabled",
+
+			cfg: func(*testing.T) config.Config {
+				cacheCfg := cri.NewImageCacheConfigV1Alpha1()
+				cacheCfg.LocalConfig.ConfigEnabled = new(true)
+
+				c, err := container.New(
+					cacheCfg,
+				)
+				require.NoError(t, err)
+
+				return c
+			},
+
+			expectedImageCacheConfigExists: true,
+			expectedImageCacheEnabled:      true,
+		},
+		{
+			name: "v1alpha1 empty and image cache config enabled",
+
+			cfg: func(*testing.T) config.Config {
+				v1alpha1Cfg := &v1alpha1.Config{
+					MachineConfig: &v1alpha1.MachineConfig{},
+				}
+
+				cacheCfg := cri.NewImageCacheConfigV1Alpha1()
+				cacheCfg.LocalConfig.ConfigEnabled = new(true)
+
+				c, err := container.New(
+					v1alpha1Cfg,
+					cacheCfg,
+				)
+				require.NoError(t, err)
+
+				return c
+			},
+
+			expectedImageCacheConfigExists: true,
+			expectedImageCacheEnabled:      true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg := test.cfg(t)
+
+			imageCacheConfig := cfg.ImageCacheConfig()
+
+			if !test.expectedImageCacheConfigExists {
+				require.Nil(t, imageCacheConfig)
+
+				return
+			}
+
+			require.NotNil(t, imageCacheConfig)
+
+			assert.Equal(t, test.expectedImageCacheEnabled, imageCacheConfig.LocalEnabled())
 		})
 	}
 }

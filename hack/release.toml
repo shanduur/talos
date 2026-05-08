@@ -109,6 +109,13 @@ This feature allows Talos to encrypt DNS queries and responses, enhancing privac
 The DNS protocol can be configured on a per-name server basis in the `ResolverConfig` document, allowing for flexible configuration of DNS resolution.
 """
 
+    [notes.imagecache]
+        title = "Image Cache Configuration"
+        description = """\
+Talos now supports a new `ImageCacheConfig` document for configuring the Image Cache feature, replacing the old `machine.features.imageCache` field in the v1alpha1 config.
+Old configuration is still supported for backwards compatibility.
+"""
+
 [make_deps]
 
     [make_deps.tools]

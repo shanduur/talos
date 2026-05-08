@@ -775,6 +775,56 @@
       ],
       "description": "ZswapConfig is a zswap (compressed memory) configuration document.\\nWhen zswap is enabled, Linux kernel compresses pages that would otherwise be swapped out to disk.\\nThe compressed pages are stored in a memory pool, which is used to avoid writing to disk\\nwhen the system is under memory pressure.\\n"
     },
+    "cri.ImageCacheConfigV1Alpha1": {
+      "properties": {
+        "apiVersion": {
+          "enum": [
+            "v1alpha1"
+          ],
+          "title": "apiVersion",
+          "description": "apiVersion is the API version of the resource.\n",
+          "markdownDescription": "apiVersion is the API version of the resource.",
+          "x-intellij-html-description": "\u003cp\u003eapiVersion is the API version of the resource.\u003c/p\u003e\n"
+        },
+        "kind": {
+          "enum": [
+            "ImageCacheConfig"
+          ],
+          "title": "kind",
+          "description": "kind is the kind of the resource.\n",
+          "markdownDescription": "kind is the kind of the resource.",
+          "x-intellij-html-description": "\u003cp\u003ekind is the kind of the resource.\u003c/p\u003e\n"
+        },
+        "local": {
+          "$ref": "#/$defs/cri.LocalImageCacheConfig",
+          "title": "local",
+          "description": "Local (to the machine) image cache configuration.\n",
+          "markdownDescription": "Local (to the machine) image cache configuration.",
+          "x-intellij-html-description": "\u003cp\u003eLocal (to the machine) image cache configuration.\u003c/p\u003e\n"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "apiVersion",
+        "kind"
+      ],
+      "description": "ImageCacheConfig configures Image Cache feature."
+    },
+    "cri.LocalImageCacheConfig": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "enabled",
+          "description": "Is the local image cache enabled.\n",
+          "markdownDescription": "Is the local image cache enabled.",
+          "x-intellij-html-description": "\u003cp\u003eIs the local image cache enabled.\u003c/p\u003e\n"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "LocalImageCacheConfig configures local image cache."
+    },
     "cri.RegistryAuthConfigV1Alpha1": {
       "properties": {
         "apiVersion": {
@@ -4817,13 +4867,6 @@
           "markdownDescription": "KubePrism - local proxy/load balancer on defined port that will distribute\nrequests to all API servers in the cluster.",
           "x-intellij-html-description": "\u003cp\u003eKubePrism - local proxy/load balancer on defined port that will distribute\nrequests to all API servers in the cluster.\u003c/p\u003e\n"
         },
-        "imageCache": {
-          "$ref": "#/$defs/v1alpha1.ImageCacheConfig",
-          "title": "imageCache",
-          "description": "Enable Image Cache feature.\n",
-          "markdownDescription": "Enable Image Cache feature.",
-          "x-intellij-html-description": "\u003cp\u003eEnable Image Cache feature.\u003c/p\u003e\n"
-        },
         "nodeAddressSortAlgorithm": {
           "type": "string",
           "title": "nodeAddressSortAlgorithm",
@@ -4859,20 +4902,6 @@
       "additionalProperties": false,
       "type": "object",
       "description": "FlannelCNIConfig represents the Flannel CNI configuration options."
-    },
-    "v1alpha1.ImageCacheConfig": {
-      "properties": {
-        "localEnabled": {
-          "type": "boolean",
-          "title": "localEnabled",
-          "description": "Enable local image cache.\n",
-          "markdownDescription": "Enable local image cache.",
-          "x-intellij-html-description": "\u003cp\u003eEnable local image cache.\u003c/p\u003e\n"
-        }
-      },
-      "additionalProperties": false,
-      "type": "object",
-      "description": "ImageCacheConfig describes the configuration for the Image Cache feature."
     },
     "v1alpha1.InstallConfig": {
       "properties": {
@@ -5853,6 +5882,9 @@
     },
     {
       "$ref": "#/$defs/block.ZswapConfigV1Alpha1"
+    },
+    {
+      "$ref": "#/$defs/cri.ImageCacheConfigV1Alpha1"
     },
     {
       "$ref": "#/$defs/cri.RegistryAuthConfigV1Alpha1"

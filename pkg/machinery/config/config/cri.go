@@ -52,3 +52,8 @@ type RegistryTLSConfig interface {
 	CA() []byte
 	InsecureSkipVerify() bool
 }
+
+// ImageCacheConfig describes the image cache configuration.
+type ImageCacheConfig interface {
+	LocalEnabled() bool
+}

@@ -681,7 +681,6 @@ kubernetesTalosAPIAccess:
 {{< /highlight >}}</details> | |
 |`diskQuotaSupport` |bool |Enable XFS project quota support for EPHEMERAL partition and user disks.<br>Also enables kubelet tracking of ephemeral disk usage in the kubelet via quota.  | |
 |`kubePrism` |<a href="#Config.machine.features.kubePrism">KubePrism</a> |KubePrism - local proxy/load balancer on defined port that will distribute<br>requests to all API servers in the cluster.  | |
-|`imageCache` |<a href="#Config.machine.features.imageCache">ImageCacheConfig</a> |Enable Image Cache feature.  | |
 |`nodeAddressSortAlgorithm` |string |Select the node address sort algorithm.<br>The 'v1' algorithm sorts addresses by the address itself.<br>The 'v2' algorithm prefers more specific prefixes.<br>If unset, defaults to 'v1'.  | |
 
 
@@ -729,22 +728,6 @@ KubePrism describes the configuration for the KubePrism load balancer.
 |-------|------|-------------|----------|
 |`enabled` |bool |Enable KubePrism support - will start local load balancing proxy.  | |
 |`port` |int |KubePrism port.  | |
-
-
-
-
-
-
-#### imageCache {#Config.machine.features.imageCache}
-
-ImageCacheConfig describes the configuration for the Image Cache feature.
-
-
-
-
-| Field | Type | Description | Value(s) |
-|-------|------|-------------|----------|
-|`localEnabled` |bool |Enable local image cache.  | |
 
 
 

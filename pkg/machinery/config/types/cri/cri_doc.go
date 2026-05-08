@@ -10,6 +10,56 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config/encoder"
 )
 
+func (ImageCacheConfigV1Alpha1) Doc() *encoder.Doc {
+	doc := &encoder.Doc{
+		Type:        "ImageCacheConfig",
+		Comments:    [3]string{"" /* encoder.HeadComment */, "ImageCacheConfig configures Image Cache feature." /* encoder.LineComment */, "" /* encoder.FootComment */},
+		Description: "ImageCacheConfig configures Image Cache feature.",
+		Fields: []encoder.Doc{
+			{
+				Type:   "Meta",
+				Inline: true,
+			},
+			{
+				Name:        "local",
+				Type:        "LocalImageCacheConfig",
+				Note:        "",
+				Description: "Local (to the machine) image cache configuration.",
+				Comments:    [3]string{"" /* encoder.HeadComment */, "Local (to the machine) image cache configuration." /* encoder.LineComment */, "" /* encoder.FootComment */},
+			},
+		},
+	}
+
+	doc.AddExample("", exampleImageCacheConfigVAlpha1())
+
+	return doc
+}
+
+func (LocalImageCacheConfig) Doc() *encoder.Doc {
+	doc := &encoder.Doc{
+		Type:        "LocalImageCacheConfig",
+		Comments:    [3]string{"" /* encoder.HeadComment */, "LocalImageCacheConfig configures local image cache." /* encoder.LineComment */, "" /* encoder.FootComment */},
+		Description: "LocalImageCacheConfig configures local image cache.",
+		AppearsIn: []encoder.Appearance{
+			{
+				TypeName:  "ImageCacheConfigV1Alpha1",
+				FieldName: "local",
+			},
+		},
+		Fields: []encoder.Doc{
+			{
+				Name:        "enabled",
+				Type:        "bool",
+				Note:        "",
+				Description: "Is the local image cache enabled.",
+				Comments:    [3]string{"" /* encoder.HeadComment */, "Is the local image cache enabled." /* encoder.LineComment */, "" /* encoder.FootComment */},
+			},
+		},
+	}
+
+	return doc
+}
+
 func (RegistryAuthConfigV1Alpha1) Doc() *encoder.Doc {
 	doc := &encoder.Doc{
 		Type:        "RegistryAuthConfig",
@@ -190,6 +240,8 @@ func GetFileDoc() *encoder.FileDoc {
 		Name:        "cri",
 		Description: "",
 		Structs: []*encoder.Doc{
+			ImageCacheConfigV1Alpha1{}.Doc(),
+			LocalImageCacheConfig{}.Doc(),
 			RegistryAuthConfigV1Alpha1{}.Doc(),
 			RegistryMirrorConfigV1Alpha1{}.Doc(),
 			RegistryEndpoint{}.Doc(),

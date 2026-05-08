@@ -379,7 +379,6 @@ type Features interface {
 	KubernetesTalosAPIAccess() KubernetesTalosAPIAccess
 	DiskQuotaSupportEnabled() bool
 	KubePrism() KubePrism
-	ImageCache() ImageCache
 	NodeAddressSortAlgorithm() nethelpers.AddressSortAlgorithm
 }
 
@@ -394,11 +393,6 @@ type KubernetesTalosAPIAccess interface {
 type KubePrism interface {
 	Enabled() bool
 	Port() int
-}
-
-// ImageCache describes the image cache configuration.
-type ImageCache interface {
-	LocalEnabled() bool
 }
 
 // UdevConfig describes configuration for udev.
