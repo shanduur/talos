@@ -358,7 +358,8 @@ type MachineConfig struct {
 	//   description: |
 	//     Configures the logging system.
 	//   examples:
-	//     - value: machineLoggingExample()
+	//     - value: machineLoggingExample1()
+	//     - value: machineLoggingExample2()
 	MachineLogging *LoggingConfig `yaml:"logging,omitempty"`
 	//   description: |
 	//     Configures the kernel.
@@ -1161,9 +1162,6 @@ type ControlPlaneConfig struct {
 	//   description: |
 	//     Endpoint is the canonical controlplane endpoint, which can be an IP address or a DNS hostname.
 	//     It is single-valued, and may optionally include a port number.
-	//   examples:
-	//     - value: clusterEndpointExample1()
-	//     - value: clusterEndpointExample2()
 	//   schema:
 	//     type: string
 	//     format: uri
@@ -2671,9 +2669,6 @@ type LoggingConfig struct {
 type LoggingDestination struct {
 	// description: |
 	//   Where to send logs. Supported protocols are "tcp" and "udp".
-	// examples:
-	//   - value: loggingEndpointExample1()
-	//   - value: loggingEndpointExample2()
 	LoggingEndpoint *Endpoint `yaml:"endpoint"`
 	// description: |
 	//   Logs format.
