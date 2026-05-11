@@ -17,6 +17,7 @@ import (
 	"github.com/siderolabs/talos/cmd/talosctl/cmd/mgmt/cluster"
 	_ "github.com/siderolabs/talos/cmd/talosctl/cmd/mgmt/cluster/create" // import to get the command registered via the init() function.
 	"github.com/siderolabs/talos/cmd/talosctl/cmd/talos"
+	"github.com/siderolabs/talos/pkg/cli"
 )
 
 // rootCmd represents the base command when called without any subcommands.
@@ -29,10 +30,10 @@ var rootCmd = &cobra.Command{
 	DisableAutoGenTag: true,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// Execute invokes the user-entered command in a cancellable context (with Ctrl^C).
+// Handles errors related to incorrect usage and prints the error message to stderr.
 func Execute() error {
-	cmd, err := rootCmd.ExecuteContextC(context.Background())
+	cmd, err := cli.WithContextC(context.Background(), rootCmd.ExecuteContextC)
 	if err != nil && !common.SuppressErrors {
 		fmt.Fprintln(os.Stderr, err.Error())
 
@@ -48,6 +49,7 @@ func Execute() error {
 	return err
 }
 
+// init adds all child commands to the base command.
 func init() {
 	const (
 		talosGroup   = "talos"

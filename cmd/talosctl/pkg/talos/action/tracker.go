@@ -161,7 +161,7 @@ func NewTracker(
 
 // ClientExecutor is the interface for the client executor.
 type ClientExecutor interface {
-	WithClient(action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error
+	WithClient(ctx context.Context, action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error
 	NodeList() []string
 }
 
@@ -169,12 +169,12 @@ type ClientExecutor interface {
 // After receiving the expected event, if provided, it tracks the progress by running the post check with retries.
 //
 //nolint:gocyclo
-func (a *Tracker) Run() error {
+func (a *Tracker) Run(ctx context.Context) error {
 	var failedNodesToDmesgs containers.ConcurrentMap[string, io.Reader]
 
 	var eg errgroup.Group
 
-	err := a.clientExecutor.WithClient(func(ctx context.Context, c *client.Client) error {
+	err := a.clientExecutor.WithClient(ctx, func(ctx context.Context, c *client.Client) error {
 		ctx, cancel := context.WithTimeout(ctx, a.timeout)
 		defer cancel()
 

@@ -37,7 +37,7 @@ This command should not be used when "init" type node are used.
 Talos etcd cluster can be recovered from a known snapshot with '--recover-from=' flag.`,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if len(GlobalArgs.Nodes) > 1 {
 				return errors.New("command \"bootstrap\" is not supported with multiple nodes")
 			}

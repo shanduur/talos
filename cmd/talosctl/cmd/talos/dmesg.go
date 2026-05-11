@@ -24,7 +24,7 @@ var dmesgCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			stream, err := c.Dmesg(ctx, follow, dmesgTail)
 			if err != nil {
 				return fmt.Errorf("error getting dmesg: %w", err)

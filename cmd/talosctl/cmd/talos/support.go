@@ -67,7 +67,7 @@ var supportCmd = &cobra.Command{
 			return errors.New("please provide at least a single node to gather the debug information from")
 		}
 
-		f, err := openArchive()
+		f, err := openArchive(cmd.Context())
 		if err != nil {
 			return err
 		}
@@ -93,7 +93,7 @@ var supportCmd = &cobra.Command{
 			return nil
 		})
 
-		collectErr := collectData(f, progress)
+		collectErr := collectData(cmd.Context(), f, progress)
 
 		close(progress)
 
@@ -111,8 +111,8 @@ var supportCmd = &cobra.Command{
 	},
 }
 
-func collectData(dest *os.File, progress chan bundle.Progress) error {
-	return WithClientNoNodes(func(ctx context.Context, c *client.Client) error {
+func collectData(ctx context.Context, dest *os.File, progress chan bundle.Progress) error {
+	return WithClientNoNodes(ctx, func(ctx context.Context, c *client.Client) error {
 		clientset, err := getKubernetesClient(ctx, c)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to create kubernetes client %s\n", err)
@@ -172,10 +172,10 @@ func getKubernetesClient(ctx context.Context, c *client.Client) (*k8s.Clientset,
 	return clientset, nil
 }
 
-func getDiscoveryConfig() (*clusterresource.Config, error) {
+func getDiscoveryConfig(ctx context.Context) (*clusterresource.Config, error) {
 	var config *clusterresource.Config
 
-	if e := WithClient(func(ctx context.Context, c *client.Client) error {
+	if e := WithClient(ctx, func(ctx context.Context, c *client.Client) error {
 		var err error
 
 		config, err = safe.StateGet[*clusterresource.Config](
@@ -192,11 +192,11 @@ func getDiscoveryConfig() (*clusterresource.Config, error) {
 	return config, nil
 }
 
-func openArchive() (*os.File, error) {
+func openArchive(ctx context.Context) (*os.File, error) {
 	if supportCmdFlags.output == "" {
 		supportCmdFlags.output = "support"
 
-		if config, err := getDiscoveryConfig(); err == nil && config.TypedSpec().DiscoveryEnabled {
+		if config, err := getDiscoveryConfig(ctx); err == nil && config.TypedSpec().DiscoveryEnabled {
 			supportCmdFlags.output += "-" + config.TypedSpec().ServiceClusterID
 		}
 

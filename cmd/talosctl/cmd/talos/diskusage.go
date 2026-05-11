@@ -39,7 +39,7 @@ var duCmd = &cobra.Command{
 
 		var completeOnlyPaths []string
 
-		for _, path := range completePathFromNode(toComplete) {
+		for _, path := range completePathFromNode(cmd.Context(), toComplete) {
 			if path[len(path)-1:] == "/" {
 				completeOnlyPaths = append(completeOnlyPaths, path)
 			}
@@ -48,7 +48,7 @@ var duCmd = &cobra.Command{
 		return completeOnlyPaths, cobra.ShellCompDirectiveNoFileComp
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			var paths []string
 
 			if len(args) == 0 {

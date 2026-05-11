@@ -134,7 +134,7 @@ var patchCmd = &cobra.Command{
 	Short: "Patch machine configuration of a Talos node with a local patch.",
 	Args:  cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if patchCmdFlags.patchFile != "" {
 				patchCmdFlags.patch = append(patchCmdFlags.patch, "@"+patchCmdFlags.patchFile)
 			}

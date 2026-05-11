@@ -74,12 +74,12 @@ var upgradeCmd = &cobra.Command{
 			return errors.New("cannot use --wait and --insecure together")
 		}
 
-		return upgradeRun()
+		return upgradeRun(cmd.Context())
 	},
 }
 
-func upgradeRun() error {
-	return WithClientAndNodes(upgradeViaLifecycleService)
+func upgradeRun(ctx context.Context) error {
+	return WithClientAndNodes(ctx, upgradeViaLifecycleService)
 }
 
 var talosUpgradeAPIVersionRange = semver.MustParseRange(">1.13.0-alpha.2 <2.0.0")
@@ -96,7 +96,7 @@ func upgradeViaLifecycleService(ctx context.Context, c *client.Client, nodes []s
 	if upgradeCmdFlags.legacy {
 		cli.Warning("Forcing use of legacy upgrade method. This flag is deprecated and will be removed in Talos 1.18.")
 
-		return upgradeLegacy()
+		return upgradeLegacy(ctx)
 	}
 
 	opts := []client.RebootMode{
@@ -112,7 +112,7 @@ func upgradeViaLifecycleService(ctx context.Context, c *client.Client, nodes []s
 		reporter.WithOutputMode(upgradeCmdFlags.progress.Value()),
 	)
 
-	err = WithClient(func(ctx context.Context, c *client.Client) error {
+	err = WithClient(ctx, func(ctx context.Context, c *client.Client) error {
 		return helpers.TalosVersionCheck(ctx, c, talosUpgradeAPIVersionRange)
 	})
 	if err != nil {
@@ -122,7 +122,7 @@ func upgradeViaLifecycleService(ctx context.Context, c *client.Client, nodes []s
 				Message: "New upgrade API is not available, falling back to legacy",
 			})
 
-			return upgradeLegacy()
+			return upgradeLegacy(ctx)
 		}
 
 		return fmt.Errorf("error checking Talos version compatibility: %w", err)
@@ -159,7 +159,7 @@ func upgradeViaLifecycleService(ctx context.Context, c *client.Client, nodes []s
 		}
 	}()
 
-	err = rebootInternal(upgradeCmdFlags.wait, upgradeCmdFlags.debug, upgradeCmdFlags.timeout, rep, opts...)
+	err = rebootInternal(ctx, upgradeCmdFlags.wait, upgradeCmdFlags.debug, upgradeCmdFlags.timeout, rep, opts...)
 	if err != nil {
 		return fmt.Errorf("error during upgrade: %w", err)
 	}
@@ -240,7 +240,7 @@ func upgradeInternal(ctx context.Context, c *client.Client, containerdInstance *
 // upgradeLegacy dispatches to the legacy upgrade path, respecting --wait.
 //
 // Note: remove me in Talos 1.18.
-func upgradeLegacy() error {
+func upgradeLegacy(ctx context.Context) error {
 	rebootModeStr := strings.ToUpper(upgradeCmdFlags.rebootMode.String())
 
 	rebootMode, ok := machine.UpgradeRequest_RebootMode_value[rebootModeStr]
@@ -257,7 +257,7 @@ func upgradeLegacy() error {
 	}
 
 	if !upgradeCmdFlags.wait {
-		return runUpgradeLegacyNoWaitWithOpts(opts)
+		return runUpgradeLegacyNoWaitWithOpts(ctx, opts)
 	}
 
 	return action.NewTracker(
@@ -269,20 +269,20 @@ func upgradeLegacy() error {
 		action.WithPostCheck(action.BootIDChangedPostCheckFn),
 		action.WithDebug(upgradeCmdFlags.debug),
 		action.WithTimeout(upgradeCmdFlags.timeout),
-	).Run()
+	).Run(ctx)
 }
 
 // runUpgradeLegacyNoWaitWithOpts runs the legacy upgrade without waiting.
 //
 // Note: remove me in Talos 1.18.
-func runUpgradeLegacyNoWaitWithOpts(opts []client.UpgradeOption) error {
+func runUpgradeLegacyNoWaitWithOpts(ctx context.Context, opts []client.UpgradeOption) error {
 	if upgradeCmdFlags.insecure {
-		return WithClientMaintenance(nil, func(ctx context.Context, c *client.Client) error {
+		return WithClientMaintenance(ctx, nil, func(ctx context.Context, c *client.Client) error {
 			return doUpgradeLegacy(ctx, c, opts)
 		})
 	}
 
-	return WithClient(func(ctx context.Context, c *client.Client) error {
+	return WithClient(ctx, func(ctx context.Context, c *client.Client) error {
 		return doUpgradeLegacy(ctx, c, opts)
 	})
 }

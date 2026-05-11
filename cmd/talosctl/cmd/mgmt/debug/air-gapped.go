@@ -24,7 +24,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/siderolabs/talos/cmd/talosctl/pkg/mgmt/helpers"
-	"github.com/siderolabs/talos/pkg/cli"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
 	"github.com/siderolabs/talos/pkg/machinery/config/encoder"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/runtime"
@@ -53,27 +52,23 @@ var airgappedCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return cli.WithContext(
-			context.Background(), func(ctx context.Context) error {
-				caPEM, certPEM, keyPEM, err := helpers.GenerateSelfSignedCert([]net.IP{airgappedFlags.advertisedAddress}, nil)
-				if err != nil {
-					return nil
-				}
+		caPEM, certPEM, keyPEM, err := helpers.GenerateSelfSignedCert([]net.IP{airgappedFlags.advertisedAddress}, nil)
+		if err != nil {
+			return nil
+		}
 
-				if err = generateConfigPatch(caPEM); err != nil {
-					return err
-				}
+		if err = generateConfigPatch(caPEM); err != nil {
+			return err
+		}
 
-				eg, ctx := errgroup.WithContext(ctx)
+		eg, ctx := errgroup.WithContext(cmd.Context())
 
-				eg.Go(func() error { return runHTTPServer(ctx, certPEM, keyPEM) })
-				eg.Go(func() error { return runHTTPProxy(ctx) })
-				eg.Go(func() error { return runHTTPSProxy(ctx, certPEM, keyPEM) })
-				eg.Go(func() error { return runHTTPSReverseProxy(ctx, certPEM, keyPEM) })
+		eg.Go(func() error { return runHTTPServer(ctx, certPEM, keyPEM) })
+		eg.Go(func() error { return runHTTPProxy(ctx) })
+		eg.Go(func() error { return runHTTPSProxy(ctx, certPEM, keyPEM) })
+		eg.Go(func() error { return runHTTPSReverseProxy(ctx, certPEM, keyPEM) })
 
-				return eg.Wait()
-			},
-		)
+		return eg.Wait()
 	},
 }
 

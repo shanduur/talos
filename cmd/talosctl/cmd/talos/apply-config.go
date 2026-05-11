@@ -95,10 +95,10 @@ var applyConfigCmd = &cobra.Command{
 
 		withClient := func(f func(context.Context, *client.Client) error) error {
 			if applyConfigCmdFlags.insecure {
-				return WithClientMaintenance(applyConfigCmdFlags.certFingerprints, f)
+				return WithClientMaintenance(cmd.Context(), applyConfigCmdFlags.certFingerprints, f)
 			}
 
-			return WithClient(f)
+			return WithClient(cmd.Context(), f)
 		}
 
 		return withClient(func(ctx context.Context, c *client.Client) error {

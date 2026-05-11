@@ -28,10 +28,10 @@ var readCmd = &cobra.Command{
 			return nil, cobra.ShellCompDirectiveError | cobra.ShellCompDirectiveNoFileComp
 		}
 
-		return completePathFromNode(toComplete), cobra.ShellCompDirectiveNoFileComp
+		return completePathFromNode(cmd.Context(), toComplete), cobra.ShellCompDirectiveNoFileComp
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "read"); err != nil {
 				return err
 			}

@@ -38,23 +38,23 @@ const pathAutoCompleteLimit = 500
 // WithClientNoNodes wraps common code to initialize Talos client and provide cancellable context.
 //
 // WithClientNoNodes doesn't set any node information on the request context.
-func WithClientNoNodes(action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error {
-	return GlobalArgs.WithClientNoNodes(action, dialOptions...)
+func WithClientNoNodes(ctx context.Context, action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error {
+	return GlobalArgs.WithClientNoNodes(ctx, action, dialOptions...)
 }
 
 // WithClient builds upon WithClientNoNodes to provide set of nodes on request context based on config & flags.
-func WithClient(action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error {
-	return GlobalArgs.WithClient(action, dialOptions...)
+func WithClient(ctx context.Context, action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error {
+	return GlobalArgs.WithClient(ctx, action, dialOptions...)
 }
 
 // WithClientAndNodes builds upon WithClientNoNodes to pass a list of nodes via command function.
-func WithClientAndNodes(action func(context.Context, *client.Client, []string) error, dialOptions ...grpc.DialOption) error {
-	return GlobalArgs.WithClientAndNodes(action, dialOptions...)
+func WithClientAndNodes(ctx context.Context, action func(context.Context, *client.Client, []string) error, dialOptions ...grpc.DialOption) error {
+	return GlobalArgs.WithClientAndNodes(ctx, action, dialOptions...)
 }
 
 // WithClientMaintenance wraps common code to initialize Talos client in maintenance (insecure mode).
-func WithClientMaintenance(enforceFingerprints []string, action func(context.Context, *client.Client) error) error {
-	return GlobalArgs.WithClientMaintenance(enforceFingerprints, action)
+func WithClientMaintenance(ctx context.Context, enforceFingerprints []string, action func(context.Context, *client.Client) error) error {
+	return GlobalArgs.WithClientMaintenance(ctx, enforceFingerprints, action)
 }
 
 // Commands is a list of commands published by the package.
@@ -93,7 +93,7 @@ func addCommand(cmd *cobra.Command) {
 }
 
 // completePathFromNode represents tab complete options for `ls` and `ls *` commands.
-func completePathFromNode(inputPath string) []string {
+func completePathFromNode(ctx context.Context, inputPath string) []string {
 	pathToSearch := inputPath
 
 	// If the pathToSearch is empty, use root '/'
@@ -110,17 +110,18 @@ func completePathFromNode(inputPath string) []string {
 		pathToSearch = pathToSearch[:index] + "/"
 	}
 
-	paths = getPathFromNode(pathToSearch, inputPath)
+	paths = getPathFromNode(ctx, pathToSearch, inputPath)
 
 	return maps.Keys(paths)
 }
 
 //nolint:gocyclo
-func getPathFromNode(path, filter string) map[string]struct{} {
+func getPathFromNode(ctx context.Context, path, filter string) map[string]struct{} {
 	paths := make(map[string]struct{})
 
 	//nolint:errcheck
 	GlobalArgs.WithClient(
+		ctx,
 		func(ctx context.Context, c *client.Client) error {
 			ctx, cancel := context.WithCancel(ctx)
 			defer cancel()
@@ -183,11 +184,12 @@ func getPathFromNode(path, filter string) map[string]struct{} {
 	return paths
 }
 
-func getServiceFromNode() []string {
+func getServiceFromNode(ctx context.Context) []string {
 	var svcIDs []string
 
 	//nolint:errcheck
 	GlobalArgs.WithClient(
+		ctx,
 		func(ctx context.Context, c *client.Client) error {
 			var remotePeer peer.Peer
 
@@ -210,11 +212,12 @@ func getServiceFromNode() []string {
 	return svcIDs
 }
 
-func getContainersFromNode(kubernetes bool) []string {
+func getContainersFromNode(ctx context.Context, kubernetes bool) []string {
 	var containerIDs []string
 
 	//nolint:errcheck
 	GlobalArgs.WithClient(
+		ctx,
 		func(ctx context.Context, c *client.Client) error {
 			var (
 				namespace string

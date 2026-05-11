@@ -52,9 +52,9 @@ func newManager() (*fetchManager, error) {
 	}, nil
 }
 
-func (m *fetchManager) fetchImageByTag(imageName, tag string, imageHandler imageHandler) error {
+func (m *fetchManager) fetchImageByTag(ctx context.Context, imageName, tag string, imageHandler imageHandler) error {
 	// set a timeout for fetching, but don't bind it to any context, as we want fetch operation to finish
-	ctx, cancel := context.WithTimeout(context.Background(), FetchTimeout)
+	ctx, cancel := context.WithTimeout(ctx, FetchTimeout)
 	defer cancel()
 
 	// light check first - if the image exists, and resolve the digest
@@ -68,15 +68,15 @@ func (m *fetchManager) fetchImageByTag(imageName, tag string, imageHandler image
 
 	digestRef := repoRef.Digest(descriptor.Digest.String())
 
-	return m.fetchImageByDigest(digestRef, imageHandler)
+	return m.fetchImageByDigest(ctx, digestRef, imageHandler)
 }
 
 // fetchImageByDigest fetches an image by digest, verifies signatures, and exports it to the storage.
-func (m *fetchManager) fetchImageByDigest(digestRef name.Digest, imageHandler imageHandler) error {
+func (m *fetchManager) fetchImageByDigest(ctx context.Context, digestRef name.Digest, imageHandler imageHandler) error {
 	var err error
 
 	// set a timeout for fetching, but don't bind it to any context, as we want fetch operation to finish
-	ctx, cancel := context.WithTimeout(context.Background(), FetchTimeout)
+	ctx, cancel := context.WithTimeout(ctx, FetchTimeout)
 	defer cancel()
 
 	desc, err := m.puller.Get(ctx, digestRef)

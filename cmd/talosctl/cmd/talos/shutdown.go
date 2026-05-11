@@ -38,7 +38,7 @@ var shutdownCmd = &cobra.Command{
 		}
 
 		if !shutdownCmdFlags.wait {
-			return WithClient(func(ctx context.Context, c *client.Client) error {
+			return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 				if err := helpers.ClientVersionCheck(ctx, c); err != nil {
 					return err
 				}
@@ -57,7 +57,7 @@ var shutdownCmd = &cobra.Command{
 			shutdownGetActorID,
 			action.WithDebug(shutdownCmdFlags.debug),
 			action.WithTimeout(shutdownCmdFlags.timeout),
-		).Run()
+		).Run(cmd.Context())
 	},
 }
 

@@ -35,15 +35,15 @@ var dhcpdLaunchCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ips := xslices.Map(slices.Collect(strings.SplitSeq(dhcpdLaunchCmdFlags.addr, ",")), net.ParseIP)
 
-		var eg errgroup.Group
+		eg, ctx := errgroup.WithContext(cmd.Context())
 
 		eg.Go(func() error {
-			return vm.DHCPd(dhcpdLaunchCmdFlags.ifName, ips, dhcpdLaunchCmdFlags.statePath)
+			return vm.DHCPd(ctx, dhcpdLaunchCmdFlags.ifName, ips, dhcpdLaunchCmdFlags.statePath)
 		})
 
 		if dhcpdLaunchCmdFlags.ipxeNextHandler != "" {
 			eg.Go(func() error {
-				return vm.TFTPd(ips, dhcpdLaunchCmdFlags.ipxeNextHandler)
+				return vm.TFTPd(ctx, ips, dhcpdLaunchCmdFlags.ipxeNextHandler)
 			})
 		}
 

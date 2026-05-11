@@ -414,7 +414,7 @@ var configNewCmd = &cobra.Command{
 
 		path := args[0]
 
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "talosconfig"); err != nil {
 				return err
 			}

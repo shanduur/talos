@@ -28,7 +28,7 @@ var upgradeK8sCmd = &cobra.Command{
 	Long:  `Command runs upgrade of Kubernetes control plane components between specified versions.`,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(upgradeKubernetes)
+		return WithClient(cmd.Context(), upgradeKubernetes)
 	},
 }
 

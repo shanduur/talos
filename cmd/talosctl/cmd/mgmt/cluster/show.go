@@ -18,7 +18,6 @@ import (
 	"github.com/siderolabs/gen/xslices"
 	"github.com/spf13/cobra"
 
-	"github.com/siderolabs/talos/pkg/cli"
 	"github.com/siderolabs/talos/pkg/provision"
 	"github.com/siderolabs/talos/pkg/provision/providers"
 )
@@ -30,7 +29,7 @@ var showCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return cli.WithContext(context.Background(), show)
+		return show(cmd.Context())
 	},
 }
 

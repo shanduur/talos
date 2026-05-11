@@ -65,7 +65,7 @@ e.g. by excluding packets with the port 50000.
    `,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "pcap"); err != nil {
 				return err
 			}

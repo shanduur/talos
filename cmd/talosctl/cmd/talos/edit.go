@@ -196,7 +196,7 @@ It will open the editor defined by your TALOS_EDITOR,
 or EDITOR environment variables, or fall back to 'vi' for Linux
 or 'notepad' for Windows.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.ClientVersionCheck(ctx, c); err != nil {
 				return err
 			}

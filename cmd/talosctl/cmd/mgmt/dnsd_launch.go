@@ -13,7 +13,6 @@ import (
 
 	"github.com/siderolabs/gen/xslices"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/siderolabs/talos/pkg/provision/providers/vm"
 )
@@ -33,13 +32,7 @@ var dnsdLaunchCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ips := xslices.Map(slices.Collect(strings.SplitSeq(dnsdLaunchCmdFlags.addr, ",")), net.ParseIP)
 
-		var eg errgroup.Group
-
-		eg.Go(func() error {
-			return vm.DNSd(ips, dnsdLaunchCmdFlags.resolvConf)
-		})
-
-		return eg.Wait()
+		return vm.DNSd(cmd.Context(), ips, dnsdLaunchCmdFlags.resolvConf)
 	},
 }
 

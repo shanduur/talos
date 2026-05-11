@@ -41,13 +41,13 @@ var logsCmd = &cobra.Command{
 		}
 
 		if kubernetesFlag {
-			return getContainersFromNode(kubernetesFlag), cobra.ShellCompDirectiveNoFileComp
+			return getContainersFromNode(cmd.Context(), kubernetesFlag), cobra.ShellCompDirectiveNoFileComp
 		}
 
-		return mergeSuggestions(getServiceFromNode(), getContainersFromNode(kubernetesFlag), getLogsContainers()), cobra.ShellCompDirectiveNoFileComp
+		return mergeSuggestions(getServiceFromNode(cmd.Context()), getContainersFromNode(cmd.Context(), kubernetesFlag), getLogsContainers(cmd.Context())), cobra.ShellCompDirectiveNoFileComp
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			var (
 				namespace string
 				driver    common.ContainerDriver
@@ -208,11 +208,12 @@ func (slicer *lineSlicer) run(stream machine.MachineService_LogsClient) {
 	}
 }
 
-func getLogsContainers() []string {
+func getLogsContainers(ctx context.Context) []string {
 	var result []string
 
 	//nolint:errcheck
 	WithClient(
+		ctx,
 		func(ctx context.Context, c *client.Client) error {
 			var remotePeer peer.Peer
 

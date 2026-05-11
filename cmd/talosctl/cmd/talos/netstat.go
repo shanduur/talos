@@ -62,7 +62,7 @@ If you don't pass an argument, the command will show host connections.`,
 
 		var podList []string
 
-		if WithClient(func(ctx context.Context, c *client.Client) error {
+		if WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			n := netstat{
 				NodeNetNSPods: make(map[string]map[string]string),
 				client:        c,
@@ -89,7 +89,7 @@ If you don't pass an argument, the command will show host connections.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		req := netstatFlagsToRequest()
 
-		return WithClient(func(ctx context.Context, c *client.Client) (err error) {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) (err error) {
 			if netstatCmdFlags.pods && len(args) > 0 {
 				return errors.New("cannot use --pods and specify a pod")
 			}

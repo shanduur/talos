@@ -53,22 +53,22 @@ var rebootCmd = &cobra.Command{
 			client.WithRebootMode(rebootCmdFlags.rebootMode.Value()),
 		}
 
-		return rebootRun(opts)
+		return rebootRun(cmd.Context(), opts)
 	},
 }
 
-func rebootRun(opts []client.RebootMode) (retErr error) {
+func rebootRun(ctx context.Context, opts []client.RebootMode) (retErr error) {
 	rep := reporter.New(
 		reporter.WithOutputMode(rebootCmdFlags.progress.Value()),
 	)
 
 	if !rebootCmdFlags.drain {
-		return rebootInternal(rebootCmdFlags.wait, rebootCmdFlags.debug, rebootCmdFlags.timeout, rep, opts...)
+		return rebootInternal(ctx, rebootCmdFlags.wait, rebootCmdFlags.debug, rebootCmdFlags.timeout, rep, opts...)
 	}
 
 	var nodeNames map[string]string
 
-	if err := WithClientAndNodes(func(ctx context.Context, c *client.Client, nodes []string) error {
+	if err := WithClientAndNodes(ctx, func(ctx context.Context, c *client.Client, nodes []string) error {
 		var drainErr error
 
 		nodeNames, drainErr = drainNodes(ctx, c, nodes, rebootCmdFlags.drainTimeout, rep)
@@ -79,19 +79,19 @@ func rebootRun(opts []client.RebootMode) (retErr error) {
 	}
 
 	defer func() {
-		if uncordonErr := WithClientAndNodes(func(ctx context.Context, c *client.Client, _ []string) error {
+		if uncordonErr := WithClientAndNodes(ctx, func(ctx context.Context, c *client.Client, _ []string) error {
 			return uncordonNodes(ctx, c, nodeNames, rebootCmdFlags.timeout, rep)
 		}); uncordonErr != nil {
 			retErr = errors.Join(retErr, uncordonErr)
 		}
 	}()
 
-	return rebootInternal(rebootCmdFlags.wait, rebootCmdFlags.debug, rebootCmdFlags.timeout, rep, opts...)
+	return rebootInternal(ctx, rebootCmdFlags.wait, rebootCmdFlags.debug, rebootCmdFlags.timeout, rep, opts...)
 }
 
-func rebootInternal(wait, debug bool, timeout time.Duration, rep *reporter.Reporter, opts ...client.RebootMode) error {
+func rebootInternal(ctx context.Context, wait, debug bool, timeout time.Duration, rep *reporter.Reporter, opts ...client.RebootMode) error {
 	if !wait {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(ctx, func(ctx context.Context, c *client.Client) error {
 			if err := helpers.ClientVersionCheck(ctx, c); err != nil {
 				return err
 			}
@@ -112,7 +112,7 @@ func rebootInternal(wait, debug bool, timeout time.Duration, rep *reporter.Repor
 		action.WithDebug(debug),
 		action.WithTimeout(timeout),
 		action.WithReporter(rep),
-	).Run()
+	).Run(ctx)
 }
 
 func rebootGetActorID(opts ...client.RebootMode) func(ctx context.Context, c *client.Client) (string, error) {

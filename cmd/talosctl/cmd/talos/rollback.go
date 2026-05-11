@@ -19,7 +19,7 @@ var rollbackCmd = &cobra.Command{
 	Short: "Rollback a node to the previous installation",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := c.Rollback(ctx); err != nil {
 				return fmt.Errorf("error executing rollback: %s", err)
 			}

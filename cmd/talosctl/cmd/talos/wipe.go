@@ -40,10 +40,10 @@ Use device names as arguments, for example: vda or sda5.`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if wipeDiskCmdFlags.insecure {
-			return WithClientMaintenance(nil, cmdWipe(args))
+			return WithClientMaintenance(cmd.Context(), nil, cmdWipe(args))
 		}
 
-		return WithClient(cmdWipe(args))
+		return WithClient(cmd.Context(), cmdWipe(args))
 	},
 }
 

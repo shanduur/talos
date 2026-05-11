@@ -52,7 +52,7 @@ var debugCmd = &cobra.Command{
 
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClientAndNodes(func(ctx context.Context, c *client.Client, nodes []string) error {
+		return WithClientAndNodes(cmd.Context(), func(ctx context.Context, c *client.Client, nodes []string) error {
 			if len(nodes) != 1 {
 				return fmt.Errorf("expected exactly one node, got %v", nodes)
 			}

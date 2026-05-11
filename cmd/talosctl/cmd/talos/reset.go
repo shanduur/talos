@@ -110,10 +110,10 @@ var resetCmd = &cobra.Command{
 			}
 
 			if resetCmdFlags.insecure {
-				return WithClientMaintenance(nil, resetNoWait)
+				return WithClientMaintenance(cmd.Context(), nil, resetNoWait)
 			}
 
-			return WithClient(resetNoWait)
+			return WithClient(cmd.Context(), resetNoWait)
 		}
 
 		actionFn := func(ctx context.Context, c *client.Client) (string, error) {
@@ -124,7 +124,7 @@ var resetCmd = &cobra.Command{
 
 		if resetCmdFlags.reboot {
 			postCheckFn = func(ctx context.Context, c *client.Client, preActionBootID string) error {
-				err := WithClientMaintenance(nil,
+				err := WithClientMaintenance(ctx, nil,
 					func(ctx context.Context, cli *client.Client) error {
 						_, err := cli.Disks(ctx)
 
@@ -148,7 +148,7 @@ var resetCmd = &cobra.Command{
 			action.WithPostCheck(postCheckFn),
 			action.WithDebug(resetCmdFlags.debug),
 			action.WithTimeout(resetCmdFlags.timeout),
-		).Run()
+		).Run(cmd.Context())
 	},
 }
 

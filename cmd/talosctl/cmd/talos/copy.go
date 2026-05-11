@@ -36,7 +36,7 @@ captures ownership and permission bits.`,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		switch len(args) {
 		case 0:
-			return completePathFromNode(toComplete), cobra.ShellCompDirectiveNoFileComp
+			return completePathFromNode(cmd.Context(), toComplete), cobra.ShellCompDirectiveNoFileComp
 		case 1:
 			return nil, cobra.ShellCompDirectiveDefault
 		}
@@ -44,7 +44,7 @@ captures ownership and permission bits.`,
 		return nil, cobra.ShellCompDirectiveError | cobra.ShellCompDirectiveNoFileComp
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "copy"); err != nil {
 				return err
 			}

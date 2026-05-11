@@ -52,10 +52,10 @@ var versionCmd = &cobra.Command{
 		}
 
 		if versionCmdFlags.insecure {
-			return WithClientMaintenance(nil, cmdVersion)
+			return WithClientMaintenance(cmd.Context(), nil, cmdVersion)
 		}
 
-		return WithClient(cmdVersion)
+		return WithClient(cmd.Context(), cmdVersion)
 	},
 }
 

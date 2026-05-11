@@ -27,7 +27,7 @@ var destroyCmd = &cobra.Command{
 	Short: "Destroys a local Talos kubernetes cluster",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return cli.WithContext(context.Background(), destroy)
+		return destroy(cmd.Context())
 	},
 }
 

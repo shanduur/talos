@@ -75,6 +75,7 @@ var genSecurebootDatabaseCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return generateSecureBootDatabase(
+			cmd.Context(),
 			genSecurebootCmdFlags.outputDirectory,
 			genSecurebootDatabaseCmdFlags.enrolledCertificatePath,
 			genSecurebootDatabaseCmdFlags.signingKeyPath,
@@ -142,13 +143,13 @@ func saveAsDER(file string, pem []byte) error {
 // generateSecureBootDatabase generates a UEFI database to enroll the signing certificate.
 //
 // ref: https://blog.hansenpartnership.com/the-meaning-of-all-the-uefi-keys/
-func generateSecureBootDatabase(path, enrolledCertificatePath, signingKeyPath, signingCertificatePath string, includeWellKnownCerts bool) error {
+func generateSecureBootDatabase(ctx context.Context, path, enrolledCertificatePath, signingKeyPath, signingCertificatePath string, includeWellKnownCerts bool) error {
 	in := profile.SigningKeyAndCertificate{
 		KeyPath:  signingKeyPath,
 		CertPath: signingCertificatePath,
 	}
 
-	signer, err := in.GetSigner(context.Background()) // context not used
+	signer, err := in.GetSigner(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create signer: %w", err)
 	}

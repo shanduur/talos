@@ -46,6 +46,12 @@ var loadbalancerLaunchCmd = &cobra.Command{
 			}
 		}
 
+		go func() {
+			<-cmd.Context().Done()
+			// Errors out only when already stopped.
+			lb.Close() //nolint:errcheck
+		}()
+
 		return lb.Run()
 	},
 }

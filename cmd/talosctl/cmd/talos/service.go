@@ -31,7 +31,7 @@ With actions 'start', 'stop', 'restart', service state is updated respectively.`
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		switch len(args) {
 		case 0:
-			return getServiceFromNode(), cobra.ShellCompDirectiveNoFileComp
+			return getServiceFromNode(cmd.Context()), cobra.ShellCompDirectiveNoFileComp
 		case 1:
 			return []string{"start", "stop", "restart", "status"}, cobra.ShellCompDirectiveNoFileComp
 		}
@@ -50,7 +50,7 @@ With actions 'start', 'stop', 'restart', service state is updated respectively.`
 			action = args[1]
 		}
 
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			switch action {
 			case "status":
 				if serviceID == "" {

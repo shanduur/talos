@@ -43,9 +43,9 @@ To get a list of all available resource definitions, issue 'talosctl get rd'`,
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 		switch len(args) {
 		case 0:
-			return completeResourceDefinition(toComplete != "")
+			return completeResourceDefinition(cmd.Context(), toComplete != "")
 		case 1:
-			return completeResourceID(args[0], getCmdFlags.namespace)
+			return completeResourceID(cmd.Context(), args[0], getCmdFlags.namespace)
 		}
 
 		return nil, cobra.ShellCompDirectiveError | cobra.ShellCompDirectiveNoFileComp
@@ -53,10 +53,10 @@ To get a list of all available resource definitions, issue 'talosctl get rd'`,
 	Args: cobra.RangeArgs(1, 2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if getCmdFlags.insecure {
-			return WithClientMaintenance(nil, getResources(args))
+			return WithClientMaintenance(cmd.Context(), nil, getResources(args))
 		}
 
-		return WithClient(getResources(args))
+		return WithClient(cmd.Context(), getResources(args))
 	},
 }
 
@@ -230,10 +230,10 @@ func aggregateEvents(ctx context.Context, outCh chan<- nodeAndEvent, watchCh <-c
 }
 
 // completeResourceDefinition represents tab complete options for `get` and `get *` commands.
-func completeResourceDefinition(withAliases bool) ([]string, cobra.ShellCompDirective) {
+func completeResourceDefinition(ctx context.Context, withAliases bool) ([]string, cobra.ShellCompDirective) {
 	var result []string
 
-	if WithClientNoNodes(func(ctx context.Context, c *client.Client) error {
+	if WithClientNoNodes(ctx, func(ctx context.Context, c *client.Client) error {
 		items, err := safe.StateListAll[*meta.ResourceDefinition](ctx, c.COSI)
 		if err != nil {
 			return err
@@ -256,10 +256,10 @@ func completeResourceDefinition(withAliases bool) ([]string, cobra.ShellCompDire
 }
 
 // completeResourceID represents tab complete options for `get` and `get *` commands.
-func completeResourceID(resourceType, namespace string) ([]string, cobra.ShellCompDirective) {
+func completeResourceID(ctx context.Context, resourceType, namespace string) ([]string, cobra.ShellCompDirective) {
 	var result []string
 
-	if WithClientNoNodes(func(ctx context.Context, c *client.Client) error {
+	if WithClientNoNodes(ctx, func(ctx context.Context, c *client.Client) error {
 		if len(GlobalArgs.Nodes) > 0 {
 			ctx = client.WithNode(ctx, GlobalArgs.Nodes[0])
 		}
@@ -287,10 +287,10 @@ func completeResourceID(resourceType, namespace string) ([]string, cobra.ShellCo
 }
 
 // CompleteNodes represents tab completion for `--nodes` argument.
-func CompleteNodes(*cobra.Command, []string, string) ([]string, cobra.ShellCompDirective) {
+func CompleteNodes(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
 	var nodes []string
 
-	if WithClientNoNodes(func(ctx context.Context, c *client.Client) error {
+	if WithClientNoNodes(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 		items, err := safe.StateListAll[*cluster.Member](ctx, c.COSI)
 		if err != nil {
 			return err

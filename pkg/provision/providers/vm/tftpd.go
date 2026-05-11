@@ -5,6 +5,7 @@
 package vm
 
 import (
+	"context"
 	"net"
 	"time"
 
@@ -15,16 +16,29 @@ import (
 )
 
 // TFTPd starts a TFTP server on the given IPs.
-func TFTPd(ips []net.IP, nextHandler string) error {
+func TFTPd(ctx context.Context, ips []net.IP, nextHandler string) error {
 	server := tftp.NewServer(ipxe.TFTPHandler(nextHandler), nil)
 
 	server.SetTimeout(5 * time.Second)
 
-	var eg errgroup.Group
+	eg, egCtx := errgroup.WithContext(ctx)
+
+	eg.Go(func() error {
+		<-egCtx.Done()
+		server.Shutdown()
+
+		return nil
+	})
 
 	for _, ip := range ips {
 		eg.Go(func() error {
-			return server.ListenAndServe(net.JoinHostPort(ip.String(), "69"))
+			err := server.ListenAndServe(net.JoinHostPort(ip.String(), "69"))
+
+			if egCtx.Err() != nil {
+				return nil //nolint:nilerr
+			}
+
+			return err
 		})
 	}
 

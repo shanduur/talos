@@ -5,7 +5,6 @@
 package create
 
 import (
-	"context"
 	"fmt"
 	"runtime"
 	"slices"
@@ -268,55 +267,53 @@ func getCreateCmd(cmdName string, hidden bool) *cobra.Command {
 		Short: "Creates a local QEMU-based cluster for Talos development.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return cli.WithContext(context.Background(), func(ctx context.Context) error {
-				if cmdName == "create" {
-					cli.Warning("the developer oriented 'cluster create' command has been moved to 'cluster create dev'")
+			if cmdName == "create" {
+				cli.Warning("the developer oriented 'cluster create' command has been moved to 'cluster create dev'")
+			}
+
+			if err := validateQemuFlags(cmd.Flags(), unImplementedFlagsDarwin); err != nil {
+				return err
+			}
+
+			var disks strings.Builder
+			fmt.Fprintf(&disks, "virtio:%d", legacyOps.clusterDiskSize)
+
+			for i := range legacyOps.extraDisks {
+				driver := "ide"
+				tag := ""
+				serial := ""
+
+				// ide driver is not supported on arm64
+				if qOps.TargetArch == "arm64" {
+					driver = "virtio"
 				}
 
-				if err := validateQemuFlags(cmd.Flags(), unImplementedFlagsDarwin); err != nil {
-					return err
+				if i < len(legacyOps.extraDisksDrivers) {
+					driver = legacyOps.extraDisksDrivers[i]
 				}
 
-				var disks strings.Builder
-				fmt.Fprintf(&disks, "virtio:%d", legacyOps.clusterDiskSize)
-
-				for i := range legacyOps.extraDisks {
-					driver := "ide"
-					tag := ""
-					serial := ""
-
-					// ide driver is not supported on arm64
-					if qOps.TargetArch == "arm64" {
-						driver = "virtio"
+				if i < len(legacyOps.extraDisksTags) {
+					if legacyOps.extraDisksTags[i] != "" {
+						tag = fmt.Sprintf(":tag=%s", legacyOps.extraDisksTags[i])
 					}
-
-					if i < len(legacyOps.extraDisksDrivers) {
-						driver = legacyOps.extraDisksDrivers[i]
-					}
-
-					if i < len(legacyOps.extraDisksTags) {
-						if legacyOps.extraDisksTags[i] != "" {
-							tag = fmt.Sprintf(":tag=%s", legacyOps.extraDisksTags[i])
-						}
-					}
-
-					if i < len(legacyOps.extraDisksSerials) {
-						if legacyOps.extraDisksSerials[i] != "" {
-							serial = fmt.Sprintf(":serial=%s", legacyOps.extraDisksSerials[i])
-						}
-					}
-
-					fmt.Fprintf(&disks, ",%s:%d%s%s", driver, legacyOps.extraDiskSize, tag, serial)
 				}
 
-				qOps.Disks = flags.Disks{}
-
-				if err := qOps.Disks.Set(disks.String()); err != nil {
-					return err
+				if i < len(legacyOps.extraDisksSerials) {
+					if legacyOps.extraDisksSerials[i] != "" {
+						serial = fmt.Sprintf(":serial=%s", legacyOps.extraDisksSerials[i])
+					}
 				}
 
-				return createDevCluster(ctx, cOps, qOps)
-			})
+				fmt.Fprintf(&disks, ",%s:%d%s%s", driver, legacyOps.extraDiskSize, tag, serial)
+			}
+
+			qOps.Disks = flags.Disks{}
+
+			if err := qOps.Disks.Set(disks.String()); err != nil {
+				return err
+			}
+
+			return createDevCluster(cmd.Context(), cOps, qOps)
 		},
 	}
 	createCmd.Flags().IntVar(&legacyOps.clusterDiskSize, clusterDiskSizeFlag, 6*1024, "default limit on disk size in MB (each VM)")

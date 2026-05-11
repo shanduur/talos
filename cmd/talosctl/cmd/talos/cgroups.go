@@ -57,7 +57,7 @@ To see schema examples, refer to https://github.com/siderolabs/talos/tree/main/c
 `,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "cgroups"); err != nil {
 				return err
 			}

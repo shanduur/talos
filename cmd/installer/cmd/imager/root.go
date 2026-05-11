@@ -57,174 +57,174 @@ var rootCmd = &cobra.Command{
 	Args:         cobra.ExactArgs(1),
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return cli.WithContext(context.Background(), func(ctx context.Context) error {
-			report := reporter.New()
-			report.Report(reporter.Update{
-				Message: "assembling the finalized profile...",
-				Status:  reporter.StatusRunning,
-			})
+		ctx := cmd.Context()
 
-			baseProfile := args[0]
+		report := reporter.New()
+		report.Report(reporter.Update{
+			Message: "assembling the finalized profile...",
+			Status:  reporter.StatusRunning,
+		})
 
-			var prof profile.Profile
+		baseProfile := args[0]
 
-			if baseProfile == "-" {
-				if err := yaml.NewDecoder(os.Stdin).Decode(&prof); err != nil {
-					return err
-				}
-			} else {
-				prof = profile.Profile{
-					BaseProfileName: baseProfile,
-					Arch:            cmdFlags.Arch,
-					Platform:        cmdFlags.Platform,
-					Customization: profile.CustomizationProfile{
-						ExtraKernelArgs: cmdFlags.ExtraKernelArgs,
-						MetaContents:    cmdFlags.MetaValues.GetMetaValues(),
-					},
-				}
+		var prof profile.Profile
 
-				extraOverlayOptions := overlay.ExtraOptions{}
+		if baseProfile == "-" {
+			if err := yaml.NewDecoder(os.Stdin).Decode(&prof); err != nil {
+				return err
+			}
+		} else {
+			prof = profile.Profile{
+				BaseProfileName: baseProfile,
+				Arch:            cmdFlags.Arch,
+				Platform:        cmdFlags.Platform,
+				Customization: profile.CustomizationProfile{
+					ExtraKernelArgs: cmdFlags.ExtraKernelArgs,
+					MetaContents:    cmdFlags.MetaValues.GetMetaValues(),
+				},
+			}
 
-				for _, option := range cmdFlags.OverlayOptions {
-					if strings.HasPrefix(option, "@") {
-						data, err := os.ReadFile(option[1:])
-						if err != nil {
-							return err
-						}
+			extraOverlayOptions := overlay.ExtraOptions{}
 
-						decoder := yaml.NewDecoder(bytes.NewReader(data))
-						decoder.KnownFields(true)
-
-						if err := decoder.Decode(&extraOverlayOptions); err != nil {
-							return err
-						}
-
-						continue
-					}
-
-					k, v, _ := strings.Cut(option, "=")
-
-					if strings.HasPrefix(v, "@") {
-						data, err := os.ReadFile(v[1:])
-						if err != nil {
-							return err
-						}
-
-						v = string(data)
-					}
-
-					extraOverlayOptions[k] = v
-				}
-
-				if cmdFlags.OverlayName != "" || cmdFlags.OverlayImage != "" {
-					prof.Overlay = &profile.OverlayOptions{
-						Name: cmdFlags.OverlayName,
-						Image: profile.ContainerAsset{
-							ImageRef: cmdFlags.OverlayImage,
-						},
-						ExtraOptions: extraOverlayOptions,
-					}
-
-					prof.Input.OverlayInstaller.ImageRef = cmdFlags.OverlayImage
-				}
-
-				prof.Input.SystemExtensions = xslices.Map(
-					cmdFlags.SystemExtensionImages,
-					func(imageRef string) profile.ContainerAsset {
-						return profile.ContainerAsset{
-							ImageRef:      imageRef,
-							ForceInsecure: cmdFlags.Insecure,
-						}
-					},
-				)
-
-				if cmdFlags.OutputKind != "" {
-					outKind, err := profile.OutputKindString(cmdFlags.OutputKind)
+			for _, option := range cmdFlags.OverlayOptions {
+				if strings.HasPrefix(option, "@") {
+					data, err := os.ReadFile(option[1:])
 					if err != nil {
 						return err
 					}
 
-					prof.Output.Kind = outKind
-				}
+					decoder := yaml.NewDecoder(bytes.NewReader(data))
+					decoder.KnownFields(true)
 
-				if cmdFlags.BaseInstallerImage != "" {
-					prof.Input.BaseInstaller = profile.ContainerAsset{
-						ImageRef: cmdFlags.BaseInstallerImage,
-					}
-				}
-
-				if cmdFlags.ImageCache != "" {
-					parseOpts := []name.Option{name.StrictValidation}
-
-					if cmdFlags.Insecure {
-						parseOpts = append(parseOpts, name.Insecure)
+					if err := decoder.Decode(&extraOverlayOptions); err != nil {
+						return err
 					}
 
-					if _, err := name.ParseReference(cmdFlags.ImageCache, parseOpts...); err == nil {
-						prof.Input.ImageCache = profile.ContainerAsset{
-							ImageRef: cmdFlags.ImageCache,
-						}
-					} else {
-						prof.Input.ImageCache = profile.ContainerAsset{
-							OCIPath: cmdFlags.ImageCache,
-						}
-					}
+					continue
 				}
+
+				k, v, _ := strings.Cut(option, "=")
+
+				if strings.HasPrefix(v, "@") {
+					data, err := os.ReadFile(v[1:])
+					if err != nil {
+						return err
+					}
+
+					v = string(data)
+				}
+
+				extraOverlayOptions[k] = v
+			}
+
+			if cmdFlags.OverlayName != "" || cmdFlags.OverlayImage != "" {
+				prof.Overlay = &profile.OverlayOptions{
+					Name: cmdFlags.OverlayName,
+					Image: profile.ContainerAsset{
+						ImageRef: cmdFlags.OverlayImage,
+					},
+					ExtraOptions: extraOverlayOptions,
+				}
+
+				prof.Input.OverlayInstaller.ImageRef = cmdFlags.OverlayImage
+			}
+
+			prof.Input.SystemExtensions = xslices.Map(
+				cmdFlags.SystemExtensionImages,
+				func(imageRef string) profile.ContainerAsset {
+					return profile.ContainerAsset{
+						ImageRef:      imageRef,
+						ForceInsecure: cmdFlags.Insecure,
+					}
+				},
+			)
+
+			if cmdFlags.OutputKind != "" {
+				outKind, err := profile.OutputKindString(cmdFlags.OutputKind)
+				if err != nil {
+					return err
+				}
+
+				prof.Output.Kind = outKind
+			}
+
+			if cmdFlags.BaseInstallerImage != "" {
+				prof.Input.BaseInstaller = profile.ContainerAsset{
+					ImageRef: cmdFlags.BaseInstallerImage,
+				}
+			}
+
+			if cmdFlags.ImageCache != "" {
+				parseOpts := []name.Option{name.StrictValidation}
 
 				if cmdFlags.Insecure {
-					prof.Input.BaseInstaller.ForceInsecure = cmdFlags.Insecure
-					prof.Input.ImageCache.ForceInsecure = cmdFlags.Insecure
+					parseOpts = append(parseOpts, name.Insecure)
 				}
 
-				if cmdFlags.SecurebootIncludeWellKnownCerts {
-					if prof.Input.SecureBoot == nil {
-						prof.Input.SecureBoot = &profile.SecureBootAssets{}
+				if _, err := name.ParseReference(cmdFlags.ImageCache, parseOpts...); err == nil {
+					prof.Input.ImageCache = profile.ContainerAsset{
+						ImageRef: cmdFlags.ImageCache,
 					}
-
-					prof.Input.SecureBoot.IncludeWellKnownCerts = true
-				}
-
-				if cmdFlags.EmbeddedConfigPath != "" {
-					data, err := os.ReadFile(cmdFlags.EmbeddedConfigPath)
-					if err != nil {
-						return fmt.Errorf("error reading embedded config file: %w", err)
+				} else {
+					prof.Input.ImageCache = profile.ContainerAsset{
+						OCIPath: cmdFlags.ImageCache,
 					}
-
-					prof.Customization.EmbeddedMachineConfiguration = string(data)
 				}
 			}
 
-			if err := os.MkdirAll(cmdFlags.OutputPath, 0o755); err != nil {
-				return err
+			if cmdFlags.Insecure {
+				prof.Input.BaseInstaller.ForceInsecure = cmdFlags.Insecure
+				prof.Input.ImageCache.ForceInsecure = cmdFlags.Insecure
 			}
 
-			imager, err := imager.New(prof)
-			if err != nil {
-				return err
+			if cmdFlags.SecurebootIncludeWellKnownCerts {
+				if prof.Input.SecureBoot == nil {
+					prof.Input.SecureBoot = &profile.SecureBootAssets{}
+				}
+
+				prof.Input.SecureBoot.IncludeWellKnownCerts = true
 			}
 
-			if _, err = imager.Execute(ctx, cmdFlags.OutputPath, report); err != nil {
-				report.Report(reporter.Update{
-					Message: err.Error(),
-					Status:  reporter.StatusError,
-				})
+			if cmdFlags.EmbeddedConfigPath != "" {
+				data, err := os.ReadFile(cmdFlags.EmbeddedConfigPath)
+				if err != nil {
+					return fmt.Errorf("error reading embedded config file: %w", err)
+				}
 
-				return err
+				prof.Customization.EmbeddedMachineConfiguration = string(data)
 			}
+		}
 
-			if cmdFlags.TarToStdout {
-				return archiver.TarGz(ctx, cmdFlags.OutputPath, os.Stdout)
-			}
+		if err := os.MkdirAll(cmdFlags.OutputPath, 0o755); err != nil {
+			return err
+		}
 
-			return nil
-		})
+		imager, err := imager.New(prof)
+		if err != nil {
+			return err
+		}
+
+		if _, err = imager.Execute(ctx, cmdFlags.OutputPath, report); err != nil {
+			report.Report(reporter.Update{
+				Message: err.Error(),
+				Status:  reporter.StatusError,
+			})
+
+			return err
+		}
+
+		if cmdFlags.TarToStdout {
+			return archiver.TarGz(ctx, cmdFlags.OutputPath, os.Stdout)
+		}
+
+		return nil
 	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if _, err := cli.WithContextC(context.Background(), rootCmd.ExecuteContextC); err != nil {
 		os.Exit(1)
 	}
 }

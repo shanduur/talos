@@ -56,7 +56,7 @@ func (p *Provisioner) CreateKMS(state *provision.State, clusterReq provision.Clu
 	}
 
 	if err = os.WriteFile(pidPath, []byte(strconv.Itoa(cmd.Process.Pid)), os.ModePerm); err != nil {
-		return fmt.Errorf("error writing LB PID file: %w", err)
+		return fmt.Errorf("error writing KMS PID file: %w", err)
 	}
 
 	return nil

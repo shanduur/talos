@@ -26,7 +26,7 @@ var mountsCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			var remotePeer peer.Peer
 
 			resp, err := c.Mounts(ctx, grpc.Peer(&remotePeer))

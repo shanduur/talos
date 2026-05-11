@@ -90,7 +90,7 @@ var etcdAlarmListCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			response, err := c.EtcdAlarmList(ctx)
 			if err != nil {
 				if response == nil {
@@ -114,7 +114,7 @@ var etcdAlarmDisarmCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			response, err := c.EtcdAlarmDisarm(ctx)
 			if err != nil {
 				if response == nil {
@@ -139,7 +139,7 @@ var etcdDefragCmd = &cobra.Command{
 Defragmentation is a resource heavy operation and should be performed only when necessary on a single node at a time.`,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "etcd defrag"); err != nil {
 				return err
 			}
@@ -157,7 +157,7 @@ var etcdLeaveCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "etcd leave"); err != nil {
 				return err
 			}
@@ -175,7 +175,7 @@ If there is no access to the node, or the node can't access etcd to call etcd le
 Always prefer etcd leave over this command.`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			memberID, err := etcdresource.ParseMemberID(args[0])
 			if err != nil {
 				return fmt.Errorf("error parsing member ID: %w", err)
@@ -194,7 +194,7 @@ var etcdForfeitLeadershipCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			_, err := c.EtcdForfeitLeadership(ctx, &machine.EtcdForfeitLeadershipRequest{})
 
 			return err
@@ -208,7 +208,7 @@ var etcdMemberListCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			response, err := c.EtcdMemberList(ctx, &machine.EtcdMemberListRequest{
 				QueryLocal: true,
 			})
@@ -270,7 +270,7 @@ var etcdStatusCmd = &cobra.Command{
 	Long:  `Returns the status of etcd member on the node, use multiple nodes to get status of all members.`,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			response, err := c.EtcdStatus(ctx)
 			if err != nil {
 				if response == nil {
@@ -337,7 +337,7 @@ var etcdSnapshotCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "etcd snapshot"); err != nil {
 				return err
 			}
@@ -417,7 +417,7 @@ var etcdDowngradeValidateCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "etcd downgrade validate"); err != nil {
 				return err
 			}
@@ -472,7 +472,7 @@ var etcdDowngradeEnableCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "etcd downgrade enable"); err != nil {
 				return err
 			}
@@ -527,7 +527,7 @@ var etcdDowngradeCancelCmd = &cobra.Command{
 	Long:  ``,
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			if err := helpers.FailIfMultiNodes(ctx, "etcd downgrade cancel"); err != nil {
 				return err
 			}

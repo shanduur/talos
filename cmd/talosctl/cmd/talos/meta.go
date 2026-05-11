@@ -40,10 +40,10 @@ var metaWriteCmd = &cobra.Command{
 		}
 
 		if metaCmdFlags.insecure {
-			return WithClientMaintenance(nil, fn)
+			return WithClientMaintenance(cmd.Context(), nil, fn)
 		}
 
-		return WithClient(fn)
+		return WithClient(cmd.Context(), fn)
 	},
 }
 
@@ -63,10 +63,10 @@ var metaDeleteCmd = &cobra.Command{
 		}
 
 		if metaCmdFlags.insecure {
-			return WithClientMaintenance(nil, fn)
+			return WithClientMaintenance(cmd.Context(), nil, fn)
 		}
 
-		return WithClient(fn)
+		return WithClient(cmd.Context(), fn)
 	},
 }
 

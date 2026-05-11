@@ -5,7 +5,6 @@
 package create
 
 import (
-	"context"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -14,7 +13,6 @@ import (
 	"github.com/siderolabs/talos/cmd/talosctl/cmd/constants"
 	"github.com/siderolabs/talos/cmd/talosctl/cmd/mgmt/cluster/create/clusterops"
 	"github.com/siderolabs/talos/cmd/talosctl/cmd/mgmt/cluster/create/clusterops/configmaker/preset"
-	"github.com/siderolabs/talos/pkg/cli"
 	"github.com/siderolabs/talos/pkg/provision/providers"
 )
 
@@ -67,14 +65,12 @@ func init() {
 		Long:  cmdDescription.String(),
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return cli.WithContext(context.Background(), func(ctx context.Context) error {
-				provisioner, err := providers.Factory(ctx, providers.QemuProviderName)
-				if err != nil {
-					return err
-				}
+			provisioner, err := providers.Factory(cmd.Context(), providers.QemuProviderName)
+			if err != nil {
+				return err
+			}
 
-				return createQemuCluster(ctx, qOps, cOps, presetOptions, provisioner)
-			})
+			return createQemuCluster(cmd.Context(), qOps, cOps, presetOptions, provisioner)
 		},
 	}
 

@@ -5,8 +5,6 @@
 package create
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
@@ -50,29 +48,27 @@ func init() {
 		Short: "Create a local Docker based kubernetes cluster",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return cli.WithContext(context.Background(), func(ctx context.Context) error {
-				provisioner, err := providers.Factory(ctx, providers.DockerProviderName)
-				if err != nil {
-					return err
-				}
+			provisioner, err := providers.Factory(cmd.Context(), providers.DockerProviderName)
+			if err != nil {
+				return err
+			}
 
-				clusterConfigs, err := getDockerClusterRequest(cOps, dOps, provisioner)
-				if err != nil {
-					return err
-				}
+			clusterConfigs, err := getDockerClusterRequest(cOps, dOps, provisioner)
+			if err != nil {
+				return err
+			}
 
-				cluster, err := provisioner.Create(ctx, clusterConfigs.ClusterRequest, clusterConfigs.ProvisionOptions...)
-				if err != nil {
-					return err
-				}
+			cluster, err := provisioner.Create(cmd.Context(), clusterConfigs.ClusterRequest, clusterConfigs.ProvisionOptions...)
+			if err != nil {
+				return err
+			}
 
-				err = postCreate(ctx, cOps, cluster, clusterConfigs)
-				if err != nil {
-					return err
-				}
+			err = postCreate(cmd.Context(), cOps, cluster, clusterConfigs)
+			if err != nil {
+				return err
+			}
 
-				return clustercmd.ShowCluster(cluster)
-			})
+			return clustercmd.ShowCluster(cluster)
 		},
 	}
 

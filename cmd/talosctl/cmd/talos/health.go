@@ -96,24 +96,24 @@ var healthCmd = &cobra.Command{
 			return err
 		}
 
-		if err := runHealth(); err != nil {
+		if err := runHealth(cmd.Context()); err != nil {
 			return err
 		}
 
 		if healthCmdFlags.runE2E {
-			return runE2E()
+			return runE2E(cmd.Context())
 		}
 
 		return nil
 	},
 }
 
-func runHealth() error {
+func runHealth(ctx context.Context) error {
 	if healthCmdFlags.runOnServer {
-		return WithClient(healthOnServer)
+		return WithClient(ctx, healthOnServer)
 	}
 
-	return WithClientNoNodes(healthOnClient)
+	return WithClientNoNodes(ctx, healthOnClient)
 }
 
 func healthOnClient(ctx context.Context, c *client.Client) error {
@@ -122,7 +122,7 @@ func healthOnClient(ctx context.Context, c *client.Client) error {
 	}
 	defer clientProvider.Close() //nolint:errcheck
 
-	clusterInfo, err := buildClusterInfo(healthCmdFlags.clusterState)
+	clusterInfo, err := buildClusterInfo(ctx, healthCmdFlags.clusterState)
 	if err != nil {
 		return err
 	}
@@ -188,8 +188,8 @@ func healthOnServer(ctx context.Context, c *client.Client) error {
 	}
 }
 
-func runE2E() error {
-	return WithClient(func(ctx context.Context, c *client.Client) error {
+func runE2E(ctx context.Context) error {
+	return WithClient(ctx, func(ctx context.Context, c *client.Client) error {
 		clientProvider := &cluster.ConfigClientProvider{
 			DefaultClient: c,
 		}
@@ -222,7 +222,7 @@ func init() {
 	healthCmd.Flags().BoolVar(&healthCmdFlags.runE2E, "run-e2e", false, "run Kubernetes e2e test")
 }
 
-func buildClusterInfo(clusterState clusterNodes) (cluster.Info, error) {
+func buildClusterInfo(ctx context.Context, clusterState clusterNodes) (cluster.Info, error) {
 	// if nodes are set explicitly via command line args, use them
 	if len(clusterState.ControlPlaneNodes) > 0 || len(clusterState.WorkerNodes) > 0 {
 		return &clusterState, nil
@@ -232,7 +232,7 @@ func buildClusterInfo(clusterState clusterNodes) (cluster.Info, error) {
 
 	var members []*clusterres.Member
 
-	err := WithClientNoNodes(func(ctx context.Context, c *client.Client) error {
+	err := WithClientNoNodes(ctx, func(ctx context.Context, c *client.Client) error {
 		items, err := safe.StateListAll[*clusterres.Member](ctx, c.COSI)
 		if err != nil {
 			return err

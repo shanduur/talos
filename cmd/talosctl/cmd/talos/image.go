@@ -111,12 +111,12 @@ var imageListCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return imageList()
+		return imageList(cmd.Context())
 	},
 }
 
-func imageList() error {
-	return WithClientAndNodes(func(ctx context.Context, c *client.Client, nodes []string) error {
+func imageList(ctx context.Context) error {
+	return WithClientAndNodes(ctx, func(ctx context.Context, c *client.Client, nodes []string) error {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
@@ -143,7 +143,7 @@ func imageList() error {
 			if resp.Err != nil {
 				if status.Code(resp.Err) == codes.Unimplemented {
 					// fallback to legacy API for older Talos
-					return imageListLegacy()
+					return imageListLegacy(ctx)
 				}
 
 				errs = errors.Join(errs, fmt.Errorf("error from node %s: %w", resp.Node, resp.Err))
@@ -175,8 +175,8 @@ func imageList() error {
 // imageListLegacy lists images using the legacy ImageList API.
 //
 // Note: remove me in Talos 1.15.
-func imageListLegacy() error {
-	return WithClient(func(ctx context.Context, c *client.Client) error {
+func imageListLegacy(ctx context.Context) error {
+	return WithClient(ctx, func(ctx context.Context, c *client.Client) error {
 		ns, err := imageCmdFlags.apiNamespace()
 		if err != nil {
 			return err
@@ -217,13 +217,13 @@ var imagePullCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return imagePull(args[0])
+		return imagePull(cmd.Context(), args[0])
 	},
 }
 
 // imagePull pulls an image using modern API and showing progress.
-func imagePull(imageRef string) error {
-	return WithClientAndNodes(func(ctx context.Context, c *client.Client, nodes []string) error {
+func imagePull(ctx context.Context, imageRef string) error {
+	return WithClientAndNodes(ctx, func(ctx context.Context, c *client.Client, nodes []string) error {
 		rep := reporter.New()
 
 		containerdInstance, err := imageCmdFlags.containerdInstance()
@@ -271,7 +271,7 @@ func imagePullInternal(
 				cancel()
 
 				// fallback to legacy API for older Talos
-				return nil, imagePullLegacy(imageRef)
+				return nil, imagePullLegacy(ctx, imageRef)
 			}
 
 			errs = errors.Join(errs, fmt.Errorf("error from node %s: %w", resp.Node, resp.Err))
@@ -313,8 +313,8 @@ func imagePullInternal(
 // imagePullLegacy pulls an image using the legacy ImagePull API.
 //
 // Note: remove me in Talos 1.15.
-func imagePullLegacy(imageRef string) error {
-	return WithClient(func(ctx context.Context, c *client.Client) error {
+func imagePullLegacy(ctx context.Context, imageRef string) error {
+	return WithClient(ctx, func(ctx context.Context, c *client.Client) error {
 		ns, err := imageCmdFlags.apiNamespace()
 		if err != nil {
 			return err
@@ -426,13 +426,13 @@ var imageRemoveCmd = &cobra.Command{
 	Long:    ``,
 	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return imageRemove(args[0])
+		return imageRemove(cmd.Context(), args[0])
 	},
 }
 
 // imageRemove removes an image using modern API.
-func imageRemove(imageRef string) error {
-	return WithClientAndNodes(func(ctx context.Context, c *client.Client, nodes []string) error {
+func imageRemove(ctx context.Context, imageRef string) error {
+	return WithClientAndNodes(ctx, func(ctx context.Context, c *client.Client, nodes []string) error {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
@@ -602,7 +602,7 @@ var imageTalosBundleCmd = &cobra.Command{
 		digestedReferences := []string{}
 
 		if imageTalosBundleCmdFlags.extensions {
-			extensions, err = artifacts.FetchOfficialExtensions(tag)
+			extensions, err = artifacts.FetchOfficialExtensions(cmd.Context(), tag)
 			if err != nil {
 				return fmt.Errorf("error fetching official extensions for %s: %w", tag, err)
 			}
@@ -613,7 +613,7 @@ var imageTalosBundleCmd = &cobra.Command{
 		}
 
 		if imageTalosBundleCmdFlags.overlays {
-			overlays, err = artifacts.FetchOfficialOverlays(tag)
+			overlays, err = artifacts.FetchOfficialOverlays(cmd.Context(), tag)
 			if err != nil {
 				return fmt.Errorf("error fetching official overlays for %s: %w", tag, err)
 			}

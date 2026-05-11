@@ -34,7 +34,7 @@ var eventsCmd = &cobra.Command{
 	Short: "Stream runtime events",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return WithClient(func(ctx context.Context, c *client.Client) error {
+		return WithClient(cmd.Context(), func(ctx context.Context, c *client.Client) error {
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', 0)
 			fmt.Fprintln(w, "NODE\tID\tEVENT\tACTOR\tSOURCE\tMESSAGE")
 

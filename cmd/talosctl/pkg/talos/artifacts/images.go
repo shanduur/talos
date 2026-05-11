@@ -7,6 +7,7 @@ package artifacts
 import (
 	"archive/tar"
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -36,7 +37,7 @@ type OverlayRef struct {
 }
 
 // FetchOfficialExtensions fetches list of extensions for specific Talos version.
-func FetchOfficialExtensions(tag string) ([]ExtensionRef, error) {
+func FetchOfficialExtensions(ctx context.Context, tag string) ([]ExtensionRef, error) {
 	var extensions []ExtensionRef
 
 	m, err := newManager()
@@ -44,7 +45,7 @@ func FetchOfficialExtensions(tag string) ([]ExtensionRef, error) {
 		return nil, err
 	}
 
-	if err := m.fetchImageByTag(images.DefaultExtensionsManifestRepository, tag, imageExportHandler(func(r io.Reader) error {
+	if err := m.fetchImageByTag(ctx, images.DefaultExtensionsManifestRepository, tag, imageExportHandler(func(r io.Reader) error {
 		var extractErr error
 
 		extensions, extractErr = extractExtensionList(r)
@@ -58,7 +59,7 @@ func FetchOfficialExtensions(tag string) ([]ExtensionRef, error) {
 }
 
 // FetchOfficialOverlays fetches list of overlays for specific Talos version.
-func FetchOfficialOverlays(tag string) ([]OverlayRef, error) {
+func FetchOfficialOverlays(ctx context.Context, tag string) ([]OverlayRef, error) {
 	var overlays []OverlayRef
 
 	m, err := newManager()
@@ -66,7 +67,7 @@ func FetchOfficialOverlays(tag string) ([]OverlayRef, error) {
 		return nil, err
 	}
 
-	if err := m.fetchImageByTag(images.DefaultOverlaysManifestRepository, tag, imageExportHandler(func(r io.Reader) error {
+	if err := m.fetchImageByTag(ctx, images.DefaultOverlaysManifestRepository, tag, imageExportHandler(func(r io.Reader) error {
 		var extractErr error
 
 		overlays, extractErr = extractOverlayList(r)

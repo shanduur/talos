@@ -14,7 +14,6 @@ import (
 	"github.com/siderolabs/crypto/x509"
 	"google.golang.org/grpc"
 
-	"github.com/siderolabs/talos/pkg/cli"
 	"github.com/siderolabs/talos/pkg/machinery/client"
 	clientconfig "github.com/siderolabs/talos/pkg/machinery/client/config"
 )
@@ -30,78 +29,75 @@ type Args struct {
 }
 
 // NodeList returns the list of nodes to run the command against.
-func (c *Args) NodeList() []string {
-	return c.Nodes
+func (args *Args) NodeList() []string {
+	return args.Nodes
 }
 
 // WithClientNoNodes wraps common code to initialize Talos client and provide cancellable context.
 //
 // WithClientNoNodes doesn't set any node information on the request context.
-func (c *Args) WithClientNoNodes(action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error {
-	return cli.WithContext(
-		context.Background(), func(ctx context.Context) error {
-			cfg, err := clientconfig.Open(c.Talosconfig)
-			if err != nil {
-				return fmt.Errorf("failed to open config file %q: %w", c.Talosconfig, err)
-			}
+func (args *Args) WithClientNoNodes(ctx context.Context, action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error {
+	cfg, err := clientconfig.Open(args.Talosconfig)
+	if err != nil {
+		return fmt.Errorf("failed to open config file %q: %w", args.Talosconfig, err)
+	}
 
-			opts := []client.OptionFunc{
-				client.WithConfig(cfg),
-				client.WithDefaultGRPCDialOptions(),
-				client.WithGRPCDialOptions(dialOptions...),
-				client.WithSideroV1KeysDir(clientconfig.CustomSideroV1KeysDirPath(c.SideroV1KeysDir)),
-			}
+	opts := []client.OptionFunc{
+		client.WithConfig(cfg),
+		client.WithDefaultGRPCDialOptions(),
+		client.WithGRPCDialOptions(dialOptions...),
+		client.WithSideroV1KeysDir(clientconfig.CustomSideroV1KeysDirPath(args.SideroV1KeysDir)),
+	}
 
-			if c.CmdContext != "" {
-				opts = append(opts, client.WithContextName(c.CmdContext))
-			}
+	if args.CmdContext != "" {
+		opts = append(opts, client.WithContextName(args.CmdContext))
+	}
 
-			if len(c.Endpoints) > 0 {
-				// override endpoints from command-line flags
-				opts = append(opts, client.WithEndpoints(c.Endpoints...))
-			}
+	if len(args.Endpoints) > 0 {
+		// override endpoints from command-line flags
+		opts = append(opts, client.WithEndpoints(args.Endpoints...))
+	}
 
-			if c.Cluster != "" {
-				opts = append(opts, client.WithCluster(c.Cluster))
-			}
+	if args.Cluster != "" {
+		opts = append(opts, client.WithCluster(args.Cluster))
+	}
 
-			c, err := client.New(ctx, opts...)
-			if err != nil {
-				return fmt.Errorf("error constructing client: %w", err)
-			}
-			//nolint:errcheck
-			defer c.Close()
+	c, err := client.New(ctx, opts...)
+	if err != nil {
+		return fmt.Errorf("error constructing client: %w", err)
+	}
+	//nolint:errcheck
+	defer c.Close()
 
-			return action(ctx, c)
-		},
-	)
+	return action(ctx, c)
 }
 
 // ErrConfigContext is returned when config context cannot be resolved.
 var ErrConfigContext = errors.New("failed to resolve config context")
 
-func (c *Args) getNodes(cli *client.Client) ([]string, error) {
-	if len(c.Nodes) < 1 {
+func (args *Args) getNodes(cli *client.Client) ([]string, error) {
+	if len(args.Nodes) < 1 {
 		configContext := cli.GetConfigContext()
 		if configContext == nil {
 			return nil, ErrConfigContext
 		}
 
-		c.Nodes = configContext.Nodes
+		args.Nodes = configContext.Nodes
 	}
 
-	if len(c.Nodes) < 1 {
+	if len(args.Nodes) < 1 {
 		return nil, errors.New("nodes are not set for the command: please use `--nodes` flag or configuration file to set the nodes to run the command against")
 	}
 
-	return c.Nodes, nil
+	return args.Nodes, nil
 }
 
 // WithClient builds upon WithClientNoNodes to provide set of nodes on request context based on config & flags.
-func (c *Args) WithClient(action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error {
-	return c.WithClientNoNodes(
+func (args *Args) WithClient(ctx context.Context, action func(context.Context, *client.Client) error, dialOptions ...grpc.DialOption) error {
+	return args.WithClientNoNodes(
+		ctx,
 		func(ctx context.Context, cli *client.Client) error {
-			nodes, err := c.getNodes(cli)
+			nodes, err := args.getNodes(cli)
 			if err != nil {
 				return err
 			}
@@ -115,10 +111,11 @@ func (c *Args) WithClient(action func(context.Context, *client.Client) error, di
 }
 
 // WithClientAndNodes builds upon WithClientNoNodes to provide a list of nodes to the function.
-func (c *Args) WithClientAndNodes(action func(context.Context, *client.Client, []string) error, dialOptions ...grpc.DialOption) error {
-	return c.WithClientNoNodes(
+func (args *Args) WithClientAndNodes(ctx context.Context, action func(context.Context, *client.Client, []string) error, dialOptions ...grpc.DialOption) error {
+	return args.WithClientNoNodes(
+		ctx,
 		func(ctx context.Context, cli *client.Client) error {
-			nodes, err := c.getNodes(cli)
+			nodes, err := args.getNodes(cli)
 			if err != nil {
 				return err
 			}
@@ -130,37 +127,33 @@ func (c *Args) WithClientAndNodes(action func(context.Context, *client.Client, [
 }
 
 // WithClientMaintenance wraps common code to initialize Talos client in maintenance (insecure mode).
-func (c *Args) WithClientMaintenance(enforceFingerprints []string, action func(context.Context, *client.Client) error) error {
-	return cli.WithContext(
-		context.Background(), func(ctx context.Context) error {
-			tlsConfig := &tls.Config{
-				InsecureSkipVerify: true,
-			}
+func (args *Args) WithClientMaintenance(ctx context.Context, enforceFingerprints []string, action func(context.Context, *client.Client) error) error {
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true,
+	}
 
-			if len(enforceFingerprints) > 0 {
-				fingerprints := make([]x509.Fingerprint, len(enforceFingerprints))
+	if len(enforceFingerprints) > 0 {
+		fingerprints := make([]x509.Fingerprint, len(enforceFingerprints))
 
-				for i, stringFingerprint := range enforceFingerprints {
-					var err error
+		for i, stringFingerprint := range enforceFingerprints {
+			var err error
 
-					fingerprints[i], err = x509.ParseFingerprint(stringFingerprint)
-					if err != nil {
-						return fmt.Errorf("error parsing certificate fingerprint %q: %v", stringFingerprint, err)
-					}
-				}
-
-				tlsConfig.VerifyConnection = x509.MatchSPKIFingerprints(fingerprints...)
-			}
-
-			c, err := client.New(ctx, client.WithDefaultGRPCDialOptions(), client.WithTLSConfig(tlsConfig), client.WithEndpoints(c.Nodes...))
+			fingerprints[i], err = x509.ParseFingerprint(stringFingerprint)
 			if err != nil {
-				return err
+				return fmt.Errorf("error parsing certificate fingerprint %q: %v", stringFingerprint, err)
 			}
+		}
 
-			//nolint:errcheck
-			defer c.Close()
+		tlsConfig.VerifyConnection = x509.MatchSPKIFingerprints(fingerprints...)
+	}
 
-			return action(ctx, c)
-		},
-	)
+	cl, err := client.New(ctx, client.WithDefaultGRPCDialOptions(), client.WithTLSConfig(tlsConfig), client.WithEndpoints(args.Nodes...))
+	if err != nil {
+		return err
+	}
+
+	//nolint:errcheck
+	defer cl.Close()
+
+	return action(ctx, cl)
 }
