@@ -10,4 +10,4 @@ The Sidero Labs team will send a response indicating the next steps in handling 
 
 The Sidero Labs team will only provide security updates for the two latest minor releases of Talos Linux. If you are using an older version of Talos Linux, we recommend upgrading to the latest release.
 
-For example, if the latest release is `v1.8.3`, the supported releases are `v1.7.x` and `v1.8.x`.
+For example, if the latest release is `vX.Y.Z`, the supported releases are `vX.Y-1.x` and `vX.Y.x`.
