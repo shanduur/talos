@@ -550,6 +550,10 @@ lint-fmt: ## Run all linter formatters and fix up the source tree.
 check-dirty: ## Verifies that source tree is not dirty
 	@if test -n "`git status --porcelain`"; then echo "Source tree is dirty"; git status; git diff; exit 1 ; fi
 
+.PHONY: release-metadata-check
+release-metadata-check: ## Checks that PKGS/TOOLS are in sync between talos and extensions Makefile for a release PR.
+	@hack/check-extensions-metadata.sh
+
 # Tests
 
 .PHONY: unit-tests

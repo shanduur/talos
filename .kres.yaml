@@ -275,6 +275,15 @@ spec:
             artifactPath: _out
         - name: ci-temp-release-tag
         - name: lint
+    - name: release-metadata-check
+      runnerGroup: generic
+      conditions:
+        - on-pull-request
+      steps:
+        - name: release-metadata-check
+          environment:
+            GH_TOKEN: ${{ github.token }}
+            PR_TITLE: ${{ github.event.pull_request.title }}
     - name: grype-scan
       buildxOptions:
         enabled: true
