@@ -625,6 +625,11 @@ message STPSpec {
   bool enabled = 1;
 }
 
+// StaticHostSpec describes addresses for a static host name.
+message StaticHostSpec {
+  repeated common.NetIP addresses = 1;
+}
+
 // StatusSpec describes network state.
 message StatusSpec {
   bool address_ready = 1;

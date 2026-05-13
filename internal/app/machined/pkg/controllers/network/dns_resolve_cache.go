@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"iter"
 	"net/netip"
+	"slices"
 	"sync"
 
 	"github.com/cosi-project/runtime/pkg/controller"
@@ -173,7 +174,12 @@ func (ctrl *DNSResolveCacheController) writeDNSStatus(ctx context.Context, r con
 
 func (ctrl *DNSResolveCacheController) init(ctx context.Context) {
 	if ctrl.manager == nil {
-		ctrl.manager = dns.NewManager(&memberReader{st: ctrl.State}, ctrl.eventHook, ctrl.Logger)
+		ctrl.manager = dns.NewManager(
+			&memberReader{st: ctrl.State},
+			&staticHostReader{st: ctrl.State},
+			ctrl.eventHook,
+			ctrl.Logger,
+		)
 
 		// Ensure we stop all runners when the context is canceled, no matter where we are currently.
 		// For example if we are in Controller runtime sleeping after error and ctx is canceled, we should stop all runners
@@ -209,6 +215,17 @@ func (m *memberReader) ReadMembers(ctx context.Context) (iter.Seq[*cluster.Membe
 	}
 
 	return list.All(), nil
+}
+
+type staticHostReader struct{ st state.State }
+
+func (m *staticHostReader) ReadStaticHosts(ctx context.Context, name string) (iter.Seq[netip.Addr], error) {
+	entry, err := safe.ReaderGetByID[*network.StaticHost](ctx, m.st, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return slices.Values(entry.TypedSpec().Addresses), nil
 }
 
 type addrsArr safe.List[*network.DNSUpstream]

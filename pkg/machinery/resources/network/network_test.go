@@ -55,6 +55,7 @@ func TestRegisterResource(t *testing.T) {
 		&network.ResolverSpec{},
 		&network.RouteStatus{},
 		&network.RouteSpec{},
+		&network.StaticHost{},
 		&network.Status{},
 		&network.TimeServerStatus{},
 		&network.TimeServerSpec{},

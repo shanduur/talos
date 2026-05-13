@@ -5,7 +5,6 @@
 package network_test
 
 import (
-	"errors"
 	"net"
 	"net/netip"
 	"slices"
@@ -236,57 +235,80 @@ func (suite *DNSServer) TestResolveMembers() {
 		},
 	)
 
-	suite.Require().NoError(retry.Constant(3*time.Second, retry.WithUnits(100*time.Millisecond)).Retry(func() error {
-		exchange, err := dns.Exchange(
-			&dns.Msg{
-				MsgHdr: dns.MsgHdr{Id: dns.Id(), RecursionDesired: true},
-				Question: []dns.Question{
-					{Name: dns.Fqdn(id), Qtype: dns.TypeA, Qclass: dns.ClassINET},
+	suite.assertResolverResponse(port, id, dns.TypeA, []string{"talos-default-controlplane-1.\t8\tIN\tA\t172.20.0.2"})
+	suite.assertResolverResponse(port, id2, dns.TypeA, []string{"foo.example.com.\t8\tIN\tA\t172.20.0.3"})
+}
+
+func (suite *DNSServer) assertResolverResponse(port, name string, qType uint16, expectedResponse []string) {
+	suite.Assert().EventuallyWithT(
+		func(collect *assert.CollectT) {
+			asrt := assert.New(collect)
+
+			exchange, err := dns.Exchange(
+				&dns.Msg{
+					MsgHdr: dns.MsgHdr{Id: dns.Id(), RecursionDesired: true},
+					Question: []dns.Question{
+						{Name: dns.Fqdn(name), Qtype: qType, Qclass: dns.ClassINET},
+					},
 				},
-			},
-			"127.0.0.53:"+port,
-		)
-		if err != nil {
-			return retry.ExpectedError(err)
-		}
+				"127.0.0.53:"+port,
+			)
+			if !asrt.NoError(err) {
+				return
+			}
 
-		if exchange.Rcode != dns.RcodeSuccess {
-			return retry.ExpectedErrorf("expected rcode %d, got %d for %q", dns.RcodeSuccess, exchange.Rcode, id)
-		}
+			if expectedResponse == nil {
+				if !asrt.Equal(dns.RcodeServerFailure, exchange.Rcode) {
+					return
+				}
 
-		proper := dns.Fqdn(id)
+				return
+			}
 
-		if exchange.Answer[0].Header().Name != proper {
-			return retry.ExpectedErrorf("expected answer name %q, got %q", proper, exchange.Answer[0].Header().Name)
-		}
+			if !asrt.Equal(dns.RcodeSuccess, exchange.Rcode) {
+				return
+			}
 
-		return nil
-	}))
+			responses := xslices.Map(exchange.Answer, dns.RR.String)
+			asrt.Equal(expectedResponse, responses)
+		},
+		3*time.Second, 100*time.Millisecond,
+	)
+}
 
-	suite.Require().NoError(retry.Constant(3*time.Second, retry.WithUnits(100*time.Millisecond)).Retry(func() error {
-		exchange, err := dns.Exchange(
-			&dns.Msg{
-				MsgHdr: dns.MsgHdr{Id: dns.Id(), RecursionDesired: true},
-				Question: []dns.Question{
-					{Name: dns.Fqdn("foo"), Qtype: dns.TypeA, Qclass: dns.ClassINET},
-				},
-			},
-			"127.0.0.53:"+port,
-		)
-		if err != nil {
-			return retry.ExpectedError(err)
-		}
+func (suite *DNSServer) TestResolveStaticHost() {
+	port := getDynamicPort(suite.T())
 
-		if exchange.Rcode != dns.RcodeSuccess {
-			return retry.ExpectedErrorf("expected rcode %d, got %d for %q", dns.RcodeSuccess, exchange.Rcode, id2)
-		}
+	const (
+		id  = "static-host-1"
+		id2 = "static-host-2"
+	)
 
-		if !exchange.Answer[0].(*dns.A).A.Equal(net.ParseIP("172.20.0.3")) {
-			return retry.ExpectedError(errors.New("unexpected ip"))
-		}
+	sh1 := network.NewStaticHost(network.NamespaceName, id)
+	sh1.TypedSpec().Addresses = []netip.Addr{netip.MustParseAddr("10.3.5.1"), netip.MustParseAddr("ff00::1")}
+	suite.Create(sh1)
 
-		return nil
-	}))
+	sh2 := network.NewStaticHost(network.NamespaceName, id2)
+	sh2.TypedSpec().Addresses = []netip.Addr{netip.MustParseAddr("10.3.5.2")}
+	suite.Create(sh2)
+
+	cfg := network.NewHostDNSConfig(network.HostDNSConfigID)
+	cfg.TypedSpec().Enabled = true
+	cfg.TypedSpec().ListenAddresses = makeAddrs(port)
+	suite.Require().NoError(suite.State().Create(suite.Ctx(), cfg))
+
+	rtestutils.AssertResources(
+		suite.Ctx(), suite.T(), suite.State(),
+		expectedDNSRunners(port),
+		func(r *network.DNSResolveCache, assert *assert.Assertions) {
+			assert.Equal("running", r.TypedSpec().Status)
+		},
+	)
+
+	suite.assertResolverResponse(port, id, dns.TypeA, []string{"static-host-1.\t8\tIN\tA\t10.3.5.1"})
+	suite.assertResolverResponse(port, id, dns.TypeAAAA, []string{"static-host-1.\t8\tIN\tAAAA\tff00::1"})
+	suite.assertResolverResponse(port, id2, dns.TypeA, []string{"static-host-2.\t8\tIN\tA\t10.3.5.2"})
+	suite.assertResolverResponse(port, id2, dns.TypeAAAA, nil)
 }
 
 func TestDNSServer(t *testing.T) {

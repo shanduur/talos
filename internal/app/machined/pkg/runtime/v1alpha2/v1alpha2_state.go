@@ -204,6 +204,7 @@ func NewState() (*State, error) {
 		&network.RouteSpec{},
 		&network.RoutingRuleSpec{},
 		&network.RoutingRuleStatus{},
+		&network.StaticHost{},
 		&network.Status{},
 		&network.TimeServerStatus{},
 		&network.TimeServerSpec{},

@@ -12,10 +12,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/siderolabs/go-retry/retry"
+
 	"github.com/siderolabs/talos/internal/integration/base"
+	"github.com/siderolabs/talos/pkg/machinery/client"
 	"github.com/siderolabs/talos/pkg/machinery/config/machine"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/network"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/v1alpha1"
+	"github.com/siderolabs/talos/pkg/machinery/constants"
 )
 
 // CommonSuite verifies some default settings such as ulimits.
@@ -163,6 +168,68 @@ func (suite *CommonSuite) TestDNSResolver() {
 	if suite.T().Failed() {
 		suite.T().FailNow()
 	}
+}
+
+// TestDNSResolveStaticHost verifies that static host entries declared in the
+// machine configuration are answered by the host DNS server.
+func (suite *CommonSuite) TestDNSResolveStaticHost() {
+	if suite.Cluster != nil && suite.Cluster.Provisioner() == base.ProvisionerDocker {
+		suite.T().Skip("skipping test since provisioner is docker")
+	}
+
+	const (
+		staticName = "static-host.test.talos"
+		staticIP   = "10.123.45.67"
+	)
+
+	node := suite.RandomDiscoveredNodeInternalIP(machine.TypeWorker)
+
+	k8sNode, err := suite.GetK8sNodeByInternalIP(suite.ctx, node)
+	suite.Require().NoError(err)
+
+	nodeName := k8sNode.Name
+
+	suite.T().Logf("applying static host entry on %s/%s", node, nodeName)
+
+	nodeCtx := client.WithNode(suite.ctx, node)
+
+	cfgDocument := network.NewStaticHostConfigV1Alpha1(staticIP)
+	cfgDocument.Hostnames = []string{staticName}
+
+	suite.PatchMachineConfig(nodeCtx, cfgDocument)
+
+	defer suite.RemoveMachineConfigDocumentsByName(nodeCtx, network.StaticHostKind, staticIP)
+
+	podDef, err := suite.NewPod("dns-static-host-test")
+	suite.Require().NoError(err)
+
+	podDef = podDef.WithNodeName(nodeName)
+
+	suite.Require().NoError(podDef.Create(suite.ctx, 5*time.Minute))
+
+	defer podDef.Delete(suite.ctx) //nolint:errcheck
+
+	_, stderr, err := podDef.Exec(suite.ctx, "apk add --update bind-tools")
+	suite.Require().NoError(err)
+	suite.Require().Empty(stderr, "stderr: %s", stderr)
+
+	// Retry — applying the config patch + propagating it to the DNS handler
+	// is asynchronous.
+	suite.Require().NoError(retry.Constant(60*time.Second, retry.WithUnits(2*time.Second)).Retry(func() error {
+		stdout, stderr, err := podDef.Exec(
+			suite.ctx,
+			"dig +short @"+constants.HostDNSAddress+" "+staticName,
+		)
+		if err != nil {
+			return retry.ExpectedErrorf("dig failed: %v (stderr: %s)", err, stderr)
+		}
+
+		if !strings.Contains(stdout, staticIP) {
+			return retry.ExpectedErrorf("expected %s in dig output, got %q", staticIP, stdout)
+		}
+
+		return nil
+	}))
 }
 
 // TestBaseOCISpec verifies that the base OCI spec can be modified.

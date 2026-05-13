@@ -572,6 +572,7 @@ description: Talos gRPC API reference.
     - [RoutingRuleSpecSpec](#talos.resource.definitions.network.RoutingRuleSpecSpec)
     - [RoutingRuleStatusSpec](#talos.resource.definitions.network.RoutingRuleStatusSpec)
     - [STPSpec](#talos.resource.definitions.network.STPSpec)
+    - [StaticHostSpec](#talos.resource.definitions.network.StaticHostSpec)
     - [StatusSpec](#talos.resource.definitions.network.StatusSpec)
     - [TCPProbeSpec](#talos.resource.definitions.network.TCPProbeSpec)
     - [TimeServerSpecSpec](#talos.resource.definitions.network.TimeServerSpecSpec)
@@ -10109,6 +10110,21 @@ STPSpec describes Spanning Tree Protocol (STP) settings of a bridge.
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | enabled | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="talos.resource.definitions.network.StaticHostSpec"></a>
+
+### StaticHostSpec
+StaticHostSpec describes addresses for a static host name.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| addresses | [common.NetIP](#common.NetIP) | repeated |  |
 
 
 

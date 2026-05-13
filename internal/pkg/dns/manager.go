@@ -28,29 +28,32 @@ var ErrCreatingRunner = errors.New("error creating runner")
 
 // Manager manages DNS runners.
 type Manager struct {
-	originalCtx  context.Context //nolint:containedctx
-	handler      *Handler
-	nodeHandler  *NodeHandler
-	rootHandler  *Cache
-	s            *suture.Supervisor
-	supervisorCh <-chan error
-	logger       *zap.Logger
-	runners      map[AddressPair]suture.ServiceToken
+	originalCtx       context.Context //nolint:containedctx
+	upstreamHandler   *Handler
+	nodeHandler       *NodeHandler
+	staticHostHandler *StaticHostHandler
+	cacheHandler      *Cache
+	s                 *suture.Supervisor
+	supervisorCh      <-chan error
+	logger            *zap.Logger
+	runners           map[AddressPair]suture.ServiceToken
 }
 
 // NewManager creates a new manager.
-func NewManager(mr MemberReader, hook suture.EventHook, logger *zap.Logger) *Manager {
+func NewManager(mr MemberReader, shr StaticHostReader, hook suture.EventHook, logger *zap.Logger) *Manager {
 	handler := NewHandler(logger)
-	nodeHandler := NewNodeHandler(handler, &addrResolver{mr: mr}, logger)
-	rootHandler := NewCache(nodeHandler, logger)
+	nodeHandler := NewNodeHandler(handler, &memberAddrResolver{mr: mr}, logger)
+	staticHostHandler := NewStaticHostHandler(nodeHandler, &staticHostResolver{shr: shr}, logger)
+	cacheHandler := NewCache(staticHostHandler, logger)
 
 	m := &Manager{
-		handler:     handler,
-		nodeHandler: nodeHandler,
-		rootHandler: rootHandler,
-		s:           suture.New("dns-resolve-cache-runners", suture.Spec{EventHook: hook}),
-		logger:      logger,
-		runners:     map[AddressPair]suture.ServiceToken{},
+		upstreamHandler:   handler,
+		nodeHandler:       nodeHandler,
+		staticHostHandler: staticHostHandler,
+		cacheHandler:      cacheHandler,
+		s:                 suture.New("dns-resolve-cache-runners", suture.Spec{EventHook: hook}),
+		logger:            logger,
+		runners:           map[AddressPair]suture.ServiceToken{},
 	}
 
 	return m
@@ -97,7 +100,7 @@ func (m *Manager) RunAll(pairs iter.Seq[AddressPair], forwardEnabled bool) iter.
 				continue
 			}
 
-			opts, err := newDNSRunnerOpts(cfg, m.rootHandler, forwardEnabled)
+			opts, err := newDNSRunnerOpts(cfg, m.cacheHandler, forwardEnabled)
 			if err != nil {
 				err = fmt.Errorf("%w: %w", ErrCreatingRunner, err)
 			} else {
@@ -135,12 +138,12 @@ func (m *Manager) AllowNodeResolving(enabled bool) { m.nodeHandler.SetEnabled(en
 
 // SetUpstreams sets the upstreams for the DNS handler. It returns true if the upstreams were updated, false otherwise.
 func (m *Manager) SetUpstreams(prxs iter.Seq[Upstream]) bool {
-	if !m.handler.SetProxy(prxs) {
+	if !m.upstreamHandler.SetProxy(prxs) {
 		return false
 	}
 
 	// Upstreams updated, clear cache to prevent DNS poisoning.
-	m.rootHandler.Clear()
+	m.cacheHandler.Clear()
 
 	return true
 }
@@ -168,7 +171,7 @@ func (m *Manager) clearAll() iter.Seq2[AddressPair, error] {
 			return
 		}
 
-		defer m.handler.Stop()
+		defer m.upstreamHandler.Stop()
 
 		for runData, token := range m.runners {
 			err := m.s.RemoveAndWait(token, 0)
@@ -192,15 +195,16 @@ func (m *Manager) Done() <-chan error {
 	return m.supervisorCh
 }
 
-type addrResolver struct {
+type memberAddrResolver struct {
 	mr MemberReader
 }
 
-func (s *addrResolver) ResolveAddr(ctx context.Context, qType uint16, name string) (iter.Seq[netip.Addr], bool) {
+func (s *memberAddrResolver) ResolveAddr(ctx context.Context, qType uint16, name string) (iter.Seq[netip.Addr], bool) {
 	name = strings.TrimRight(name, ".")
 
 	items, err := s.mr.ReadMembers(ctx)
 	if err != nil {
+		// ignoring the error here, and taking it to the next handler
 		return nil, false
 	}
 
@@ -216,6 +220,27 @@ func (s *addrResolver) ResolveAddr(ctx context.Context, qType uint16, name strin
 			return (qType == dnssrv.TypeA && addr.Is4()) || (qType == dnssrv.TypeAAAA && addr.Is6())
 		},
 		slices.Values(found.TypedSpec().Addresses),
+	), true
+}
+
+type staticHostResolver struct {
+	shr StaticHostReader
+}
+
+func (s *staticHostResolver) ResolveAddr(ctx context.Context, qType uint16, name string) (iter.Seq[netip.Addr], bool) {
+	key := strings.ToLower(strings.TrimRight(name, "."))
+
+	addrs, err := s.shr.ReadStaticHosts(ctx, key)
+	if err != nil {
+		// ignoring the error here, and taking it to the next handler
+		return nil, false
+	}
+
+	return xiter.Filter(
+		func(addr netip.Addr) bool {
+			return (qType == dnssrv.TypeA && addr.Is4()) || (qType == dnssrv.TypeAAAA && addr.Is6())
+		},
+		addrs,
 	), true
 }
 
@@ -238,6 +263,11 @@ func fqdnMatch(what, where string) bool {
 // MemberReader is an interface to read members.
 type MemberReader interface {
 	ReadMembers(ctx context.Context) (iter.Seq[*cluster.Member], error)
+}
+
+// StaticHostReader is an interface to read static hosts.
+type StaticHostReader interface {
+	ReadStaticHosts(ctx context.Context, name string) (iter.Seq[netip.Addr], error)
 }
 
 func newDNSRunnerOpts(cfg AddressPair, rootHandler dnssrv.Handler, forwardEnabled bool) (RunnerOptions, error) {

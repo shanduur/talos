@@ -6,6 +6,7 @@ package dns_test
 
 import (
 	"context"
+	"errors"
 	"iter"
 	"net"
 	"net/netip"
@@ -74,6 +75,13 @@ func TestDNS(t *testing.T) {
 			errCheck:     check.NoError(),
 		},
 		{
+			name:         "empty destinations but static host exists",
+			hostname:     "static-host-1",
+			nameservers:  nil,
+			expectedCode: dnssrv.RcodeSuccess,
+			errCheck:     check.NoError(),
+		},
+		{
 			// The first one will return SERVFAIL and the second will return REFUSED. We should try both.
 			name:         `should return "refused"`,
 			hostname:     "dnssec-failed.org",
@@ -138,7 +146,7 @@ func TestDNSEmptyDestinations(t *testing.T) {
 func Test_ServeBackground(t *testing.T) {
 	t.Cleanup(func() { goleak.VerifyNone(t) })
 
-	m := dns.NewManager(&testReader{}, func(e suture.Event) { t.Log("dns-runners event:", e) }, zaptest.NewLogger(t))
+	m := dns.NewManager(&testMemberReader{}, &testStaticHostReader{}, func(e suture.Event) { t.Log("dns-runners event:", e) }, zaptest.NewLogger(t))
 
 	m.ServeBackground(t.Context())
 
@@ -162,7 +170,8 @@ func Test_ServeBackground(t *testing.T) {
 
 func newManager(t *testing.T, nameservers ...string) func() {
 	m := dns.NewManager(
-		&testReader{},
+		&testMemberReader{},
+		&testStaticHostReader{},
 		func(e suture.Event) { t.Log("dns-runners event:", e) },
 		zaptest.NewLogger(t),
 	)
@@ -247,9 +256,9 @@ func createQuery(name string) *dnssrv.Msg {
 	}
 }
 
-type testReader struct{}
+type testMemberReader struct{}
 
-func (r *testReader) ReadMembers(context.Context) (iter.Seq[*cluster.Member], error) {
+func (r *testMemberReader) ReadMembers(context.Context) (iter.Seq[*cluster.Member], error) {
 	namesToAddresses := map[string][]netip.Addr{
 		"talos-default-controlplane-1": {netip.MustParseAddr("172.20.0.2")},
 		"talos-default-worker-1":       {netip.MustParseAddr("172.20.0.3")},
@@ -264,4 +273,23 @@ func (r *testReader) ReadMembers(context.Context) (iter.Seq[*cluster.Member], er
 	})
 
 	return slices.Values(result), nil
+}
+
+type testStaticHostReader struct{}
+
+func (r *testStaticHostReader) ReadStaticHosts(ctx context.Context, name string) (iter.Seq[netip.Addr], error) {
+	switch name {
+	case "static-host-1":
+		return slices.Values([]netip.Addr{
+			netip.MustParseAddr("10.1.0.1"),
+			netip.MustParseAddr("ff00::1"),
+		}), nil
+	case "static-host-2":
+		return slices.Values([]netip.Addr{
+			netip.MustParseAddr("10.1.0.2"),
+			netip.MustParseAddr("ff00::2"),
+		}), nil
+	default:
+		return nil, errors.New("not found")
+	}
 }

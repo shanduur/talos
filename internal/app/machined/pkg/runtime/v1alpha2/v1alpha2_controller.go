@@ -320,6 +320,7 @@ func (ctrl *Controller) Run(ctx context.Context, drainer *runtime.Drainer) error
 		&network.EthernetStatusController{},
 		&network.HardwareAddrController{},
 		&network.HostDNSConfigController{},
+		&network.StaticHostController{},
 		&network.HostnameConfigController{
 			Cmdline: procfs.ProcCmdline(),
 		},

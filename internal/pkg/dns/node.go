@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const nodeDNSResponseTTL = 10
+const staticResponseTTL = 10
 
 // HostMapper is a name to node mapper.
 type HostMapper interface {
@@ -50,7 +50,7 @@ func (h *NodeHandler) ServeDNS(ctx context.Context, wrt dns.ResponseWriter, msg 
 	}
 
 	idx := slices.IndexFunc(msg.Question, func(q dns.Question) bool { return q.Qtype == dns.TypeA || q.Qtype == dns.TypeAAAA })
-	if idx == -1 {
+	if idx != 0 {
 		return h.next.ServeDNS(ctx, wrt, msg)
 	}
 
@@ -96,7 +96,7 @@ func mapAnswers(addrs iter.Seq[netip.Addr], name string) []dns.RR {
 					Name:   name,
 					Rrtype: dns.TypeA,
 					Class:  dns.ClassINET,
-					Ttl:    nodeDNSResponseTTL,
+					Ttl:    staticResponseTTL,
 				},
 				A: addr.AsSlice(),
 			})
@@ -107,7 +107,7 @@ func mapAnswers(addrs iter.Seq[netip.Addr], name string) []dns.RR {
 					Name:   name,
 					Rrtype: dns.TypeAAAA,
 					Class:  dns.ClassINET,
-					Ttl:    nodeDNSResponseTTL,
+					Ttl:    staticResponseTTL,
 				},
 				AAAA: addr.AsSlice(),
 			})
