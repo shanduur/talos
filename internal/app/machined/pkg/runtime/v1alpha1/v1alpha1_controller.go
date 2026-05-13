@@ -38,7 +38,7 @@ type Controller struct {
 	priorityLock *PriorityLock[runtime.Sequence]
 }
 
-// NewController intializes and returns a controller.
+// NewController initializes and returns a controller.
 func NewController() (*Controller, error) {
 	s, err := NewState()
 	if err != nil {

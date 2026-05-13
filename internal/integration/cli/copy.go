@@ -24,7 +24,7 @@ func (suite *CopySuite) SuiteName() string {
 	return "cli.CopySuite"
 }
 
-// TestSuccess runs comand with success.
+// TestSuccess runs command with success.
 func (suite *CopySuite) TestSuccess() {
 	tempDir := suite.T().TempDir()
 

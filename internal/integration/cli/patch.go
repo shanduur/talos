@@ -52,7 +52,7 @@ func (suite *PatchSuite) TestSuccess() {
 	)
 }
 
-// TestError runs comand with error.
+// TestError runs command with error.
 func (suite *PatchSuite) TestError() {
 	node := suite.RandomDiscoveredNodeInternalIP(machine.TypeControlPlane)
 

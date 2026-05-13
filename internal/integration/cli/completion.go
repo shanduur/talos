@@ -20,7 +20,7 @@ func (suite *CompletionSuite) SuiteName() string {
 	return "cli.CompletionSuite"
 }
 
-// TestSuccess runs comand with success.
+// TestSuccess runs command with success.
 func (suite *CompletionSuite) TestSuccess() {
 	suite.RunCLI([]string{"completion", "bash"})
 	suite.RunCLI([]string{"completion", "fish"})

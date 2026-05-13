@@ -21,7 +21,7 @@ import (
 // Sequencer implements the sequencer interface.
 type Sequencer struct{}
 
-// NewSequencer intializes and returns a sequencer.
+// NewSequencer initializes and returns a sequencer.
 func NewSequencer() *Sequencer {
 	return &Sequencer{}
 }

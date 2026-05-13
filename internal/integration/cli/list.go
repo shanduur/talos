@@ -30,7 +30,7 @@ func (suite *ListSuite) SuiteName() string {
 	return "cli.ListSuite"
 }
 
-// TestSuccess runs comand with success.
+// TestSuccess runs command with success.
 func (suite *ListSuite) TestSuccess() {
 	suite.RunCLI([]string{"list", "--nodes", suite.RandomDiscoveredNodeInternalIP(), "/etc"},
 		base.StdoutShouldMatch(regexp.MustCompile(`os-release`)))
