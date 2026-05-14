@@ -46,6 +46,7 @@ Custom settings for cipher suites have been removed, as they are ignored when TL
         title = "Default Installer Image"
         description = """\
 The default installer image has been updated to use the Image Factory.
+The `ghcr.io/siderolabs/installer` image is no longer published with releases; use the Image Factory installer image instead.
 """
 
     [notes.hostdnsconfig]
