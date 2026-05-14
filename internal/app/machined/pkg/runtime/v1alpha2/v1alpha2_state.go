@@ -31,6 +31,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/resources/secrets"
 	"github.com/siderolabs/talos/pkg/machinery/resources/security"
 	"github.com/siderolabs/talos/pkg/machinery/resources/siderolink"
+	"github.com/siderolabs/talos/pkg/machinery/resources/storage"
 	"github.com/siderolabs/talos/pkg/machinery/resources/time"
 	"github.com/siderolabs/talos/pkg/machinery/resources/v1alpha1"
 )
@@ -259,6 +260,9 @@ func NewState() (*State, error) {
 		&siderolink.Config{},
 		&siderolink.Status{},
 		&siderolink.Tunnel{},
+		&storage.LVMLogicalVolumeStatus{},
+		&storage.LVMPhysicalVolumeStatus{},
+		&storage.LVMVolumeGroupStatus{},
 		&time.AdjtimeStatus{},
 		&time.Status{},
 		&v1alpha1.AcquireConfigSpec{},
