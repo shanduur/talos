@@ -358,6 +358,19 @@ func (i *Installer) Install(ctx context.Context, mode Mode) (err error) {
 		return fmt.Errorf("failed to get bootloader partitions: %w", err)
 	}
 
+	// Mirror install: when the install target is a pre-created MD array (built
+	// by `talosctl md create`), the system partitions (META, plus STATE/
+	// EPHEMERAL at runtime) live on a GPT-on-md, while the boot partitions/ESP
+	// stay on each member disk so UEFI can boot from either. The array carries
+	// no boot partitions; the bootloader is fanned out to the member ESPs after
+	// the array is laid out.
+	mirrorInstall := mode == ModeInstall && isMDDevice(i.options.DiskPath)
+
+	arrayBootPartitions := bootPartitions
+	if mirrorInstall {
+		arrayBootPartitions = nil
+	}
+
 	// create an exclusive lock on the disk and perform necessary disk operations
 	// this lock will be held for the whole duration of the installation
 	// this is necessary to prevent other processes from interfering with the installation like udevd
@@ -375,7 +388,7 @@ func (i *Installer) Install(ctx context.Context, mode Mode) (err error) {
 	}
 
 	// create partitions and re-probe the device
-	partitionOptions, err := i.createPartitions(ctx, mode, bd, hostTalosVersion, bootPartitions)
+	partitionOptions, err := i.createPartitions(ctx, mode, bd, hostTalosVersion, arrayBootPartitions)
 	if err != nil {
 		return fmt.Errorf("failed to create partitions: %w", err)
 	}
@@ -398,12 +411,24 @@ func (i *Installer) Install(ctx context.Context, mode Mode) (err error) {
 		return fmt.Errorf("failed to probe blockdevice %s: %w", i.options.DiskPath, err)
 	}
 
-	bootInstallResult, err := i.installBootloader(ctx, mode, bootlder, info)
-	if err != nil {
-		return fmt.Errorf("failed to install bootloader: %w", err)
+	var previousLabel string
+
+	// In mirror mode the array has no ESP; fan the bootloader out to each
+	// member disk's ESP instead of the standard single-disk install.
+	if mirrorInstall {
+		if err := i.installMirrorBootloader(ctx, mode, bootlder, bootPartitions); err != nil {
+			return fmt.Errorf("failed to install bootloader on mirror members: %w", err)
+		}
+	} else {
+		bootInstallResult, err := i.installBootloader(ctx, mode, bootlder, info)
+		if err != nil {
+			return fmt.Errorf("failed to install bootloader: %w", err)
+		}
+
+		previousLabel = bootInstallResult.PreviousLabel
 	}
 
-	if err = i.handleMeta(ctx, mode, bootInstallResult.PreviousLabel, info); err != nil {
+	if err = i.handleMeta(ctx, mode, previousLabel, info); err != nil {
 		return fmt.Errorf("failed to handle META partition: %w", err)
 	}
 

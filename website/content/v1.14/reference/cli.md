@@ -152,6 +152,7 @@ talosctl cluster create dev [flags]
       --disk-encryption-key-types stringArray    encryption key types to use for disk encryption (uuid, kms) (default [uuid])
       --disk-image-path string                   disk image to use
       --disk-preallocate                         whether disk space should be preallocated (default true)
+      --disks int                                number of primary disks to create for each VM (each sized by --disk) (default 1)
       --dns-domain string                        the dns domain to use for cluster (default "cluster.local")
       --encrypt-ephemeral                        enable ephemeral partition encryption
       --encrypt-state                            enable state partition encryption
@@ -180,6 +181,7 @@ talosctl cluster create dev [flags]
       --kubernetes-version string                desired kubernetes version to run (default "1.36.2")
       --memory string(mb,gb)                     the limit on memory usage for each control plane/VM (default 2.0GiB)
       --memory-workers string(mb,gb)             the limit on memory usage for each worker/VM (default 2.0GiB)
+      --mirror                                   install Talos to a RAID1 mirror across all primary disks (requires --disks>=2 and the mdadm system extension)
       --mtu int                                  MTU of the cluster network (default 1500)
       --nameservers strings                      list of nameservers to use
       --no-masquerade-cidrs strings              list of CIDRs to exclude from NAT
@@ -371,6 +373,7 @@ talosctl cluster create dev [flags]
       --disk-encryption-key-types stringArray    encryption key types to use for disk encryption (uuid, kms) (default [uuid])
       --disk-image-path string                   disk image to use
       --disk-preallocate                         whether disk space should be preallocated (default true)
+      --disks int                                number of primary disks to create for each VM (each sized by --disk) (default 1)
       --dns-domain string                        the dns domain to use for cluster (default "cluster.local")
       --encrypt-ephemeral                        enable ephemeral partition encryption
       --encrypt-state                            enable state partition encryption
@@ -399,6 +402,7 @@ talosctl cluster create dev [flags]
       --kubernetes-version string                desired kubernetes version to run (default "1.36.2")
       --memory string(mb,gb)                     the limit on memory usage for each control plane/VM (default 2.0GiB)
       --memory-workers string(mb,gb)             the limit on memory usage for each worker/VM (default 2.0GiB)
+      --mirror                                   install Talos to a RAID1 mirror across all primary disks (requires --disks>=2 and the mdadm system extension)
       --mtu int                                  MTU of the cluster network (default 1500)
       --nameservers strings                      list of nameservers to use
       --no-masquerade-cidrs strings              list of CIDRs to exclude from NAT
@@ -2951,6 +2955,159 @@ Machine config related commands
 * [talosctl machineconfig gen](#talosctl-machineconfig-gen)	 - Generates a set of configuration files for Talos cluster
 * [talosctl machineconfig patch](#talosctl-machineconfig-patch)	 - Patch a machine config
 
+## talosctl md destroy
+
+Destroy an MD array
+
+### Synopsis
+
+Stop an MD array and clear the superblock on every member device.
+
+WARNING: this is destructive. The array must not be in use (mounted or claimed
+by another device).
+
+```
+talosctl md destroy <name> [flags]
+```
+
+### Options
+
+```
+      --cert-fingerprint strings   list of server certificate fingerprints to accept (defaults to no check, only used with --insecure flag)
+  -h, --help                       help for destroy
+  -i, --insecure                   use the insecure (encrypted with no auth) maintenance service
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --cluster string             cluster to connect to if a proxy endpoint is used
+      --context string             context to be used in command
+  -e, --endpoints strings          override default endpoints in Talos configuration
+  -n, --nodes strings              target the specified nodes
+      --siderov1-keys-dir string   the path to the SideroV1 auth PGP keys directory, defaults to 'SIDEROV1_KEYS_DIR' env variable if set, otherwise '$HOME/.talos/keys'; only valid for Contexts that use SideroV1 auth
+      --talosconfig string         the path to the Talos configuration file, defaults to 'TALOSCONFIG' env variable if set, otherwise '$HOME/.talos/config' and '/var/run/secrets/talos.dev/config' in order
+```
+
+### SEE ALSO
+
+* [talosctl md](#talosctl-md)	 - Maintain MD (software RAID) arrays
+
+## talosctl md extend
+
+Add member devices to an MD array
+
+### Synopsis
+
+Add member devices to an MD array, growing the number of active devices.
+
+Members must be given as absolute block-device paths (e.g. /dev/sdd).
+
+For RAID1 this increases the mirror count. To replace a failed member, extend
+with the replacement device, wait for the resync to finish, then shrink the
+failed member out.
+
+```
+talosctl md extend <name> <device>... [flags]
+```
+
+### Options
+
+```
+      --cert-fingerprint strings   list of server certificate fingerprints to accept (defaults to no check, only used with --insecure flag)
+  -h, --help                       help for extend
+  -i, --insecure                   use the insecure (encrypted with no auth) maintenance service
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --cluster string             cluster to connect to if a proxy endpoint is used
+      --context string             context to be used in command
+  -e, --endpoints strings          override default endpoints in Talos configuration
+  -n, --nodes strings              target the specified nodes
+      --siderov1-keys-dir string   the path to the SideroV1 auth PGP keys directory, defaults to 'SIDEROV1_KEYS_DIR' env variable if set, otherwise '$HOME/.talos/keys'; only valid for Contexts that use SideroV1 auth
+      --talosconfig string         the path to the Talos configuration file, defaults to 'TALOSCONFIG' env variable if set, otherwise '$HOME/.talos/config' and '/var/run/secrets/talos.dev/config' in order
+```
+
+### SEE ALSO
+
+* [talosctl md](#talosctl-md)	 - Maintain MD (software RAID) arrays
+
+## talosctl md shrink
+
+Remove member devices from an MD array
+
+### Synopsis
+
+Remove member devices from an MD array, reducing the number of active devices.
+
+Members must be given as absolute block-device paths (e.g. /dev/sdc).
+
+Each removed member is failed, removed and has its superblock zeroed so the
+disk can be reused. Shrinking below one active device is rejected.
+
+```
+talosctl md shrink <name> <device>... [flags]
+```
+
+### Options
+
+```
+      --cert-fingerprint strings   list of server certificate fingerprints to accept (defaults to no check, only used with --insecure flag)
+  -h, --help                       help for shrink
+  -i, --insecure                   use the insecure (encrypted with no auth) maintenance service
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --cluster string             cluster to connect to if a proxy endpoint is used
+      --context string             context to be used in command
+  -e, --endpoints strings          override default endpoints in Talos configuration
+  -n, --nodes strings              target the specified nodes
+      --siderov1-keys-dir string   the path to the SideroV1 auth PGP keys directory, defaults to 'SIDEROV1_KEYS_DIR' env variable if set, otherwise '$HOME/.talos/keys'; only valid for Contexts that use SideroV1 auth
+      --talosconfig string         the path to the Talos configuration file, defaults to 'TALOSCONFIG' env variable if set, otherwise '$HOME/.talos/config' and '/var/run/secrets/talos.dev/config' in order
+```
+
+### SEE ALSO
+
+* [talosctl md](#talosctl-md)	 - Maintain MD (software RAID) arrays
+
+## talosctl md
+
+Maintain MD (software RAID) arrays
+
+### Synopsis
+
+Maintain existing MD (software RAID) arrays.
+
+Array creation is owned by the installer (mirrored system disk); these commands
+only repair or tear down arrays that already exist - extend (add a replacement
+member), shrink (remove a failed member), destroy.
+
+mdadm is provided by a system extension and is not part of core Talos; these
+commands fail with a precondition error on nodes without the extension.
+
+### Options
+
+```
+  -c, --cluster string             cluster to connect to if a proxy endpoint is used
+      --context string             context to be used in command
+  -e, --endpoints strings          override default endpoints in Talos configuration
+  -h, --help                       help for md
+  -n, --nodes strings              target the specified nodes
+      --siderov1-keys-dir string   the path to the SideroV1 auth PGP keys directory, defaults to 'SIDEROV1_KEYS_DIR' env variable if set, otherwise '$HOME/.talos/keys'; only valid for Contexts that use SideroV1 auth
+      --talosconfig string         the path to the Talos configuration file, defaults to 'TALOSCONFIG' env variable if set, otherwise '$HOME/.talos/config' and '/var/run/secrets/talos.dev/config' in order
+```
+
+### SEE ALSO
+
+* [talosctl](#talosctl)	 - A CLI for out-of-band management of Kubernetes nodes created by Talos
+* [talosctl md destroy](#talosctl-md-destroy)	 - Destroy an MD array
+* [talosctl md extend](#talosctl-md-extend)	 - Add member devices to an MD array
+* [talosctl md shrink](#talosctl-md-shrink)	 - Remove member devices from an MD array
+
 ## talosctl memory
 
 Show memory usage
@@ -4004,6 +4161,7 @@ A CLI for out-of-band management of Kubernetes nodes created by Talos
 * [talosctl list](#talosctl-list)	 - Retrieve a directory listing
 * [talosctl logs](#talosctl-logs)	 - Retrieve logs for a service
 * [talosctl machineconfig](#talosctl-machineconfig)	 - Machine config related commands
+* [talosctl md](#talosctl-md)	 - Maintain MD (software RAID) arrays
 * [talosctl memory](#talosctl-memory)	 - Show memory usage
 * [talosctl meta](#talosctl-meta)	 - Write and delete keys in the META partition
 * [talosctl mounts](#talosctl-mounts)	 - List mounts

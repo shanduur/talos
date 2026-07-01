@@ -5790,7 +5790,138 @@
       },
       "additionalProperties": false,
       "type": "object",
-      "description": "FeaturesConfig describes individual Talos features that can be switched on or off.\\n"
+      "description": "FeaturesConfig describes individual Talos features that can be switched on or off."
+    },
+    "v1alpha1.InstallConfig": {
+      "properties": {
+        "disk": {
+          "type": "string",
+          "title": "disk",
+          "description": "The disk used for installations.\n",
+          "markdownDescription": "The disk used for installations.",
+          "x-intellij-html-description": "\u003cp\u003eThe disk used for installations.\u003c/p\u003e\n"
+        },
+        "diskSelector": {
+          "$ref": "#/$defs/v1alpha1.InstallDiskSelector",
+          "title": "diskSelector",
+          "description": "Look up disk using disk attributes like model, size, serial and others.\nAlways has priority over disk.\n",
+          "markdownDescription": "Look up disk using disk attributes like model, size, serial and others.\nAlways has priority over `disk`.",
+          "x-intellij-html-description": "\u003cp\u003eLook up disk using disk attributes like model, size, serial and others.\nAlways has priority over \u003ccode\u003edisk\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "mirror": {
+          "type": "boolean",
+          "title": "mirror",
+          "description": "Install Talos to a software RAID1 mirror across every disk matched by\ndiskSelector (which must match at least two disks) instead of a\nsingle disk. Requires the mdadm system extension. Mutually exclusive\nwith disk.\n",
+          "markdownDescription": "Install Talos to a software RAID1 mirror across every disk matched by\n`diskSelector` (which must match at least two disks) instead of a\nsingle disk. Requires the `mdadm` system extension. Mutually exclusive\nwith `disk`.",
+          "x-intellij-html-description": "\u003cp\u003eInstall Talos to a software RAID1 mirror across every disk matched by\n\u003ccode\u003ediskSelector\u003c/code\u003e (which must match at least two disks) instead of a\nsingle disk. Requires the \u003ccode\u003emdadm\u003c/code\u003e system extension. Mutually exclusive\nwith \u003ccode\u003edisk\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "image": {
+          "type": "string",
+          "title": "image",
+          "description": "Allows for supplying the image used to perform the installation.\nImage reference for each Talos release can be found on\nGitHub releases page.\n",
+          "markdownDescription": "Allows for supplying the image used to perform the installation.\nImage reference for each Talos release can be found on\n[GitHub releases page](https://github.com/siderolabs/talos/releases).",
+          "x-intellij-html-description": "\u003cp\u003eAllows for supplying the image used to perform the installation.\nImage reference for each Talos release can be found on\n\u003ca href=\"https://github.com/siderolabs/talos/releases\" target=\"_blank\"\u003eGitHub releases page\u003c/a\u003e.\u003c/p\u003e\n"
+        },
+        "wipe": {
+          "type": "boolean",
+          "title": "wipe",
+          "description": "Indicates if the installation disk should be wiped at installation time.\nDefaults to true.\n",
+          "markdownDescription": "Indicates if the installation disk should be wiped at installation time.\nDefaults to `true`.",
+          "x-intellij-html-description": "\u003cp\u003eIndicates if the installation disk should be wiped at installation time.\nDefaults to \u003ccode\u003etrue\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "legacyBIOSSupport": {
+          "type": "boolean",
+          "title": "legacyBIOSSupport",
+          "description": "Indicates if MBR partition should be marked as bootable (active).\nShould be enabled only for the systems with legacy BIOS that doesn\u2019t support GPT partitioning scheme.\n",
+          "markdownDescription": "Indicates if MBR partition should be marked as bootable (active).\nShould be enabled only for the systems with legacy BIOS that doesn't support GPT partitioning scheme.",
+          "x-intellij-html-description": "\u003cp\u003eIndicates if MBR partition should be marked as bootable (active).\nShould be enabled only for the systems with legacy BIOS that doesn\u0026rsquo;t support GPT partitioning scheme.\u003c/p\u003e\n"
+        },
+        "grubUseUKICmdline": {
+          "type": "boolean",
+          "title": "grubUseUKICmdline",
+          "description": "Indicates if legacy GRUB bootloader should use kernel cmdline from the UKI instead of building it on the host.\nThis changes the way cmdline is managed with GRUB bootloader to be more consistent with UKI/systemd-boot.\n",
+          "markdownDescription": "Indicates if legacy GRUB bootloader should use kernel cmdline from the UKI instead of building it on the host.\nThis changes the way cmdline is managed with GRUB bootloader to be more consistent with UKI/systemd-boot.",
+          "x-intellij-html-description": "\u003cp\u003eIndicates if legacy GRUB bootloader should use kernel cmdline from the UKI instead of building it on the host.\nThis changes the way cmdline is managed with GRUB bootloader to be more consistent with UKI/systemd-boot.\u003c/p\u003e\n"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "InstallConfig represents the installation options for preparing a node."
+    },
+    "v1alpha1.InstallDiskSelector": {
+      "properties": {
+        "size": {
+          "type": "string",
+          "title": "size",
+          "description": "Disk size.\n",
+          "markdownDescription": "Disk size.",
+          "x-intellij-html-description": "\u003cp\u003eDisk size.\u003c/p\u003e\n"
+        },
+        "name": {
+          "type": "string",
+          "title": "name",
+          "description": "Disk name /sys/block/\u0026lt;dev\u0026gt;/device/name.\n",
+          "markdownDescription": "Disk name `/sys/block/\u003cdev\u003e/device/name`.",
+          "x-intellij-html-description": "\u003cp\u003eDisk name \u003ccode\u003e/sys/block/\u0026lt;dev\u0026gt;/device/name\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "model": {
+          "type": "string",
+          "title": "model",
+          "description": "Disk model /sys/block/\u0026lt;dev\u0026gt;/device/model.\n",
+          "markdownDescription": "Disk model `/sys/block/\u003cdev\u003e/device/model`.",
+          "x-intellij-html-description": "\u003cp\u003eDisk model \u003ccode\u003e/sys/block/\u0026lt;dev\u0026gt;/device/model\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "serial": {
+          "type": "string",
+          "title": "serial",
+          "description": "Disk serial number /sys/block/\u0026lt;dev\u0026gt;/serial.\n",
+          "markdownDescription": "Disk serial number `/sys/block/\u003cdev\u003e/serial`.",
+          "x-intellij-html-description": "\u003cp\u003eDisk serial number \u003ccode\u003e/sys/block/\u0026lt;dev\u0026gt;/serial\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "modalias": {
+          "type": "string",
+          "title": "modalias",
+          "description": "Disk modalias /sys/block/\u0026lt;dev\u0026gt;/device/modalias.\n",
+          "markdownDescription": "Disk modalias `/sys/block/\u003cdev\u003e/device/modalias`.",
+          "x-intellij-html-description": "\u003cp\u003eDisk modalias \u003ccode\u003e/sys/block/\u0026lt;dev\u0026gt;/device/modalias\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "uuid": {
+          "type": "string",
+          "title": "uuid",
+          "description": "Disk UUID /sys/block/\u0026lt;dev\u0026gt;/uuid.\n",
+          "markdownDescription": "Disk UUID `/sys/block/\u003cdev\u003e/uuid`.",
+          "x-intellij-html-description": "\u003cp\u003eDisk UUID \u003ccode\u003e/sys/block/\u0026lt;dev\u0026gt;/uuid\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "wwid": {
+          "type": "string",
+          "title": "wwid",
+          "description": "Disk WWID /sys/block/\u0026lt;dev\u0026gt;/wwid.\n",
+          "markdownDescription": "Disk WWID `/sys/block/\u003cdev\u003e/wwid`.",
+          "x-intellij-html-description": "\u003cp\u003eDisk WWID \u003ccode\u003e/sys/block/\u0026lt;dev\u0026gt;/wwid\u003c/code\u003e.\u003c/p\u003e\n"
+        },
+        "type": {
+          "enum": [
+            "ssd",
+            "hdd",
+            "nvme",
+            "sd"
+          ],
+          "title": "type",
+          "description": "Disk Type.\n",
+          "markdownDescription": "Disk Type.",
+          "x-intellij-html-description": "\u003cp\u003eDisk Type.\u003c/p\u003e\n"
+        },
+        "busPath": {
+          "type": "string",
+          "title": "busPath",
+          "description": "Disk bus path.\n",
+          "markdownDescription": "Disk bus path.",
+          "x-intellij-html-description": "\u003cp\u003eDisk bus path.\u003c/p\u003e\n"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "description": "InstallDiskSelector represents a disk query parameters for the install disk lookup."
     },
     "v1alpha1.KernelConfig": {
       "properties": {

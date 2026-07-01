@@ -480,15 +480,22 @@ func (m *Qemu) getLegacyDiskEncryptionPatch(keys []*v1alpha1.EncryptionKey) (con
 func (m *Qemu) initDisks() error {
 	workerExtraDisks := make([]*provision.Disk, 0, len(m.EOps.Disks.Requests())-1)
 
-	primaryDisks := []*provision.Disk{
-		{
+	// Every node gets PrimaryDisks identical primary disks (cloned from the
+	// first disk request). More than one lets a node build an MD array across
+	// its primaries (e.g. a RAID1 boot drive).
+	primaryCount := max(m.EOps.PrimaryDisks, 1)
+
+	primaryDisks := make([]*provision.Disk, 0, primaryCount)
+	for range primaryCount {
+		primaryDisks = append(primaryDisks, &provision.Disk{
 			Size:            m.EOps.Disks.Requests()[0].Size.Bytes(),
 			SkipPreallocate: !m.EOps.PreallocateDisks,
 			Driver:          m.EOps.Disks.Requests()[0].Driver,
 			BlockSize:       m.EOps.DiskBlockSize,
 			Serial:          m.EOps.Disks.Requests()[0].Serial,
-		},
+		})
 	}
+
 	// get worker extra disks
 	for _, d := range m.EOps.Disks.Requests()[1:] {
 		workerExtraDisks = append(workerExtraDisks, &provision.Disk{

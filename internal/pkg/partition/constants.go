@@ -15,6 +15,7 @@ const (
 	BIOSBootPartition   Type = "21686148-6449-6E6F-744E-656564454649"
 	LinuxFilesystemData Type = "0FC63DAF-8483-4772-8E79-3D69D8477DE4"
 	LinkSwap            Type = "0657FD6D-A4AB-43C4-84E5-0933C84B4F4F"
+	LinuxRAIDPartition  Type = "A19D880F-05FC-4D3B-A006-743F0F84911E"
 )
 
 // FileSystemType is used to format partitions.

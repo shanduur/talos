@@ -175,6 +175,9 @@ func (ctrl *Controller) Run(ctx context.Context, drainer *runtime.Drainer) error
 			V1Alpha1Mode: ctrl.v1alpha1Runtime.State().Platform().Mode(),
 			LVM:          lvm,
 		},
+		&storage.MDLastResortController{
+			V1Alpha1Mode: ctrl.v1alpha1Runtime.State().Platform().Mode(),
+		},
 		&storage.LVMLogicalVolumeReconcileController{
 			V1Alpha1Mode: ctrl.v1alpha1Runtime.State().Platform().Mode(),
 			LVM:          lvm,

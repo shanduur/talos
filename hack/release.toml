@@ -238,6 +238,25 @@ This feature allows for selective wiping of logical volumes, volume groups, and 
 With `talosctl wipe lv/vg/pv <name>`, users can wipe LVM metadata from a specific logical volume, volume group, or physical volume.
 """
 
+    [notes.md_raid]
+        title = "MD Software RAID (System Disk Mirroring)"
+        description = """\
+Talos can now mirror the system disk across multiple disks using Linux MD software RAID (RAID1), so a
+node survives the loss of a single disk.
+
+Set `machine.install.mirror: true` and use `machine.install.diskSelector` to match two or more disks;
+the installer partitions each disk (an independent EFI System Partition plus a RAID member), creates a
+RAID1 array across the members, and places `META`/`STATE`/`EPHEMERAL` on a GPT on top of the array. The
+bootloader is written to every disk's ESP, so the node boots from whichever disk survives. Degraded
+arrays are force-started at boot.
+
+`talosctl md extend/shrink/destroy <name> <device>...` is provided to repair arrays (add a replacement
+member, remove a failed one, or tear an array down). Array creation is owned by the installer.
+
+`mdadm` is provided by a system extension and is not part of core Talos; these operations fail with a
+precondition error on nodes without the extension installed. Only RAID1 is supported.
+"""
+
     [notes.lvm_volume_group]
         title = "LVM Volume Group Creation"
         description = """\

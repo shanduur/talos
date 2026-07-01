@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package machine;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/siderolabs/talos/pkg/machinery/api/machine";
+option java_package = "dev.talos.api.machine";
+
+// MDService provisions and maintains MD (Multiple Device, software RAID)
+// arrays. It is an administrator API, intended to be used in maintenance mode
+// before installation to lay down a mirrored system disk.
+//
+//   - Create:  provision a bootable RAID1 mirror from whole disks.
+//   - Extend:  add member devices (e.g. a replacement disk).
+//   - Shrink:  remove member devices (e.g. a failed disk).
+//   - Destroy: stop the array and clear member superblocks.
+//
+// Extend + Shrink together replace failed hardware: add the replacement
+// member, let it resync, then remove the failed member.
+service MDService {
+  // Create provisions a bootable RAID1 mirror from the given whole disks.
+  //
+  // Each disk is partitioned into an EFI System Partition (kept outside the
+  // array so UEFI can boot from either disk) plus a RAID-member partition; the
+  // RAID1 array is created across the member partitions. The resulting array
+  // is the install target (GPT-on-md for META/STATE/EPHEMERAL).
+  rpc Create(MDCreateRequest) returns (MDCreateResponse);
+  // Extend adds member devices to an existing array.
+  //
+  // For RAID1 this increases the number of mirrors. To replace a failed
+  // member, Extend with the new device first, wait for the resync to
+  // finish, then Shrink the failed member out.
+  rpc Extend(MDExtendRequest) returns (google.protobuf.Empty);
+  // Shrink removes member devices from an existing array.
+  //
+  // The removed member's superblock is cleared so the device can be
+  // reused. Shrinking below the array's redundancy minimum is rejected.
+  rpc Shrink(MDShrinkRequest) returns (google.protobuf.Empty);
+  // Destroy stops the array and clears the superblock on every member.
+  //
+  // The array must not be in use (e.g. mounted or claimed by another
+  // device) at the time of the call.
+  rpc Destroy(MDDestroyRequest) returns (google.protobuf.Empty);
+}
+
+// MDCreateRequest provisions a new bootable RAID1 mirror.
+message MDCreateRequest {
+  // Name is the array name to stamp into the metadata (e.g. "talos"). The
+  // running system exposes it as /dev/disk/by-id/md-name-<name>.
+  string name = 1;
+  // Disks are the absolute paths of the whole disks to mirror
+  // (e.g. ["/dev/sda", "/dev/sdb"]); at least two are required. Each is
+  // partitioned (ESP + RAID member) - any existing data is wiped.
+  repeated string disks = 2;
+}
+
+// MDCreateResponse reports the provisioned mirror.
+message MDCreateResponse {
+  // Device is the array block-device node (e.g. "/dev/md0"), the install target.
+  string device = 1;
+  // EspDevices are the per-disk EFI System Partition device paths, one per
+  // member disk, in the same order as the request.
+  repeated string esp_devices = 2;
+}
+
+// MDExtendRequest adds members to an existing array.
+message MDExtendRequest {
+  // Name is the array name (e.g. "md0").
+  string name = 1;
+  // Devices are the absolute block device paths to add as new members
+  // (e.g. ["/dev/sdc"]); bare kernel names are not accepted.
+  repeated string devices = 2;
+}
+
+// MDShrinkRequest removes members from an existing array.
+message MDShrinkRequest {
+  // Name is the array name (e.g. "md0").
+  string name = 1;
+  // Devices are the absolute block device paths of the members to remove
+  // (e.g. ["/dev/sdc"]); bare kernel names are not accepted.
+  repeated string devices = 2;
+}
+
+// MDDestroyRequest identifies the array to tear down.
+message MDDestroyRequest {
+  // Name is the array name to destroy (e.g. "md0").
+  string name = 1;
+}
