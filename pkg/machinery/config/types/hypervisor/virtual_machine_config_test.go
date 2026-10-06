@@ -480,6 +480,42 @@ func TestVirtualMachineConfigValidate(t *testing.T) {
 			expectedErrors: "disks[0]: provision.fromImage.mode is not allowed on a cdrom, whose read-only medium never diverges from the image",
 		},
 		{
+			name: "underscored pool name",
+			cfg: func() *hypervisor.VirtualMachineConfigV1Alpha1 {
+				c := validVirtualMachineConfig()
+				c.DisksConfig = []hypervisor.VirtualMachineDisk{blankDisk("system")}
+				// Accepted: a StoragePool document may be named with underscores, and a reference
+				// this rejected would be a pool nothing could ever name.
+				c.DisksConfig[0].DiskPool = "VM_images"
+
+				return c
+			},
+		},
+		{
+			name: "pool name starting with an underscore",
+			cfg: func() *hypervisor.VirtualMachineConfigV1Alpha1 {
+				c := validVirtualMachineConfig()
+				c.DisksConfig = []hypervisor.VirtualMachineDisk{blankDisk("system")}
+				c.DisksConfig[0].DiskPool = "_images"
+
+				return c
+			},
+
+			expectedErrors: `disks[0]: pool: storage pool name "_images": name can only contain ASCII letters, digits, hyphens and underscores, and must start with a letter or digit`,
+		},
+		{
+			name: "overlong pool name",
+			cfg: func() *hypervisor.VirtualMachineConfigV1Alpha1 {
+				c := validVirtualMachineConfig()
+				c.DisksConfig = []hypervisor.VirtualMachineDisk{blankDisk("system")}
+				c.DisksConfig[0].DiskPool = strings.Repeat("a", 64)
+
+				return c
+			},
+
+			expectedErrors: `disks[0]: pool: storage pool name "` + strings.Repeat("a", 64) + `" must be 63 characters or fewer`,
+		},
+		{
 			name: "pooled cdrom",
 			cfg: func() *hypervisor.VirtualMachineConfigV1Alpha1 {
 				c := validVirtualMachineConfig()

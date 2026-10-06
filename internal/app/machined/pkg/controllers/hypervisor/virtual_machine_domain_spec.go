@@ -21,6 +21,7 @@ import (
 	"go.uber.org/zap"
 	"libvirt.org/go/libvirtxml"
 
+	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/internal/cleanup"
 	"github.com/siderolabs/talos/pkg/machinery/constants"
 	"github.com/siderolabs/talos/pkg/machinery/hypervisorhelpers"
 	"github.com/siderolabs/talos/pkg/machinery/nethelpers"
@@ -178,7 +179,7 @@ func (ctrl *VirtualMachineDomainSpecController) reconcile(ctx context.Context, r
 	// VirtualMachineController holds a finalizer on every domain spec it has claimed, so an unwanted
 	// spec is torn down to ask for that hold back, and destroyed only once it comes.
 	return errors.Join(append(errs,
-		cleanupOutputs[*hypervisor.VirtualMachineDomainSpec](ctx, r, "virtual machine domain spec", desired))...)
+		cleanup.Outputs[*hypervisor.VirtualMachineDomainSpec](ctx, r, "virtual machine domain spec", desired))...)
 }
 
 // renderVirtualMachineDomainWithSeed appends the projected seed to a valid base domain.
@@ -944,6 +945,12 @@ func renderVirtualMachineDisks(
 
 		if resolved.ReadOnly {
 			rendered.ReadOnly = &libvirtxml.DomainDiskReadOnly{}
+		} else {
+			// A writable disk is sparse in a pool nothing accounts for, so it can hit ENOSPC with
+			// the pool's filesystem full. Pausing the guest is recoverable; letting it see a failed
+			// write is how a qcow2 loses the L2 table it was growing.
+			rendered.Driver.ErrorPolicy = "stop"
+			rendered.Driver.RErrorPolicy = "stop"
 		}
 
 		// Talos renders no <os><boot dev>, so per-device boot elements are free to use; libvirt

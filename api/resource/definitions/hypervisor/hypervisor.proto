@@ -137,6 +137,22 @@ message VirtualMachineDiskStatusSpec {
   string error = 7;
   // Image is the content library image this status resolved.
   VirtualMachineDiskFromImageSpec image = 8;
+  // Pool is the storage pool the disk's volume lives in, for a disk provisioned into one.
+  //
+  // Stamped whether or not the disk resolved, so a failed one still names what it was for. That
+  // is what lets a pool a running guest is reading from be recognized as in use: a status which
+  // did not resolve has no SourcePath to go on.
+  string pool = 9;
+  // Volume is the name of that volume within the pool.
+  //
+  // Stamped whether or not the disk resolved, for the same reason as Pool.
+  string volume = 10;
+  // Size is the volume's actual logical capacity in bytes.
+  //
+  // It may exceed the size configured: a volume is never shrunk.
+  uint64 size = 11;
+  // Blank is true when the disk was provisioned as an empty volume.
+  bool blank = 12;
 }
 
 // VirtualMachineDomainSpecSpec is the spec for VirtualMachineDomainSpec.

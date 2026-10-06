@@ -20,6 +20,7 @@ import (
 	"github.com/siderolabs/talos/pkg/machinery/config/merge"
 	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/hypervisorhelpers"
+	"github.com/siderolabs/talos/pkg/machinery/storagehelpers"
 )
 
 // maxFileNameLength bounds a content library file name at NAME_MAX.
@@ -94,9 +95,14 @@ type VirtualMachineDisk struct {
 	//   description: |
 	//     Name of the `StoragePool` document this disk's volume lives in.
 	//
-	//     The pool is declared separately and is not provisioned by this document. The reference
-	//     is checked for shape only: nothing resolves it against the rest of the machine
-	//     configuration yet.
+	//     The pool is declared separately and is not provisioned by this document, but it must be
+	//     declared: a disk naming a pool no `StoragePool` document declares is a configuration
+	//     error.
+	//
+	//     The volume is named after this virtual machine and this disk, so a volume of that name
+	//     already in the pool is adopted with its existing contents. Removing the disk from the
+	//     configuration never deletes the volume, so re-declaring the same virtual machine and disk
+	//     names in the same pool reattaches the same data.
 	//
 	//     Required for a `disk`, and not allowed on a `cdrom`, whose image is attached in place
 	//     from its content library and never lands in a pool.
@@ -328,9 +334,12 @@ func (d *VirtualMachineDisk) Validate(index int) (string, error) {
 		validationErrors = errors.Join(validationErrors, fmt.Errorf("disks[%d]: %w", index, err))
 	}
 
-	if d.DiskPool != "" && !hypervisorhelpers.ValidNameCharset(d.DiskPool) {
-		validationErrors = errors.Join(validationErrors,
-			fmt.Errorf("disks[%d]: pool %q: pool name can only contain ASCII letters, digits and hyphens", index, d.DiskPool))
+	// Validated against the same rule the StoragePool document applies to its own name: a
+	// reference this accepted but that document would not is a pool nothing can ever declare.
+	if d.DiskPool != "" {
+		if err := storagehelpers.ValidateStoragePoolName(d.DiskPool); err != nil {
+			validationErrors = errors.Join(validationErrors, fmt.Errorf("disks[%d]: pool: %w", index, err))
+		}
 	}
 
 	//nolint:exhaustive // Type() resolves the zero member to disk, so it never reaches this switch.

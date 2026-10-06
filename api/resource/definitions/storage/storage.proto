@@ -291,3 +291,51 @@ message StoragePoolStatusSpec {
   string error = 4;
 }
 
+// StoragePoolVolumeSpecSpec is the spec for StoragePoolVolumeSpec.
+message StoragePoolVolumeSpecSpec {
+  // Pool is the name of the storage pool the volume lives in.
+  string pool = 1;
+  // Name is the volume's name within that pool, which is its file name in the pool directory.
+  string name = 2;
+  // Capacity is the logical size in bytes the volume is asked to have.
+  //
+  // A volume is only ever grown towards it. One already larger is left alone: shrinking would
+  // truncate a filesystem its owner, not Talos, laid out.
+  uint64 capacity = 3;
+  // Format is the on-disk format the volume is created with, as libvirt names it.
+  //
+  // It applies at creation only. A volume already in the pool under another format is refused
+  // rather than rewritten.
+  string format = 4;
+}
+
+// StoragePoolVolumeStatusSpec is the spec for StoragePoolVolumeStatus.
+message StoragePoolVolumeStatusSpec {
+  // Pool is the name of the storage pool the volume lives in.
+  string pool = 1;
+  // Name is the volume's name within that pool.
+  string name = 2;
+  // Path is the absolute host path of the volume's file.
+  //
+  // Only meaningful when Ready.
+  string path = 3;
+  // Format is the volume's actual on-disk format, as libvirt reports it.
+  //
+  // Only meaningful when Ready.
+  string format = 4;
+  // Capacity is the volume's actual logical size in bytes.
+  //
+  // It may exceed the capacity asked for: a volume is never shrunk.
+  uint64 capacity = 5;
+  // PendingCapacity is a growth which has been asked for but not applied yet, in bytes.
+  //
+  // Zero when there is none. A volume a guest has open cannot be grown underneath it, so the
+  // change waits for the guest to stop rather than being lost or forced.
+  uint64 pending_capacity = 6;
+  // Ready is true once the volume exists and may be attached.
+  bool ready = 7;
+  // Error describes why the volume is not ready, or -- when it is -- which part of what was asked
+  // for was refused.
+  string error = 8;
+}
+

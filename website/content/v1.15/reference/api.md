@@ -780,6 +780,8 @@ description: Talos gRPC API reference.
     - [MDRefreshRequestSpec](#talos.resource.definitions.storage.MDRefreshRequestSpec)
     - [StoragePoolSpecSpec](#talos.resource.definitions.storage.StoragePoolSpecSpec)
     - [StoragePoolStatusSpec](#talos.resource.definitions.storage.StoragePoolStatusSpec)
+    - [StoragePoolVolumeSpecSpec](#talos.resource.definitions.storage.StoragePoolVolumeSpecSpec)
+    - [StoragePoolVolumeStatusSpec](#talos.resource.definitions.storage.StoragePoolVolumeStatusSpec)
   
 - [resource/definitions/time/time.proto](#resource/definitions/time/time.proto)
     - [AdjtimeStatusSpec](#talos.resource.definitions.time.AdjtimeStatusSpec)
@@ -9244,6 +9246,10 @@ VirtualMachineDiskStatusSpec is the spec for VirtualMachineDiskStatus.
 | ready | [bool](#bool) |  | Ready is true once the source exists and may be attached. |
 | error | [string](#string) |  | Error describes why the disk is not ready. |
 | image | [VirtualMachineDiskFromImageSpec](#talos.resource.definitions.hypervisor.VirtualMachineDiskFromImageSpec) |  | Image is the content library image this status resolved. |
+| pool | [string](#string) |  | Pool is the storage pool the disk's volume lives in, for a disk provisioned into one.<br><br>Stamped whether or not the disk resolved, so a failed one still names what it was for. That is what lets a pool a running guest is reading from be recognized as in use: a status which did not resolve has no SourcePath to go on. |
+| volume | [string](#string) |  | Volume is the name of that volume within the pool.<br><br>Stamped whether or not the disk resolved, for the same reason as Pool. |
+| size | [uint64](#uint64) |  | Size is the volume's actual logical capacity in bytes.<br><br>It may exceed the size configured: a volume is never shrunk. |
+| blank | [bool](#bool) |  | Blank is true when the disk was provisioned as an empty volume. |
 
 
 
@@ -13737,6 +13743,46 @@ StoragePoolStatusSpec reports the pool's backing volume, directory and readiness
 | target_path | [string](#string) |  |  |
 | ready | [bool](#bool) |  |  |
 | error | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="talos.resource.definitions.storage.StoragePoolVolumeSpecSpec"></a>
+
+### StoragePoolVolumeSpecSpec
+StoragePoolVolumeSpecSpec is the spec for StoragePoolVolumeSpec.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| pool | [string](#string) |  | Pool is the name of the storage pool the volume lives in. |
+| name | [string](#string) |  | Name is the volume's name within that pool, which is its file name in the pool directory. |
+| capacity | [uint64](#uint64) |  | Capacity is the logical size in bytes the volume is asked to have.<br><br>A volume is only ever grown towards it. One already larger is left alone: shrinking would truncate a filesystem its owner, not Talos, laid out. |
+| format | [string](#string) |  | Format is the on-disk format the volume is created with, as libvirt names it.<br><br>It applies at creation only. A volume already in the pool under another format is refused rather than rewritten. |
+
+
+
+
+
+
+<a name="talos.resource.definitions.storage.StoragePoolVolumeStatusSpec"></a>
+
+### StoragePoolVolumeStatusSpec
+StoragePoolVolumeStatusSpec is the spec for StoragePoolVolumeStatus.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| pool | [string](#string) |  | Pool is the name of the storage pool the volume lives in. |
+| name | [string](#string) |  | Name is the volume's name within that pool. |
+| path | [string](#string) |  | Path is the absolute host path of the volume's file.<br><br>Only meaningful when Ready. |
+| format | [string](#string) |  | Format is the volume's actual on-disk format, as libvirt reports it.<br><br>Only meaningful when Ready. |
+| capacity | [uint64](#uint64) |  | Capacity is the volume's actual logical size in bytes.<br><br>It may exceed the capacity asked for: a volume is never shrunk. |
+| pending_capacity | [uint64](#uint64) |  | PendingCapacity is a growth which has been asked for but not applied yet, in bytes.<br><br>Zero when there is none. A volume a guest has open cannot be grown underneath it, so the change waits for the guest to stop rather than being lost or forced. |
+| ready | [bool](#bool) |  | Ready is true once the volume exists and may be attached. |
+| error | [string](#string) |  | Error describes why the volume is not ready, or -- when it is -- which part of what was asked for was refused. |
 
 
 

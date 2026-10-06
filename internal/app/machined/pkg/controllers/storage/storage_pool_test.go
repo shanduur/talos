@@ -16,6 +16,7 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/cosi-project/runtime/pkg/resource"
 	"github.com/cosi-project/runtime/pkg/safe"
 	"github.com/cosi-project/runtime/pkg/state"
 	"github.com/google/uuid"
@@ -158,6 +159,20 @@ func (c *poolClient) Stop(p libvirtstorage.Pool) error {
 	defer c.mu.Unlock()
 
 	return c.stop(p.Name)
+}
+
+// StoragePoolController reconciles pool definitions and nothing within them. A volume call here
+// would mean it had grown a second responsibility, and with it a second writer of the same pool.
+func (*poolClient) Volume(libvirtstorage.Pool, string) (libvirtstorage.Volume, bool, error) {
+	panic("StoragePoolController must not touch volumes")
+}
+
+func (*poolClient) CreateVolume(libvirtstorage.Pool, string, string, uint64) (libvirtstorage.Volume, error) {
+	panic("StoragePoolController must not touch volumes")
+}
+
+func (*poolClient) ResizeVolume(libvirtstorage.Pool, string, uint64) error {
+	panic("StoragePoolController must not touch volumes")
 }
 
 func (c *poolClient) Close() {
@@ -627,4 +642,78 @@ func TestStoragePoolSuite(t *testing.T) {
 	suite.Run(t, &StoragePoolSuite{
 		Timeout: 10 * time.Second,
 	})
+}
+
+// consumerFinalizer stands in for whatever holds a pool's status while a guest has a volume of that
+// pool open -- StoragePoolVolumeController in practice.
+const consumerFinalizer = "storage.StoragePoolVolumeController"
+
+func (suite *StoragePoolSuite) holdPoolStatus() {
+	status, err := safe.StateGetByID[*storageres.StoragePoolStatus](suite.Ctx(), suite.State(), "images")
+	suite.Require().NoError(err)
+	suite.Require().NoError(suite.State().AddFinalizer(suite.Ctx(), status.Metadata(), consumerFinalizer))
+}
+
+func (suite *StoragePoolSuite) releasePoolStatus() {
+	status, err := safe.StateGetByID[*storageres.StoragePoolStatus](suite.Ctx(), suite.State(), "images")
+	suite.Require().NoError(err)
+	suite.Require().NoError(suite.State().RemoveFinalizer(suite.Ctx(), status.Metadata(), consumerFinalizer))
+}
+
+// Removing the pool's configuration while a consumer still holds its status must not undefine the
+// pool, and above all must not release the mount: a guest holds its disk open by descriptor, so
+// unmounting underneath it is what actually breaks.
+func (suite *StoragePoolSuite) TestHeldPoolSurvivesConfigurationRemoval() {
+	suite.activate()
+	suite.holdPoolStatus()
+
+	suite.Destroy(suite.spec)
+
+	// The status is withdrawn so the holder notices, but it cannot go away while held.
+	ctest.AssertResource(suite, "images", func(status *storageres.StoragePoolStatus, asrt *assert.Assertions) {
+		asrt.Equal(resource.PhaseTearingDown, status.Metadata().Phase())
+	})
+
+	suite.assertHold("u-vms", true)
+	suite.Require().NotContains(suite.client.completedEvents(), "remove:images",
+		"a pool a guest may be writing into must not be undefined")
+
+	suite.releasePoolStatus()
+
+	ctest.AssertNoResource[*storageres.StoragePoolStatus](suite, "images")
+	suite.waitForEvent("remove:images")
+	suite.assertHold("u-vms", false)
+}
+
+// The same guard on the shutdown path: with the daemon gone the pools cannot be enumerated, so the
+// status's own record of where the pool was put is what a mount is matched against.
+func (suite *StoragePoolSuite) TestHeldPoolKeepsItsMountWithoutTheDaemon() {
+	suite.activate()
+	suite.holdPoolStatus()
+
+	mount, err := safe.StateGetByID[*block.VolumeMountStatus](suite.Ctx(), suite.State(), "u-vms")
+	suite.Require().NoError(err)
+
+	_, err = suite.State().Teardown(suite.Ctx(), mount.Metadata(), state.WithTeardownOwner("block.MountStatusController"))
+	suite.Require().NoError(err)
+
+	// With the daemon still up, the pool is held, so the mount is kept. The hold staying put is a
+	// negative, and a negative asserted against a controller which has not run yet proves nothing,
+	// so a pass after the teardown is waited for first.
+	suite.assertError("is not mounted for writing")
+	suite.assertHold("u-vms", true)
+
+	// Now take the daemon away, which is the path that used to release unconditionally. Setting the
+	// error emits no resource event of its own, so an unrelated mount is what wakes the controller;
+	// without it this races the pass the teardown triggered. The error is distinct so that observing
+	// it proves the pass ran after the daemon went.
+	suite.client.setErrors(errors.New("daemon stopped after the mount began tearing down"), nil)
+	suite.volume("x-data")
+	suite.mount("x-data")
+
+	suite.assertError("daemon stopped after the mount began tearing down")
+	suite.assertHold("u-vms", true)
+
+	suite.releasePoolStatus()
+	suite.assertHold("u-vms", false)
 }

@@ -12,6 +12,7 @@ import (
 
 	"github.com/cosi-project/runtime/pkg/resource"
 	"github.com/cosi-project/runtime/pkg/safe"
+	"github.com/cosi-project/runtime/pkg/state"
 	"github.com/opencontainers/go-digest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -19,6 +20,7 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/ctest"
 	hypervisorctrl "github.com/siderolabs/talos/internal/app/machined/pkg/controllers/hypervisor"
 	"github.com/siderolabs/talos/pkg/machinery/resources/hypervisor"
+	"github.com/siderolabs/talos/pkg/machinery/resources/storage"
 )
 
 const (
@@ -237,10 +239,6 @@ func (suite *VirtualMachineDiskSuite) TestWaitsForLibraryToBecomeReady() {
 func (suite *VirtualMachineDiskSuite) TestReportsUnsupportedDisks() {
 	suite.createVM(
 		hypervisor.VirtualMachineDiskSpec{
-			Name: "data", Pool: "pool1", Size: 20 << 30, Format: "qcow2", Bus: "virtio", Type: "disk",
-			Provision: hypervisor.VirtualMachineDiskProvisionSpec{Blank: true},
-		},
-		hypervisor.VirtualMachineDiskSpec{
 			Name: "system", Pool: "pool1", Size: 20 << 30, Format: "qcow2", Bus: "virtio", Type: "disk",
 			Provision: hypervisor.VirtualMachineDiskProvisionSpec{
 				FromImage: &hypervisor.VirtualMachineDiskFromImageSpec{Library: libraryName, File: "talos.qcow2"},
@@ -248,10 +246,127 @@ func (suite *VirtualMachineDiskSuite) TestReportsUnsupportedDisks() {
 		},
 	)
 
-	for _, disk := range []string{"data", "system"} {
-		suite.assertDisk(disk, func(spec hypervisor.VirtualMachineDiskStatusSpec, asrt *assert.Assertions) {
-			asrt.False(spec.Ready)
-			asrt.Contains(spec.Error, "only cdrom disks are provisioned today")
+	suite.assertDisk("system", func(spec hypervisor.VirtualMachineDiskStatusSpec, asrt *assert.Assertions) {
+		asrt.False(spec.Ready)
+		asrt.Contains(spec.Error, "a disk is only provisioned from provision.blank today")
+	})
+}
+
+// blankDiskSpec is a disk provisioned as an empty volume in a pool.
+func blankDiskSpec(name, pool, format string, size uint64) hypervisor.VirtualMachineDiskSpec {
+	return hypervisor.VirtualMachineDiskSpec{
+		Name:      name,
+		Pool:      pool,
+		Size:      size,
+		Format:    format,
+		Bus:       "virtio",
+		Type:      "disk",
+		Provision: hypervisor.VirtualMachineDiskProvisionSpec{Blank: true},
+	}
+}
+
+// volume publishes the answer the storage slice would give for a blank disk's volume.
+func (suite *VirtualMachineDiskSuite) volume(pool, name, format string, capacity uint64, ready bool) {
+	suite.T().Helper()
+
+	status := storage.NewStoragePoolVolumeStatus(storage.NamespaceName, storage.StoragePoolVolumeID(pool, name))
+	*status.TypedSpec() = storage.StoragePoolVolumeStatusSpec{
+		Pool:     pool,
+		Name:     name,
+		Path:     "/var/mnt/u-vms/" + pool + "/" + name,
+		Format:   format,
+		Capacity: capacity,
+		Ready:    ready,
+	}
+
+	if !ready {
+		status.TypedSpec().Error = "storage pool is not ready"
+	}
+
+	suite.Create(status, state.WithCreateOwner("storage.StoragePoolVolumeController"))
+}
+
+// A blank disk asks the storage slice for its volume, naming it after the virtual machine and the
+// disk, and reports the volume once it is there.
+func (suite *VirtualMachineDiskSuite) TestBlankDiskAsksForItsVolume() {
+	suite.createVM(blankDiskSpec("data", "pool1", "qcow2", 20<<30))
+
+	id := storage.StoragePoolVolumeID("pool1", vmName+"__data.qcow2")
+
+	ctest.AssertResource(suite, id, func(res *storage.StoragePoolVolumeSpec, asrt *assert.Assertions) {
+		asrt.Equal("pool1", res.TypedSpec().Pool)
+		asrt.Equal(vmName+"__data.qcow2", res.TypedSpec().Name)
+		asrt.Equal(uint64(20<<30), res.TypedSpec().Capacity)
+		asrt.Equal("qcow2", res.TypedSpec().Format)
+	})
+
+	suite.assertDisk("data", func(spec hypervisor.VirtualMachineDiskStatusSpec, asrt *assert.Assertions) {
+		asrt.False(spec.Ready)
+		asrt.Contains(spec.Error, "waiting for volume")
+		// Stamped whether or not the disk resolved: this is what tells the pool it is in use.
+		asrt.Equal("pool1", spec.Pool)
+		asrt.Equal(vmName+"__data.qcow2", spec.Volume)
+		asrt.True(spec.Blank)
+	})
+
+	suite.volume("pool1", vmName+"__data.qcow2", "qcow2", 20<<30, true)
+
+	suite.assertDisk("data", func(spec hypervisor.VirtualMachineDiskStatusSpec, asrt *assert.Assertions) {
+		asrt.True(spec.Ready, spec.Error)
+		asrt.Equal("/var/mnt/u-vms/pool1/"+vmName+"__data.qcow2", spec.SourcePath)
+		asrt.Equal("qcow2", spec.Format)
+		asrt.False(spec.ReadOnly, "a blank disk is the guest's to write into")
+		asrt.Equal(uint64(20<<30), spec.Size)
+	})
+}
+
+func (suite *VirtualMachineDiskSuite) TestBlankDiskWaitsForAnUnreadyVolume() {
+	suite.createVM(blankDiskSpec("data", "pool1", "qcow2", 20<<30))
+	suite.volume("pool1", vmName+"__data.qcow2", "qcow2", 20<<30, false)
+
+	suite.assertDisk("data", func(spec hypervisor.VirtualMachineDiskStatusSpec, asrt *assert.Assertions) {
+		asrt.False(spec.Ready)
+		asrt.Contains(spec.Error, "storage pool is not ready")
+	})
+}
+
+// Two names joined by one hyphen are not one name: "a-b" plus "c" and "a" plus "b-c" would be the
+// same file, and two virtual machines would share one writable volume.
+func TestBlankVolumeNamesAreInjective(t *testing.T) {
+	t.Parallel()
+
+	first := hypervisorctrl.BlankVolumeNameForTest("vm-a", blankDiskSpec("b", "pool1", "qcow2", 1<<30))
+	second := hypervisorctrl.BlankVolumeNameForTest("vm", blankDiskSpec("a-b", "pool1", "qcow2", 1<<30))
+
+	assert.NotEqual(t, first, second)
+	assert.Equal(t, "vm-a__b.qcow2", first)
+	assert.Equal(t, "vm__a-b.qcow2", second)
+}
+
+// A blank disk whose shape no volume could be made from is permanently unsupported, not pending.
+func (suite *VirtualMachineDiskSuite) TestRejectsUnmakeableBlankDisks() {
+	for _, test := range []struct {
+		name   string
+		disk   hypervisor.VirtualMachineDiskSpec
+		reason string
+	}{
+		{"no size", blankDiskSpec("data", "pool1", "qcow2", 0), "requires a size"},
+		{"bad format", blankDiskSpec("data", "pool1", "vmdk", 1<<30), "unsupported format"},
+		// The enum's zero member parses by name, so a producer other than a machine configuration
+		// can carry it here. It names no format, and libvirt would be handed it verbatim.
+		{"zero format", blankDiskSpec("data", "pool1", "unknown", 1<<30), "unsupported format"},
+		{"no pool", blankDiskSpec("data", "", "qcow2", 1<<30), "storage pool name is required"},
+	} {
+		suite.Run(test.name, func() {
+			suite.createVM(test.disk)
+			suite.assertDisk("data", func(spec hypervisor.VirtualMachineDiskStatusSpec, asrt *assert.Assertions) {
+				asrt.False(spec.Ready)
+				asrt.Contains(spec.Error, test.reason)
+			})
+
+			// The spec ID is the virtual machine's name, so each case has to give it back.
+			suite.Destroy(hypervisor.NewVirtualMachineSpec(hypervisor.NamespaceName, vmName))
+			ctest.AssertNoResource[*hypervisor.VirtualMachineDiskStatus](suite, suite.diskStatusID("data"))
 		})
 	}
 }

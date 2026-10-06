@@ -26,9 +26,11 @@ import (
 	hypervisorctrl "github.com/siderolabs/talos/internal/app/machined/pkg/controllers/hypervisor"
 	"github.com/siderolabs/talos/pkg/machinery/config/container"
 	hypervisorcfg "github.com/siderolabs/talos/pkg/machinery/config/types/hypervisor"
+	"github.com/siderolabs/talos/pkg/machinery/config/types/meta"
 	"github.com/siderolabs/talos/pkg/machinery/hypervisorhelpers"
 	"github.com/siderolabs/talos/pkg/machinery/resources/config"
 	"github.com/siderolabs/talos/pkg/machinery/resources/hypervisor"
+	"github.com/siderolabs/talos/pkg/machinery/resources/storage"
 )
 
 // Both production controllers remain registered in these tests. No MachineConfig
@@ -767,4 +769,49 @@ func (s *VirtualMachineCloudInitDomainSuite) TestSeedIsAttachedOnlyWhenReady() {
 	ctest.AssertResource(s, "guest", func(domain *hypervisor.VirtualMachineDomainSpec, a *assert.Assertions) {
 		a.Equal("stopped", domain.TypedSpec().PowerState)
 	})
+}
+
+// blankVolumePath stands in for the pool directory, which lives under a temporary mount in tests.
+const blankVolumePath = "/storage-pool/booted__data.qcow2"
+
+func (suite *VirtualMachineSpecSuite) TestRendersBlankDisk() {
+	volume := storage.NewStoragePoolVolumeStatus(storage.NamespaceName, storage.StoragePoolVolumeID("pool1", "booted__data.qcow2"))
+	*volume.TypedSpec() = storage.StoragePoolVolumeStatusSpec{
+		Pool:     "pool1",
+		Name:     "booted__data.qcow2",
+		Path:     blankVolumePath,
+		Format:   "qcow2",
+		Capacity: 20 << 30,
+		Ready:    true,
+	}
+	suite.Create(volume, state.WithCreateOwner("storage.StoragePoolVolumeController"))
+
+	doc := newVirtualMachine("booted")
+	doc.DisksConfig = []hypervisorcfg.VirtualMachineDisk{
+		{
+			DiskName:      "data",
+			DiskPool:      "pool1",
+			DiskSize:      meta.MustByteSize("20GiB"),
+			DiskFormat:    hypervisorhelpers.VirtualMachineDiskFormatQCOW2,
+			DiskBootOrder: 1,
+			ProvisionConfig: hypervisorcfg.VirtualMachineDiskProvision{
+				BlankConfig: &hypervisorcfg.VirtualMachineDiskBlank{},
+			},
+		},
+	}
+
+	cfg, err := container.New(doc)
+	suite.Require().NoError(err)
+	suite.Create(config.NewMachineConfig(cfg))
+
+	want, err := os.ReadFile(filepath.Join("testdata", "virtualmachinespec", "blank-disk.xml"))
+	suite.Require().NoError(err)
+
+	ctest.AssertResource(suite, doc.Name(), func(res *hypervisor.VirtualMachineDomainSpec, asrt *assert.Assertions) {
+		asrt.Equal(string(want), res.TypedSpec().DomainXML+"\n")
+	})
+
+	res, err := safe.StateGetByID[*hypervisor.VirtualMachineDomainSpec](suite.Ctx(), suite.State(), doc.Name())
+	suite.Require().NoError(err)
+	suite.Require().NoError(validateDomainXML([]byte(res.TypedSpec().DomainXML)))
 }

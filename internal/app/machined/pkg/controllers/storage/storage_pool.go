@@ -22,6 +22,7 @@ import (
 	"github.com/siderolabs/gen/optional"
 	"go.uber.org/zap"
 
+	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/internal/cleanup"
 	machineruntime "github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
 	"github.com/siderolabs/talos/internal/pkg/libvirt"
 	libvirtstorage "github.com/siderolabs/talos/internal/pkg/libvirt/storage"
@@ -67,6 +68,13 @@ func (ctrl *StoragePoolController) Inputs() []controller.Input {
 			Namespace: block.NamespaceName,
 			Type:      block.VolumeMountStatusType,
 			Kind:      controller.InputStrong,
+		},
+		{
+			Namespace: storage.NamespaceName,
+			Type:      storage.StoragePoolStatusType,
+			// Own output: nothing else emits a resource event when a consumer gives its hold back,
+			// and until one does the pool and its mount stay pinned.
+			Kind: controller.InputDestroyReady,
 		},
 	}
 }
@@ -117,12 +125,15 @@ func (ctrl *StoragePoolController) Run(ctx context.Context, r controller.Runtime
 			return err
 		}
 
-		client, err := ctrl.Open(ctx)
-		if err != nil {
-			// The daemon stops before volumes are finalized on shutdown. Without it no
-			// pool is running, so a tearing-down mount can be released right away;
-			// otherwise volume teardown would block until its deadline.
-			if err = ctrl.releaseTearingDown(ctx, r, mounts); err != nil {
+		client, openErr := ctrl.Open(ctx)
+		if openErr != nil {
+			// The daemon stops before volumes are finalized on shutdown, so a tearing-down mount
+			// can be released right away rather than blocking until its deadline -- except under a
+			// held pool, where a guest holds its disk open whether or not the daemon is up.
+			//
+			// Kept apart from openErr: this reported the wrong reason when it shared one variable,
+			// and the daemon's own error is the only thing that says why it could not be reached.
+			if err := ctrl.releaseTearingDown(ctx, r, mounts); err != nil {
 				return err
 			}
 
@@ -132,11 +143,11 @@ func (ctrl *StoragePoolController) Run(ctx context.Context, r controller.Runtime
 			}
 
 			// Daemon recovery emits no resource event: report and retry via backoff.
-			if err = ctrl.reportUnavailable(ctx, r, specs, fmt.Errorf("waiting for storage daemon: %w", err)); err != nil {
+			if err := ctrl.reportUnavailable(ctx, r, specs, fmt.Errorf("waiting for storage daemon: %w", openErr)); err != nil {
 				return err
 			}
 
-			return fmt.Errorf("waiting for storage daemon")
+			return fmt.Errorf("waiting for storage daemon: %w", openErr)
 		}
 
 		err = ctrl.reconcile(ctx, r, client, machineUUID, specs, mounts)
@@ -168,8 +179,21 @@ func (ctrl *StoragePoolController) reconcile(ctx context.Context, r controller.R
 		return fmt.Errorf("error listing storage pools: %w", err)
 	}
 
+	// A pool whose status something still holds is one a guest may have a volume of open. Its
+	// definition and its mount both stay until the hold comes back, which the teardown below asks
+	// for.
+	held, err := heldPools(ctx, r)
+	if err != nil {
+		return err
+	}
+
 	for _, pool := range pools {
-		if _, wanted := desired[pool.Name]; wanted || pool.UUID != libvirtstorage.UUID(machineUUID, pool.Name) {
+		_, wanted := desired[pool.Name]
+		if wanted || pool.UUID != libvirtstorage.UUID(machineUUID, pool.Name) {
+			continue
+		}
+
+		if _, isHeld := held[pool.Name]; isHeld {
 			continue
 		}
 
@@ -192,6 +216,14 @@ func (ctrl *StoragePoolController) reconcile(ctx context.Context, r controller.R
 
 		// Match on the libvirt definition's target, not the spec: a retargeted pool
 		// still points at the old mount until Ensure redefines it.
+		if poolsHeldUnder(pools, held, machineUUID, mount.TypedSpec().Target) {
+			// Releasing now would unmount the filesystem a guest is writing into. Stopping the pool
+			// would not: a directory pool is metadata, and a domain opens its disks by absolute
+			// path. The mount is the part that cannot be taken away, so neither happens until the
+			// hold does come back.
+			continue
+		}
+
 		for _, pool := range pools {
 			if pool.UUID != libvirtstorage.UUID(machineUUID, pool.Name) || !pathUnder(pool.Target, mount.TypedSpec().Target) {
 				continue
@@ -207,8 +239,6 @@ func (ctrl *StoragePoolController) reconcile(ctx context.Context, r controller.R
 		}
 	}
 
-	r.StartTrackingOutputs()
-
 	var activateErrors error
 
 	for name, volumeID := range desired {
@@ -221,10 +251,17 @@ func (ctrl *StoragePoolController) reconcile(ctx context.Context, r controller.R
 		}
 
 		if err = safe.WriterModify(ctx, r, storage.NewStoragePoolStatus(storage.NamespaceName, name), func(status *storage.StoragePoolStatus) error {
-			*status.TypedSpec() = storage.StoragePoolStatusSpec{
-				VolumeID:   volumeID,
-				TargetPath: target,
-				Ready:      activateErr == nil,
+			status.TypedSpec().VolumeID = volumeID
+			status.TypedSpec().Ready = activateErr == nil
+			status.TypedSpec().Error = ""
+
+			// Kept rather than cleared when activation fails: TargetPath is the record of where the
+			// pool was last put, and releaseTearingDown matches a tearing-down mount against it to
+			// decide whether a guest may still be writing there. A failed activation clearing it --
+			// which a mount beginning to tear down causes -- hands that mount straight back.
+			// Nothing reads it while Ready is false.
+			if target != "" {
+				status.TypedSpec().TargetPath = target
 			}
 
 			if activateErr != nil {
@@ -237,11 +274,60 @@ func (ctrl *StoragePoolController) reconcile(ctx context.Context, r controller.R
 		}
 	}
 
-	if err = safe.CleanupOutputs[*storage.StoragePoolStatus](ctx, r); err != nil {
+	// Torn down rather than destroyed outright: a status a consumer holds cannot be destroyed, and
+	// attempting it would fail this reconciliation for as long as the hold lasts.
+	if err = cleanup.Outputs[*storage.StoragePoolStatus](ctx, r, "storage pool status", wantedPoolStatuses(desired)); err != nil {
 		return err
 	}
 
 	return activateErrors
+}
+
+// wantedPoolStatuses names the statuses the configuration still asks for.
+func wantedPoolStatuses(desired map[string]string) map[resource.ID]struct{} {
+	wanted := make(map[resource.ID]struct{}, len(desired))
+
+	for name := range desired {
+		wanted[name] = struct{}{}
+	}
+
+	return wanted
+}
+
+// heldPools names the pools whose status something still holds, by pool name.
+//
+// A hold means a consumer -- a volume of this pool, and through it a running guest -- is still
+// relying on the pool's directory being where it is.
+func heldPools(ctx context.Context, r controller.Reader) (map[string]struct{}, error) {
+	statuses, err := safe.ReaderListAll[*storage.StoragePoolStatus](ctx, r)
+	if err != nil {
+		return nil, fmt.Errorf("error listing storage pool statuses: %w", err)
+	}
+
+	held := map[string]struct{}{}
+
+	for status := range statuses.All() {
+		if !status.Metadata().Finalizers().Empty() {
+			held[status.Metadata().ID()] = struct{}{}
+		}
+	}
+
+	return held, nil
+}
+
+// poolsHeldUnder reports whether any held pool is defined under target.
+func poolsHeldUnder(pools []libvirtstorage.Pool, held map[string]struct{}, machineUUID uuid.UUID, target string) bool {
+	for _, pool := range pools {
+		if pool.UUID != libvirtstorage.UUID(machineUUID, pool.Name) || !pathUnder(pool.Target, target) {
+			continue
+		}
+
+		if _, isHeld := held[pool.Name]; isHeld {
+			return true
+		}
+	}
+
+	return false
 }
 
 // activate exposes the pool once its backing mount is held.
@@ -280,9 +366,33 @@ func (ctrl *StoragePoolController) activate(ctx context.Context, r controller.Ru
 }
 
 // releaseTearingDown drops our hold on mounts being torn down while the daemon is unavailable.
+//
+// A mount under a held pool is kept, though. "No daemon means no pool is running, so nothing is
+// writing" holds only for a pool whose contents are read through libvirt. A guest holds its disk
+// open by file descriptor, so the storage daemon dying says nothing about whether the filesystem is
+// busy -- and a daemon which merely crashed is not a shutdown.
 func (ctrl *StoragePoolController) releaseTearingDown(ctx context.Context, r controller.Runtime, mounts safe.List[*block.VolumeMountStatus]) error {
+	held, err := heldPools(ctx, r)
+	if err != nil {
+		return err
+	}
+
+	var targets map[string]struct{}
+
+	if len(held) > 0 {
+		// Without a daemon the pools cannot be enumerated, so the status's own record of where the
+		// pool was put is the only thing left to match a mount against.
+		if targets, err = heldPoolTargets(ctx, r, held); err != nil {
+			return err
+		}
+	}
+
 	for mount := range mounts.All() {
 		if mount.Metadata().Phase() != resource.PhaseTearingDown || !mount.Metadata().Finalizers().Has(ctrl.Name()) {
+			continue
+		}
+
+		if mountUnderAny(mount.TypedSpec().Target, targets) {
 			continue
 		}
 
@@ -294,20 +404,58 @@ func (ctrl *StoragePoolController) releaseTearingDown(ctx context.Context, r con
 	return nil
 }
 
+// heldPoolTargets collects the directories of the held pools, as their statuses last reported them.
+func heldPoolTargets(ctx context.Context, r controller.Reader, held map[string]struct{}) (map[string]struct{}, error) {
+	statuses, err := safe.ReaderListAll[*storage.StoragePoolStatus](ctx, r)
+	if err != nil {
+		return nil, fmt.Errorf("error listing storage pool statuses: %w", err)
+	}
+
+	targets := map[string]struct{}{}
+
+	for status := range statuses.All() {
+		if _, isHeld := held[status.Metadata().ID()]; !isHeld {
+			continue
+		}
+
+		if target := status.TypedSpec().TargetPath; target != "" {
+			targets[target] = struct{}{}
+		}
+	}
+
+	return targets, nil
+}
+
+// mountUnderAny reports whether any of the directories lies at or below the mount's target.
+func mountUnderAny(mountTarget string, targets map[string]struct{}) bool {
+	for target := range targets {
+		if pathUnder(target, mountTarget) {
+			return true
+		}
+	}
+
+	return false
+}
+
 // reportUnavailable writes the daemon error to every desired pool status.
 func (ctrl *StoragePoolController) reportUnavailable(ctx context.Context, r controller.Runtime, specs safe.List[*storage.StoragePoolSpec], reason error) error {
-	r.StartTrackingOutputs()
+	wanted := map[resource.ID]struct{}{}
 
 	for spec := range specs.All() {
 		if spec.Metadata().Phase() != resource.PhaseRunning {
 			continue
 		}
 
+		wanted[spec.Metadata().ID()] = struct{}{}
+
 		if err := safe.WriterModify(ctx, r, storage.NewStoragePoolStatus(storage.NamespaceName, spec.Metadata().ID()), func(status *storage.StoragePoolStatus) error {
-			*status.TypedSpec() = storage.StoragePoolStatusSpec{
-				VolumeID: spec.TypedSpec().VolumeID,
-				Error:    reason.Error(),
-			}
+			// Assigned field by field rather than overwritten: TargetPath is where the pool was put,
+			// and with the daemon unreachable it is the only record left of that. releaseTearingDown
+			// matches a mount against it to decide whether a guest may still be writing there, so
+			// clearing it hands the mount back on the very next pass.
+			status.TypedSpec().VolumeID = spec.TypedSpec().VolumeID
+			status.TypedSpec().Ready = false
+			status.TypedSpec().Error = reason.Error()
 
 			return nil
 		}); err != nil {
@@ -315,7 +463,7 @@ func (ctrl *StoragePoolController) reportUnavailable(ctx context.Context, r cont
 		}
 	}
 
-	return safe.CleanupOutputs[*storage.StoragePoolStatus](ctx, r)
+	return cleanup.Outputs[*storage.StoragePoolStatus](ctx, r, "storage pool status", wanted)
 }
 
 // mountWritable is the single predicate for a mount a pool may be defined on.

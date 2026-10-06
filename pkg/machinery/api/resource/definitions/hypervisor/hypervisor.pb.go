@@ -881,7 +881,23 @@ type VirtualMachineDiskStatusSpec struct {
 	// Error describes why the disk is not ready.
 	Error string `protobuf:"bytes,7,opt,name=error,proto3" json:"error,omitempty"`
 	// Image is the content library image this status resolved.
-	Image         *VirtualMachineDiskFromImageSpec `protobuf:"bytes,8,opt,name=image,proto3" json:"image,omitempty"`
+	Image *VirtualMachineDiskFromImageSpec `protobuf:"bytes,8,opt,name=image,proto3" json:"image,omitempty"`
+	// Pool is the storage pool the disk's volume lives in, for a disk provisioned into one.
+	//
+	// Stamped whether or not the disk resolved, so a failed one still names what it was for. That
+	// is what lets a pool a running guest is reading from be recognized as in use: a status which
+	// did not resolve has no SourcePath to go on.
+	Pool string `protobuf:"bytes,9,opt,name=pool,proto3" json:"pool,omitempty"`
+	// Volume is the name of that volume within the pool.
+	//
+	// Stamped whether or not the disk resolved, for the same reason as Pool.
+	Volume string `protobuf:"bytes,10,opt,name=volume,proto3" json:"volume,omitempty"`
+	// Size is the volume's actual logical capacity in bytes.
+	//
+	// It may exceed the size configured: a volume is never shrunk.
+	Size uint64 `protobuf:"varint,11,opt,name=size,proto3" json:"size,omitempty"`
+	// Blank is true when the disk was provisioned as an empty volume.
+	Blank         bool `protobuf:"varint,12,opt,name=blank,proto3" json:"blank,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -970,6 +986,34 @@ func (x *VirtualMachineDiskStatusSpec) GetImage() *VirtualMachineDiskFromImageSp
 		return x.Image
 	}
 	return nil
+}
+
+func (x *VirtualMachineDiskStatusSpec) GetPool() string {
+	if x != nil {
+		return x.Pool
+	}
+	return ""
+}
+
+func (x *VirtualMachineDiskStatusSpec) GetVolume() string {
+	if x != nil {
+		return x.Volume
+	}
+	return ""
+}
+
+func (x *VirtualMachineDiskStatusSpec) GetSize() uint64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *VirtualMachineDiskStatusSpec) GetBlank() bool {
+	if x != nil {
+		return x.Blank
+	}
+	return false
 }
 
 // VirtualMachineDomainSpecSpec is the spec for VirtualMachineDomainSpec.
@@ -1710,7 +1754,7 @@ const file_resource_definitions_hypervisor_hypervisor_proto_rawDesc = "" +
 	"\x04type\x18\x06 \x01(\tR\x04type\x12\x1d\n" +
 	"\n" +
 	"boot_order\x18\a \x01(\rR\tbootOrder\x12d\n" +
-	"\tprovision\x18\b \x01(\v2F.talos.resource.definitions.hypervisor.VirtualMachineDiskProvisionSpecR\tprovision\"\xbb\x02\n" +
+	"\tprovision\x18\b \x01(\v2F.talos.resource.definitions.hypervisor.VirtualMachineDiskProvisionSpecR\tprovision\"\x91\x03\n" +
 	"\x1cVirtualMachineDiskStatusSpec\x12'\n" +
 	"\x0fvirtual_machine\x18\x01 \x01(\tR\x0evirtualMachine\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
@@ -1720,7 +1764,12 @@ const file_resource_definitions_hypervisor_hypervisor_proto_rawDesc = "" +
 	"\tread_only\x18\x05 \x01(\bR\breadOnly\x12\x14\n" +
 	"\x05ready\x18\x06 \x01(\bR\x05ready\x12\x14\n" +
 	"\x05error\x18\a \x01(\tR\x05error\x12\\\n" +
-	"\x05image\x18\b \x01(\v2F.talos.resource.definitions.hypervisor.VirtualMachineDiskFromImageSpecR\x05image\"\x93\x01\n" +
+	"\x05image\x18\b \x01(\v2F.talos.resource.definitions.hypervisor.VirtualMachineDiskFromImageSpecR\x05image\x12\x12\n" +
+	"\x04pool\x18\t \x01(\tR\x04pool\x12\x16\n" +
+	"\x06volume\x18\n" +
+	" \x01(\tR\x06volume\x12\x12\n" +
+	"\x04size\x18\v \x01(\x04R\x04size\x12\x14\n" +
+	"\x05blank\x18\f \x01(\bR\x05blank\"\x93\x01\n" +
 	"\x1cVirtualMachineDomainSpecSpec\x12\x1d\n" +
 	"\n" +
 	"domain_xml\x18\x01 \x01(\tR\tdomainXml\x12\x1f\n" +
