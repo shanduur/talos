@@ -9,7 +9,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -25,12 +24,12 @@ import (
 	"github.com/siderolabs/go-procfs/procfs"
 
 	"github.com/siderolabs/talos/internal/app/internal/ctrhelper"
-	"github.com/siderolabs/talos/internal/app/lifecycle/internal/containerpid"
 	"github.com/siderolabs/talos/internal/app/lifecycle/internal/output"
 	"github.com/siderolabs/talos/internal/app/machined/pkg/system/pid"
 	containerdrunner "github.com/siderolabs/talos/internal/app/machined/pkg/system/runner/containerd"
 	"github.com/siderolabs/talos/internal/pkg/capability"
 	"github.com/siderolabs/talos/internal/pkg/cgroup"
+	"github.com/siderolabs/talos/internal/pkg/containerpid"
 	"github.com/siderolabs/talos/internal/pkg/environment"
 	"github.com/siderolabs/talos/internal/pkg/install"
 	"github.com/siderolabs/talos/internal/pkg/selinux"
@@ -185,17 +184,12 @@ func runInstallerContainer(ctx context.Context, pidRecorder pid.Recorder, rc *co
 		return fmt.Errorf("failed to start task: %w", err)
 	}
 
-	localPID, err := containerpid.NewResolver().Resolve(cgroupPath, task.Pid())
-
-	switch {
-	case errors.Is(err, containerpid.ErrGone):
-		// nothing left to record; the task exit status handled below carries the real failure
+	localPID, err := containerpid.ResolveTask(ctx, c8dClient, cgroupPath, task)
+	if err != nil {
+		// The installer runs all the same: either it is already gone, and the task exit status handled
+		// below carries the real failure, or its PID is not known here and cannot be recorded.
 		log.Printf("not recording installer PID: %v", err)
-	case err != nil:
-		stdoutW.Close() //nolint:errcheck
-
-		return fmt.Errorf("failed to resolve installer PID: %w", err)
-	default:
+	} else {
 		if err := pidRecorder("installer", localPID, false); err != nil {
 			stdoutW.Close() //nolint:errcheck
 
