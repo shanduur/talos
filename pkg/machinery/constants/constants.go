@@ -966,6 +966,24 @@ const (
 	// CgroupInstallerMillicores is the CPU weight for the installer container.
 	CgroupInstallerMillicores = 500
 
+	// CgroupQemuImg is the parent of the transient cgroup of each qemu-img run.
+	//
+	// qemu-img parses user-supplied images, so every run is bounded on its own
+	// instead of being charged to machined or the sandbox.
+	CgroupQemuImg = CgroupSystem + "/qemu-img"
+
+	// CgroupQemuImgMaxMemory is the hard memory limit of a single qemu-img run.
+	CgroupQemuImgMaxMemory = 512 * 1024 * 1024
+
+	// CgroupQemuImgMaxPids bounds qemu-img threads (its block thread pool defaults to 64 workers).
+	CgroupQemuImgMaxPids = 128
+
+	// CgroupQemuImgMillicores is the CPU limit of a single qemu-img run.
+	CgroupQemuImgMillicores = 2000
+
+	// SelinuxLabelQemuImg is the SELinux label of an isolated qemu-img run.
+	SelinuxLabelQemuImg = "system_u:system_r:qemu_img_t:s0"
+
 	// CgroupDashboard is the cgroup name for dashboard process.
 	CgroupDashboard = CgroupSystem + "/dashboard"
 

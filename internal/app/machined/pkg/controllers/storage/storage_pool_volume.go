@@ -89,7 +89,7 @@ type StoragePoolVolumeController struct {
 
 	// Open is injectable for deterministic reconciliation tests.
 	Open func(context.Context) (libvirtstorage.VolumeClient, error)
-	// ImageTool selects qemu-img for image import tests; nil uses the runtime extension.
+	// ImageTool runs qemu-img for image imports; nil runs the extension binary directly.
 	ImageTool *qemuimg.Client
 
 	bindings copyowner.Bindings

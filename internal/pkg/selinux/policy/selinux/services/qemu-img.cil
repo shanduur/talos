@@ -1,0 +1,17 @@
+; qemu_img_t: an isolated qemu-img run. sandboxd forks its "isolate" helper
+; (the machined binary, init_exec_t) into fresh namespaces; the helper builds a
+; read-only root, drops every capability and execs qemu-img in this domain.
+;
+; Permissive while the isolation (namespaces, empty bounding set, cgroup limits)
+; is the enforced boundary, like the sVirt domains in virt.cil.
+(type qemu_img_t)
+(call service_p (qemu_img_t init_exec_t))
+(typepermissive qemu_img_t)
+
+; machined opens the source image and the private destination stage and passes
+; them, with the run's cgroup directory, to sandboxd over SCM_RIGHTS. Receiving a
+; descriptor is checked against the file it refers to.
+(allow sandboxd_t ephemeral_t (file (read write getattr)))
+(allow sandboxd_t svirt_image_t (file (read write getattr)))
+(allow sandboxd_t virt_content_t (file (read getattr)))
+(allow sandboxd_t cgroup_t (dir (read getattr search)))

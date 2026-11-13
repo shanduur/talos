@@ -37,11 +37,37 @@ import (
 // asks (Wait), return a waitResponse carrying the exit status.
 
 // launchRequest is sent by machined for each service launch.
+//
+// SCM_RIGHTS carries [stdin, stdout, stderr, serviceSocket, extra files..., cgroup].
+// The cgroup directory is present only when Cgroup is set.
 type launchRequest struct {
 	Args                []string
 	Env                 []string
 	DroppedCapabilities []string
 	SelinuxLabel        string
+	ExtraFiles          int
+	Isolated            bool
+	Cgroup              bool
+	ReadOnlyPaths       []string
+}
+
+// maxLaunchFiles bounds the descriptors of one launch request.
+const maxLaunchFiles = 16
+
+// launchFiles are the descriptors received with one launch request.
+type launchFiles struct {
+	stdin, stdout, stderr, service *os.File
+	extra                          []*os.File
+	cgroup                         *os.File
+}
+
+func (f *launchFiles) all() []*os.File {
+	files := append([]*os.File{f.stdin, f.stdout, f.stderr, f.service}, f.extra...)
+	if f.cgroup != nil {
+		files = append(files, f.cgroup)
+	}
+
+	return files
 }
 
 // launchResponse is returned once the service is started; the service pidfd is
@@ -103,6 +129,12 @@ func ignoreTerminationSignals() func() {
 //  3. serves launch requests from machined, forking each service directly into
 //     this namespace (no setns).
 func Main() {
+	if len(os.Args) > 1 && os.Args[1] == isolateCommand {
+		isolateMain(os.Args[2:])
+
+		return
+	}
+
 	// Protect PID 1 of the sandbox namespace from the OOM killer before anything
 	// else: its death collapses the entire namespace.
 	setSelfOOMScoreAdj(oomScoreAdjInit)
@@ -170,31 +202,30 @@ func Main() {
 	}
 }
 
-// recvLaunch reads one launch request datagram plus its SCM_RIGHTS fds
-// [stdin, stdout, stderr, serviceSocket] from the control socket.
+// recvLaunch reads one launch request datagram plus its SCM_RIGHTS fds from the control socket.
 //
 //nolint:gocyclo
-func recvLaunch(control *net.UnixConn) (launchRequest, [4]*os.File, error) {
+func recvLaunch(control *net.UnixConn) (launchRequest, launchFiles, error) {
 	var (
-		req launchRequest
-		fds [4]*os.File
+		req   launchRequest
+		files launchFiles
 	)
 
-	buf := make([]byte, 64*1024)                // request holds args+env; keep the SEQPACKET datagram whole
-	oob := make([]byte, syscall.CmsgSpace(4*4)) // room for 4 fds
+	buf := make([]byte, 64*1024) // request holds args+env; keep the SEQPACKET datagram whole
+	oob := make([]byte, syscall.CmsgSpace(4*maxLaunchFiles))
 
 	n, oobn, _, _, err := control.ReadMsgUnix(buf, oob)
 	if err != nil {
-		return req, fds, err
+		return req, files, err
 	}
 
 	if n == 0 {
-		return req, fds, io.EOF
+		return req, files, io.EOF
 	}
 
 	scms, err := syscall.ParseSocketControlMessage(oob[:oobn])
 	if err != nil {
-		return req, fds, fmt.Errorf("parsing control message: %w", err)
+		return req, files, fmt.Errorf("parsing control message: %w", err)
 	}
 
 	var rawFds []int
@@ -202,52 +233,66 @@ func recvLaunch(control *net.UnixConn) (launchRequest, [4]*os.File, error) {
 	for i := range scms {
 		fdSet, perr := syscall.ParseUnixRights(&scms[i])
 		if perr != nil {
-			return req, fds, fmt.Errorf("parsing SCM_RIGHTS: %w", perr)
+			return req, files, fmt.Errorf("parsing SCM_RIGHTS: %w", perr)
 		}
 
 		rawFds = append(rawFds, fdSet...)
 	}
 
-	if len(rawFds) != len(fds) {
+	closeRaw := func() {
 		for _, fd := range rawFds {
 			syscall.Close(fd) //nolint:errcheck
 		}
-
-		return req, fds, fmt.Errorf("expected %d fds, got %d", len(fds), len(rawFds))
-	}
-
-	names := [4]string{"stdin", "stdout", "stderr", "service-socket"}
-
-	for i, fd := range rawFds {
-		// Received fds are not close-on-exec; mark them so nothing but the explicit
-		// stdio (re-established via pa.Files) leaks into the forked service.
-		syscall.CloseOnExec(fd)
-		fds[i] = os.NewFile(uintptr(fd), names[i])
 	}
 
 	if err := gob.NewDecoder(bytes.NewReader(buf[:n])).Decode(&req); err != nil {
-		for i := range fds {
-			fds[i].Close() //nolint:errcheck
-		}
+		closeRaw()
 
-		return req, fds, fmt.Errorf("decoding launch request: %w", err)
+		return req, files, fmt.Errorf("decoding launch request: %w", err)
 	}
 
-	return req, fds, nil
+	expected := 4 + req.ExtraFiles
+	if req.Cgroup {
+		expected++
+	}
+
+	if req.ExtraFiles < 0 || len(rawFds) != expected {
+		closeRaw()
+
+		return req, files, fmt.Errorf("expected %d fds, got %d", expected, len(rawFds))
+	}
+
+	received := make([]*os.File, len(rawFds))
+
+	for i, fd := range rawFds {
+		// Received fds are not close-on-exec; mark them so nothing but the explicit
+		// files (re-established via pa.Files) leaks into the forked service.
+		syscall.CloseOnExec(fd)
+		received[i] = os.NewFile(uintptr(fd), fmt.Sprintf("launch-fd-%d", i))
+	}
+
+	files.stdin, files.stdout, files.stderr, files.service = received[0], received[1], received[2], received[3]
+	files.extra = received[4 : 4+req.ExtraFiles]
+
+	if req.Cgroup {
+		files.cgroup = received[len(received)-1]
+	}
+
+	return req, files, nil
 }
 
 // handleLaunch forks one service into the sandbox namespace and relays its
 // pidfd and exit status back to machined over the per-service socket.
 //
 //nolint:gocyclo
-func handleLaunch(req launchRequest, fds [4]*os.File) {
-	stdin, stdout, stderr, svcFile := fds[0], fds[1], fds[2], fds[3]
+func handleLaunch(req launchRequest, files launchFiles) {
+	for _, file := range files.all() {
+		if file != files.service {
+			defer file.Close() //nolint:errcheck
+		}
+	}
 
-	defer stdin.Close()  //nolint:errcheck
-	defer stdout.Close() //nolint:errcheck
-	defer stderr.Close() //nolint:errcheck
-
-	svcConn, err := unixConn(svcFile)
+	svcConn, err := unixConn(files.service)
 	if err != nil {
 		logf("wrap service socket: %v", err)
 
@@ -256,14 +301,25 @@ func handleLaunch(req launchRequest, fds [4]*os.File) {
 
 	defer svcConn.Close() //nolint:errcheck
 
-	launcher := cap.NewLauncher(req.Args[0], req.Args, req.Env)
-	launcher.Callback(beforeServiceExec)
+	if len(req.Args) == 0 {
+		sendLaunchErr(svcConn, "launch request has no arguments")
 
-	if err := dropCaps(req.DroppedCapabilities, launcher); err != nil {
+		return
+	}
+
+	launcher := cap.NewLauncher(req.Args[0], req.Args, req.Env)
+
+	if req.Isolated {
+		// The helper needs mount and capability privileges to build the
+		// confinement; it drops every capability itself before exec.
+		launcher = cap.NewLauncher("/proc/self/exe", isolateArgs(req), req.Env)
+	} else if err := dropCaps(req.DroppedCapabilities, launcher); err != nil {
 		sendLaunchErr(svcConn, fmt.Sprintf("drop capabilities for %s: %v", req.Args[0], err))
 
 		return
 	}
+
+	launcher.Callback(beforeServiceExec)
 
 	notifyCh := make(chan reaper.ProcessInfo, 8)
 	reaper.Notify(notifyCh)
@@ -272,9 +328,9 @@ func handleLaunch(req launchRequest, fds [4]*os.File) {
 
 	pid, startErr := launcher.Launch(&launchContext{
 		selinuxLabel: req.SelinuxLabel,
-		stdin:        stdin,
-		stdout:       stdout,
-		stderr:       stderr,
+		files:        append([]*os.File{files.stdin, files.stdout, files.stderr}, files.extra...),
+		isolated:     req.Isolated,
+		cgroup:       files.cgroup,
 	})
 	if startErr != nil {
 		sendLaunchErr(svcConn, fmt.Sprintf("exec %s: %v", req.Args[0], startErr))
@@ -338,10 +394,13 @@ func handleLaunch(req launchRequest, fds [4]*os.File) {
 	resp := waitResponse{}
 
 	if waitErr != nil {
-		// The caller only uses the error; a non-zero/failed exit is reported via
-		// ExitErr (ProcessWaitWrapper does not surface the numeric code).
+		// A signaled process has no exit code; it is reported as -1.
 		resp.ExitCode = -1
 		resp.ExitErr = waitErr.Error()
+
+		if exitErr, ok := errors.AsType[*reaper.ExitError](waitErr); ok {
+			resp.ExitCode = exitErr.ExitCode
+		}
 
 		logf("%s [pid %d] exited: %v", req.Args[0], pid, waitErr)
 	} else {
@@ -359,9 +418,10 @@ func handleLaunch(req launchRequest, fds [4]*os.File) {
 // launchContext is passed to the libcap launch callback.
 type launchContext struct {
 	selinuxLabel string
-	stdin        *os.File
-	stdout       *os.File
-	stderr       *os.File
+	// files are the child's descriptors 0, 1, 2, ...
+	files    []*os.File
+	isolated bool
+	cgroup   *os.File
 }
 
 // beforeServiceExec runs on libcap's launch thread just before it forks+execs
@@ -373,7 +433,14 @@ func beforeServiceExec(pa *syscall.ProcAttr, data any) error {
 		return fmt.Errorf("failed to get sandbox launch context")
 	}
 
-	pa.Files = []uintptr{cfg.stdin.Fd(), cfg.stdout.Fd(), cfg.stderr.Fd()}
+	pa.Files = make([]uintptr, len(cfg.files))
+	for i, file := range cfg.files {
+		pa.Files[i] = file.Fd()
+	}
+
+	if cfg.isolated {
+		isolateProcAttr(pa, cfg.cgroup)
+	}
 
 	if selinux.IsEnabled() {
 		label := cfg.selinuxLabel
@@ -396,8 +463,8 @@ func beforeServiceExec(pa *syscall.ProcAttr, data any) error {
 		}
 	}
 
-	// Mark every fd >= 3 close-on-exec so the service inherits only stdin/stdout/
-	// stderr (re-established via pa.Files above); the control socket, this launch's
+	// Mark every fd >= 3 close-on-exec so the service inherits only the files
+	// re-established via pa.Files above; the control socket, this launch's
 	// service socket, other in-flight launches' fds and Go-runtime fds must not
 	// leak into the service.
 	if err := unix.CloseRange(3, math.MaxUint32, unix.CLOSE_RANGE_CLOEXEC); err != nil {
@@ -405,6 +472,21 @@ func beforeServiceExec(pa *syscall.ProcAttr, data any) error {
 	}
 
 	return nil
+}
+
+// isolateProcAttr clones the helper into fresh namespaces and, when given,
+// directly into its cgroup, so nothing it allocates is charged elsewhere.
+func isolateProcAttr(pa *syscall.ProcAttr, cgroup *os.File) {
+	if pa.Sys == nil {
+		pa.Sys = &syscall.SysProcAttr{}
+	}
+
+	pa.Sys.Cloneflags = isolatedCloneFlags
+
+	if cgroup != nil {
+		pa.Sys.UseCgroupFD = true
+		pa.Sys.CgroupFD = int(cgroup.Fd())
+	}
 }
 
 func dropCaps(droppedCapabilities []string, launcher *cap.Launcher) error {

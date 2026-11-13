@@ -147,7 +147,7 @@ func (s *sandboxRunner) Run(ctx context.Context, eventSink events.Recorder, onSt
 	// pending SELinux exec label on the fork thread (init_t -> sandboxd_t) without
 	// contaminating machined's other threads — the mechanism the process runner
 	// uses for dashboard/apid. fd 3 = ready pipe, fd 4 = control socket.
-	launcher := cap.NewLauncher("/sbin/sandboxd", []string{"/sbin/sandboxd"}, os.Environ())
+	launcher := cap.NewLauncher(sandboxdPath, []string{sandboxdPath}, os.Environ())
 	launcher.Callback(beforeSandboxdExec)
 
 	notifyCh := make(chan reaper.ProcessInfo, 8)
@@ -203,7 +203,7 @@ func (s *sandboxRunner) Run(ctx context.Context, eventSink events.Recorder, onSt
 		return status, fmt.Errorf("wrapping control socket: %w", err)
 	}
 
-	client := &Client{control: controlConn}
+	client := NewClient(controlConn)
 
 	// Publish the launcher; clear it again whenever this namespace goes away so
 	// in-flight launches fail fast instead of entering a dead namespace.

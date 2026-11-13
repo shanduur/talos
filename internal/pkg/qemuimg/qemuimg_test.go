@@ -9,6 +9,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -568,4 +569,59 @@ func TestParserPinsRenamedSource(t *testing.T) {
 	replacement, err := os.ReadFile(path)
 	require.NoError(t, err)
 	require.Equal(t, "QFI", string(replacement))
+}
+
+func TestRunnerReceivesPinnedFiles(t *testing.T) {
+	dir := t.TempDir()
+
+	source, err := os.Create(filepath.Join(dir, "source"))
+	require.NoError(t, err)
+
+	defer source.Close() //nolint:errcheck
+
+	require.NoError(t, source.Truncate(512))
+
+	destination, err := os.Create(filepath.Join(dir, "destination"))
+	require.NoError(t, err)
+
+	defer destination.Close() //nolint:errcheck
+
+	var calls [][]string
+
+	runner := func(_ context.Context, binary string, args []string, files []*os.File, stdout, stderr io.Writer) (int, error) {
+		require.Equal(t, "/qemu-img", binary)
+
+		calls = append(calls, args)
+
+		switch args[0] {
+		case "info":
+			require.Equal(t, []*os.File{source}, files)
+			require.Contains(t, args, "/proc/self/fd/3")
+
+			_, err := io.WriteString(stdout, `{"format":"raw","virtual-size":512}`)
+
+			return 0, err
+		case "convert":
+			require.Equal(t, []*os.File{source, destination}, files)
+			require.Equal(t, []string{"/proc/self/fd/3", "/proc/self/fd/4"}, args[len(args)-2:])
+
+			_, err := io.WriteString(stderr, "conversion failed")
+
+			return 1, err
+		}
+
+		return 0, nil
+	}
+
+	err = qemuimg.New("/qemu-img").WithRunner(runner).Convert(t.Context(), qemuimg.ConvertSpec{
+		Source: source, Destination: destination, Format: "raw", Capacity: 512,
+	})
+
+	var execErr *qemuimg.ExecError
+
+	require.ErrorAs(t, err, &execErr)
+	require.Equal(t, 1, execErr.ExitCode)
+	require.ErrorContains(t, err, "conversion failed")
+	require.False(t, qemuimg.IsTerminal(err))
+	require.Len(t, calls, 2)
 }

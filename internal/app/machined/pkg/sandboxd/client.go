@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -18,7 +19,7 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
+	talosruntime "github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
 )
 
 // Client is machined's launcher for the shared sandbox PID+mount namespace. It
@@ -31,6 +32,11 @@ type Client struct {
 	mu      sync.Mutex    // serializes launch requests on the shared control socket
 }
 
+// NewClient returns a launcher speaking to a sandboxd serving control.
+func NewClient(control *net.UnixConn) *Client {
+	return &Client{control: control}
+}
+
 // close releases the control socket.
 func (c *Client) close() {
 	c.control.Close() //nolint:errcheck
@@ -39,7 +45,7 @@ func (c *Client) close() {
 // Launch asks sandboxd to fork a service inside the sandbox namespace.
 // It sends the request plus [stdin, stdout, stderr, per-service socket] over the
 // control socket, then receives the service's pidfd over the per-service socket.
-func (c *Client) Launch(cfg runtime.LaunchConfig) (runtime.SandboxHandle, error) { //nolint:gocyclo
+func (c *Client) Launch(cfg talosruntime.LaunchConfig) (talosruntime.SandboxHandle, error) { //nolint:gocyclo
 	stdin := cfg.Stdin
 
 	var devNull *os.File
@@ -71,22 +77,50 @@ func (c *Client) Launch(cfg runtime.LaunchConfig) (runtime.SandboxHandle, error)
 
 	var reqBuf bytes.Buffer
 
-	if err := gob.NewEncoder(&reqBuf).Encode(launchRequest{
+	req := launchRequest{
 		Args:                cfg.Args,
 		Env:                 cfg.Env,
 		DroppedCapabilities: cfg.DroppedCapabilities,
 		SelinuxLabel:        cfg.SelinuxLabel,
-	}); err != nil {
+		ExtraFiles:          len(cfg.ExtraFiles),
+	}
+
+	fds := []int{int(stdin.Fd()), int(cfg.Stdout.Fd()), int(cfg.Stderr.Fd()), int(svcInit.Fd())}
+	for _, file := range cfg.ExtraFiles {
+		fds = append(fds, int(file.Fd()))
+	}
+
+	if cfg.Isolation != nil {
+		req.Isolated = true
+		req.ReadOnlyPaths = cfg.Isolation.ReadOnlyPaths
+
+		if cfg.Isolation.Cgroup != nil {
+			req.Cgroup = true
+
+			fds = append(fds, int(cfg.Isolation.Cgroup.Fd()))
+		}
+	}
+
+	if len(fds) > maxLaunchFiles {
+		svcMachined.Close() //nolint:errcheck
+
+		return nil, fmt.Errorf("launch passes %d files, at most %d are supported", len(fds), maxLaunchFiles)
+	}
+
+	if err := gob.NewEncoder(&reqBuf).Encode(req); err != nil {
 		svcMachined.Close() //nolint:errcheck
 
 		return nil, fmt.Errorf("encoding launch request: %w", err)
 	}
 
-	rights := syscall.UnixRights(int(stdin.Fd()), int(cfg.Stdout.Fd()), int(cfg.Stderr.Fd()), int(svcInit.Fd()))
+	rights := syscall.UnixRights(fds...)
 
 	c.mu.Lock()
 	_, _, err = c.control.WriteMsgUnix(reqBuf.Bytes(), rights, nil)
 	c.mu.Unlock()
+
+	runtime.KeepAlive(cfg.ExtraFiles)
+	runtime.KeepAlive(cfg.Isolation)
 
 	if err != nil {
 		svcMachined.Close() //nolint:errcheck

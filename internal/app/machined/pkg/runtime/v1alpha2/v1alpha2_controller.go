@@ -43,12 +43,14 @@ import (
 	"github.com/siderolabs/talos/internal/app/machined/pkg/controllers/v1alpha1"
 	"github.com/siderolabs/talos/internal/app/machined/pkg/runtime"
 	runtimelogging "github.com/siderolabs/talos/internal/app/machined/pkg/runtime/logging"
+	"github.com/siderolabs/talos/internal/app/machined/pkg/sandboxd"
 	"github.com/siderolabs/talos/internal/app/machined/pkg/system"
 	"github.com/siderolabs/talos/internal/pkg/ctrltrace"
 	"github.com/siderolabs/talos/internal/pkg/libvirt"
 	"github.com/siderolabs/talos/internal/pkg/lvm"
 	"github.com/siderolabs/talos/internal/pkg/md"
 	mountv3 "github.com/siderolabs/talos/internal/pkg/mount/v3"
+	"github.com/siderolabs/talos/internal/pkg/qemuimg"
 	"github.com/siderolabs/talos/internal/pkg/selinux"
 	"github.com/siderolabs/talos/pkg/logging"
 	talosconfig "github.com/siderolabs/talos/pkg/machinery/config/config"
@@ -212,6 +214,7 @@ func (ctrl *Controller) Run(ctx context.Context, drainer *runtime.Drainer) error
 		},
 		&storage.StoragePoolVolumeController{
 			V1Alpha1Mode: ctrl.v1alpha1Runtime.State().Platform().Mode(),
+			ImageTool:    qemuimg.New("").WithRunner(sandboxd.QemuImgRunner(ctrl.v1alpha1Runtime)),
 		},
 		&storage.LVMLogicalVolumeSpecController{},
 		&storage.LVMPhysicalVolumeSpecController{},

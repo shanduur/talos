@@ -38,6 +38,22 @@ type LaunchConfig struct {
 	Stdin  *os.File
 	Stdout *os.File
 	Stderr *os.File
+	// ExtraFiles become file descriptors 3, 4, ... of the launched process.
+	ExtraFiles []*os.File
+	// Isolation, when set, confines the process in its own namespaces instead of
+	// sharing the sandbox namespace with the container plane.
+	Isolation *Isolation
+}
+
+// Isolation confines a single launch: fresh PID, mount, network, IPC, UTS and
+// cgroup namespaces, a root containing only ReadOnlyPaths plus /proc and
+// /dev/null, no capabilities and no_new_privs.
+type Isolation struct {
+	// Cgroup is an open cgroup v2 directory the process is cloned into.
+	Cgroup *os.File
+	// ReadOnlyPaths are bind-mounted read-only at the same location. Paths
+	// which do not exist are skipped.
+	ReadOnlyPaths []string
 }
 
 // SandboxLauncher launches service processes inside the sandbox PID+mount

@@ -20,8 +20,6 @@ import (
 	"runtime"
 	"strconv"
 	"syscall"
-
-	"github.com/siderolabs/go-cmd/pkg/cmd"
 )
 
 // Binary is supplied by the qemu system extension in machined's mount namespace.
@@ -32,18 +30,48 @@ const (
 	qcow2Format = "qcow2"
 )
 
+// Runner executes binary with args to completion. files become descriptors
+// 3, 4, ... of the child. A non-zero exit is reported through code with a nil
+// error; err is reserved for failures to run or wait for the child.
+type Runner func(ctx context.Context, binary string, args []string, files []*os.File, stdout, stderr io.Writer) (code int, err error)
+
 // Client executes qemu-img. Files stay open until the child has exited.
 type Client struct {
 	binary string
+	runner Runner
 }
 
 // New selects the executable, normally Binary. An empty path selects Binary.
+// The child runs as a direct subprocess until WithRunner selects another runner.
 func New(path string) *Client {
 	if path == "" {
 		path = Binary
 	}
 
-	return &Client{binary: path}
+	return &Client{binary: path, runner: runDirect}
+}
+
+// WithRunner returns a client running qemu-img through runner, e.g. in a sandbox.
+func (c *Client) WithRunner(runner Runner) *Client {
+	return &Client{binary: c.binary, runner: runner}
+}
+
+func runDirect(ctx context.Context, binary string, args []string, files []*os.File, stdout, stderr io.Writer) (int, error) {
+	cmd := exec.CommandContext(ctx, binary, args...)
+	cmd.ExtraFiles = files
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+
+	err := cmd.Run()
+	if exitErr, ok := errors.AsType[*exec.ExitError](err); ok && exitErr.Exited() {
+		return exitErr.ExitCode(), nil
+	}
+
+	if err != nil {
+		return -1, toolStartError(err)
+	}
+
+	return 0, nil
 }
 
 // Info describes the guest-visible image and its external dependencies.
@@ -159,11 +187,10 @@ func inspectQCOW2(header []byte) (string, error) {
 	return qcow2Format, nil
 }
 
-// filePath pins the opened inode across pathname and pool-directory replacement.
-// go-cmd has no ExtraFiles option; the child opens the parent's proc descriptor.
-// Callers keep the file alive until the command has exited.
-func filePath(file *os.File) string {
-	return fmt.Sprintf("/proc/%d/fd/%d", os.Getpid(), file.Fd())
+// fileArg names the i-th passed file in the child. Passing descriptors pins the
+// opened inodes across pathname and pool-directory replacement.
+func fileArg(i int) string {
+	return fmt.Sprintf("/proc/self/fd/%d", 3+i)
 }
 
 // Info inspects a self-contained raw or qcow2 image using explicit input format.
@@ -191,9 +218,7 @@ func (c *Client) InfoFormat(ctx context.Context, file *os.File, format string) (
 		return Info{}, invalid("image is not a regular file")
 	}
 
-	data, err := c.run(ctx, "info", "--output=json", "-f", format, filePath(file))
-	runtime.KeepAlive(file)
-
+	data, err := c.run(ctx, []*os.File{file}, "info", "--output=json", "-f", format, fileArg(0))
 	if err != nil {
 		return Info{}, err
 	}
@@ -241,15 +266,12 @@ func (c *Client) Convert(ctx context.Context, spec ConvertSpec) error {
 		return err
 	}
 
-	args := []string{"convert", "-f", info.Format, "-O", spec.Format, filePath(spec.Source), filePath(spec.Destination)}
+	args := []string{"convert", "-f", info.Format, "-O", spec.Format, fileArg(0), fileArg(1)}
 	if spec.Progress != nil {
 		args = append([]string{"convert", "-p"}, args[1:]...)
 	}
 
-	_, err = c.runProgress(ctx, spec.Progress, args...)
-	runtime.KeepAlive(spec.Source)
-	runtime.KeepAlive(spec.Destination)
-
+	_, err = c.runProgress(ctx, spec.Progress, []*os.File{spec.Source, spec.Destination}, args...)
 	if err != nil {
 		return err
 	}
@@ -306,9 +328,7 @@ func (c *Client) resize(ctx context.Context, file *os.File, format string, capac
 		return info, nil
 	}
 
-	_, err = c.run(ctx, "resize", "-f", format, filePath(file), fmt.Sprint(capacity))
-	runtime.KeepAlive(file)
-
+	_, err = c.run(ctx, []*os.File{file}, "resize", "-f", format, fileArg(0), fmt.Sprint(capacity))
 	if err != nil {
 		return Info{}, err
 	}
@@ -370,11 +390,11 @@ func (output *progressOutput) Write(data []byte) (int, error) {
 	return n, err
 }
 
-func (c *Client) run(ctx context.Context, args ...string) ([]byte, error) {
-	return c.runProgress(ctx, nil, args...)
+func (c *Client) run(ctx context.Context, files []*os.File, args ...string) ([]byte, error) {
+	return c.runProgress(ctx, nil, files, args...)
 }
 
-func (c *Client) runProgress(ctx context.Context, progress func(float64), args ...string) ([]byte, error) {
+func (c *Client) runProgress(ctx context.Context, progress func(float64), files []*os.File, args ...string) ([]byte, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -383,25 +403,19 @@ func (c *Client) runProgress(ctx context.Context, progress func(float64), args .
 
 	var stderr boundedOutput
 
-	process, err := cmd.StartWithOptions(ctx, c.binary, args, cmd.WithStdout(&stdout), cmd.WithStderr(&stderr))
-	if err != nil {
-		return nil, errors.Join(ctx.Err(), toolStartError(err))
-	}
+	code, err := c.runner(ctx, c.binary, args, files, &stdout, &stderr)
+	runtime.KeepAlive(files)
 
-	err = process.Wait()
 	if ctx.Err() != nil {
 		return nil, errors.Join(ctx.Err(), err)
 	}
 
 	if err != nil {
-		if exit, ok := errors.AsType[*cmd.ExitError](err); ok {
-			return nil, &ExecError{
-				ExitCode: exit.ExitCode,
-				Stderr:   stderr.data,
-			}
-		}
-
 		return nil, err
+	}
+
+	if code != 0 {
+		return nil, &ExecError{ExitCode: code, Stderr: stderr.data}
 	}
 
 	if stdout.overflow && progress == nil {
@@ -490,7 +504,7 @@ func (c *Client) Preflight(ctx context.Context, source *os.File, format string, 
 		return invalid("requested capacity %d is below source virtual size %d (source must be nonempty)", capacity, size)
 	}
 	// Check executable/interpreter availability before a potentially enormous hash read.
-	_, err = c.run(ctx, "--version")
+	_, err = c.run(ctx, nil, "--version")
 
 	return err
 }
