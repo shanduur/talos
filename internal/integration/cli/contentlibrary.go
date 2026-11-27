@@ -8,6 +8,7 @@ package cli
 
 import (
 	"context"
+	"net/http"
 	"regexp"
 	"strings"
 
@@ -200,6 +201,79 @@ func (suite *ContentLibrarySuite) TestUploadRejectsDigest() {
 		base.WithStdin(strings.NewReader("talos")),
 		base.ShouldFail(),
 		base.StderrShouldMatch(regexp.MustCompile(`is not supported`)),
+		base.StdoutEmpty(),
+	)
+}
+
+// TestDownloadRequiresSingleNode asserts that a download refuses to fan out, like an upload.
+func (suite *ContentLibrarySuite) TestDownloadRequiresSingleNode() {
+	nodes := suite.DiscoverNodeInternalIPs(context.TODO())
+
+	if len(nodes) < 2 {
+		suite.T().Skip("skipping test, the cluster has a single node")
+	}
+
+	suite.RunCLI(
+		[]string{"hypervisor", "content-library", "download", "--nodes", nodes[0], "--nodes", nodes[1], "not-a-library", "http://example.com/image.raw"},
+		base.ShouldFail(),
+		base.StderrShouldMatch(regexp.MustCompile(`requires exactly one node`)),
+		base.StdoutEmpty(),
+	)
+}
+
+// TestDownloadRejectsURL covers a URL the node won't fetch. It is refused before the library is
+// resolved, so it needs no library.
+func (suite *ContentLibrarySuite) TestDownloadRejectsURL() {
+	node := suite.RandomDiscoveredNodeInternalIP()
+
+	suite.RunCLI(
+		[]string{"hypervisor", "content-library", "download", "--nodes", node, "not-a-library", "file:///etc/hosts"},
+		base.ShouldFail(),
+		base.StderrShouldMatch(regexp.MustCompile(`code = InvalidArgument`)),
+		base.StdoutEmpty(),
+	)
+}
+
+// TestDownloadRoundTrip covers the node fetching a file the test runner serves, named after the
+// last element of its URL.
+func (suite *ContentLibrarySuite) TestDownloadRoundTrip() {
+	node := suite.RandomDiscoveredNodeInternalIP()
+
+	if !suite.libraryConfigured(node) {
+		suite.T().Skipf("skipping test, node %s has no content library %q configured", node, testContentLibrary)
+	}
+
+	contents := "talos-" + uuid.NewString()
+	name := "cli-download-" + uuid.NewString() + ".raw"
+	object := digest.SHA256.FromString(contents).String()
+
+	baseURL := suite.ServeOnClusterGateway(suite.T(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/images/"+name {
+			http.NotFound(w, r)
+
+			return
+		}
+
+		w.Write([]byte(contents)) //nolint:errcheck
+	}), false)
+
+	nameRegexp := regexp.MustCompile(regexp.QuoteMeta(name))
+
+	suite.RunCLI(
+		[]string{"hypervisor", "content-library", "download", "--nodes", node, "--digest", object, testContentLibrary, baseURL + "/images/" + name},
+		base.StdoutShouldMatch(nameRegexp),
+		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta(object))),
+		base.StdoutShouldMatch(regexp.MustCompile(`integrity verified`)),
+	)
+
+	suite.RunCLI(
+		[]string{"hypervisor", "content-library", "list", "--nodes", node, testContentLibrary},
+		base.StdoutShouldMatch(nameRegexp),
+		base.StdoutShouldMatch(regexp.MustCompile(regexp.QuoteMeta(object))),
+	)
+
+	suite.RunCLI(
+		[]string{"hypervisor", "content-library", "delete", "--nodes", node, "--force", testContentLibrary, object},
 		base.StdoutEmpty(),
 	)
 }

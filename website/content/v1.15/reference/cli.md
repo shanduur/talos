@@ -2184,6 +2184,52 @@ talosctl hypervisor content-library delete <library_id> <name|sha256:digest> [fl
 
 * [talosctl hypervisor content-library](#talosctl-hypervisor-content-library)	 - Manage the contents of content libraries
 
+## talosctl hypervisor content-library download
+
+Have the node download a file from a URL into a content library
+
+### Synopsis
+
+The node fetches the HTTP(S) URL itself, using its own proxy settings and trusted CAs,
+and stores the contents as an immutable SHA-256 object under a new name.
+An existing name is never overwritten, even when its contents are identical.
+
+The name defaults to the last path element of the URL.
+
+With --digest, the node verifies what it fetched before storing it, and refuses the
+download unless the contents hash to the digest given.
+
+--insecure-skip-verify disables TLS certificate verification. Pair it with --digest:
+without a verified server, the digest is the only check of what was fetched.
+
+```
+talosctl hypervisor content-library download <library_id> <url> [flags]
+```
+
+### Options
+
+```
+      --digest string                       expected digest of the contents as sha256:<hex>; the download is refused unless the contents match it
+  -h, --help[=true|false]                   help for download
+      --insecure-skip-verify[=true|false]   skip TLS certificate verification of the server the node downloads from
+      --name string                         new name within the library (defaults to the last path element of <url>)
+```
+
+### Options inherited from parent commands
+
+```
+  -c, --cluster string             cluster to connect to if a proxy endpoint is used
+      --context string             context to be used in command
+  -e, --endpoints strings          override default endpoints in Talos configuration
+  -n, --nodes strings              target the specified nodes
+      --siderov1-keys-dir string   the path to the SideroV1 auth PGP keys directory, defaults to 'SIDEROV1_KEYS_DIR' env variable if set, otherwise '$HOME/.talos/keys'; only valid for Contexts that use SideroV1 auth
+      --talosconfig string         the path to the Talos configuration file, defaults to 'TALOSCONFIG' env variable if set, otherwise '$HOME/.talos/config' and '/var/run/secrets/talos.dev/config' in order
+```
+
+### SEE ALSO
+
+* [talosctl hypervisor content-library](#talosctl-hypervisor-content-library)	 - Manage the contents of content libraries
+
 ## talosctl hypervisor content-library list
 
 List SHA256 objects and their attached names
@@ -2290,6 +2336,7 @@ There is no automatic garbage collection.
 
 * [talosctl hypervisor](#talosctl-hypervisor)	 - Manage the Talos hypervisor
 * [talosctl hypervisor content-library delete](#talosctl-hypervisor-content-library-delete)	 - Delete an alias or a SHA-256 object from a content library
+* [talosctl hypervisor content-library download](#talosctl-hypervisor-content-library-download)	 - Have the node download a file from a URL into a content library
 * [talosctl hypervisor content-library list](#talosctl-hypervisor-content-library-list)	 - List SHA256 objects and their attached names
 * [talosctl hypervisor content-library upload](#talosctl-hypervisor-content-library-upload)	 - Upload a file to a content library
 

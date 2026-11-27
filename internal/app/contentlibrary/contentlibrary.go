@@ -10,6 +10,8 @@ import (
 	"errors"
 	"io"
 	"io/fs"
+	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
@@ -17,6 +19,7 @@ import (
 	"github.com/cosi-project/runtime/pkg/resource"
 	"github.com/cosi-project/runtime/pkg/safe"
 	"github.com/cosi-project/runtime/pkg/state"
+	"github.com/hashicorp/go-cleanhttp"
 	"github.com/opencontainers/go-digest"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -25,6 +28,7 @@ import (
 
 	cas "github.com/siderolabs/talos/internal/pkg/contentlibrary"
 	"github.com/siderolabs/talos/internal/pkg/contentlibrary/staging"
+	"github.com/siderolabs/talos/pkg/httpdefaults"
 	"github.com/siderolabs/talos/pkg/machinery/api/machine"
 	"github.com/siderolabs/talos/pkg/machinery/resources/hypervisor"
 )
@@ -304,8 +308,6 @@ func regularObjectInfo(root *os.Root, object string) (fs.FileInfo, error) {
 }
 
 // Upload a file to a content library.
-//
-//nolint:gocyclo
 func (svc *Service) Upload(srv grpc.ClientStreamingServer[machine.ContentLibraryServiceUploadRequest, machine.ContentLibraryServiceUploadResponse]) error {
 	msg, err := srv.Recv()
 	if err != nil {
@@ -322,65 +324,189 @@ func (svc *Service) Upload(srv grpc.ClientStreamingServer[machine.ContentLibrary
 		return status.Error(codes.InvalidArgument, "the first message must carry the upload info")
 	}
 
-	if err = validateName(info.GetName()); err != nil {
+	resp, err := svc.store(srv.Context(), info.GetLibraryId(), info.GetName(), info.GetDigest(), func(w io.Writer) (uint64, error) {
+		return receiveChunks(srv, w, info.GetName())
+	})
+	if err != nil {
 		return err
+	}
+
+	return srv.SendAndClose(resp)
+}
+
+// Download a file from a URL into a content library.
+func (svc *Service) Download(ctx context.Context, req *machine.ContentLibraryServiceDownloadRequest) (*machine.ContentLibraryServiceUploadResponse, error) {
+	u, err := url.Parse(req.GetUrl())
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return nil, status.Error(codes.InvalidArgument, "url must be an absolute http or https URL")
+	}
+
+	if req.GetInsecureSkipVerify() {
+		svc.logger.Warn("downloading to a content library without TLS verification",
+			zap.String("library", req.GetLibraryId()),
+			zap.String("name", req.GetName()),
+			zap.String("host", u.Host),
+		)
+	}
+
+	return svc.store(ctx, req.GetLibraryId(), req.GetName(), req.GetDigest(), func(w io.Writer) (uint64, error) {
+		return fetch(ctx, u, req.GetInsecureSkipVerify(), w)
+	})
+}
+
+// store validates the target of an upload or download and stores what fill writes under name.
+//
+// fill is only called once the name is known to be free, so nothing is transferred for a request
+// which is bound to be refused.
+func (svc *Service) store(
+	ctx context.Context,
+	libraryID, name, declaredDigest string,
+	fill func(io.Writer) (uint64, error),
+) (*machine.ContentLibraryServiceUploadResponse, error) {
+	if err := validateName(name); err != nil {
+		return nil, err
 	}
 
 	// Before the library is even resolved: a digest which cannot be met by any contents is the
 	// client's mistake, and saying so costs nothing.
-	dgst, err := parseDigest(info.GetDigest())
+	dgst, err := parseDigest(declaredDigest)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	root, err := svc.openLibrary(srv.Context(), info.GetLibraryId())
+	root, err := svc.openLibrary(ctx, libraryID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer root.Close() //nolint:errcheck
 
-	{
-		if _, err = root.Lstat(info.GetName()); err == nil {
-			return status.Errorf(codes.AlreadyExists, "name %q already exists", info.GetName())
-		} else if !errors.Is(err, fs.ErrNotExist) {
-			return status.Errorf(codes.Internal, "failed to stat %q: %v", info.GetName(), err)
-		}
+	if _, err = root.Lstat(name); err == nil {
+		return nil, status.Errorf(codes.AlreadyExists, "name %q already exists", name)
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return nil, status.Errorf(codes.Internal, "failed to stat %q: %v", name, err)
 	}
 
-	written, digests, err := svc.receiveFile(srv, root, info.GetLibraryId(), info.GetName(), dgst)
+	written, digests, err := svc.receiveFile(ctx, root, libraryID, name, dgst, fill)
 	if err != nil {
-		return withDigests(err, digests)
+		return nil, withDigests(err, digests)
 	}
 
-	svc.logger.Info("uploaded a file to a content library",
-		zap.String("library", info.GetLibraryId()),
-		zap.String("name", info.GetName()),
+	svc.logger.Info("stored a file in a content library",
+		zap.String("library", libraryID),
+		zap.String("name", name),
 		zap.Uint64("size", written),
 		zap.String("sha256", digests.GetSha256()),
 	)
 
-	return srv.SendAndClose(&machine.ContentLibraryServiceUploadResponse{
-		Name:    info.GetName(),
+	return &machine.ContentLibraryServiceUploadResponse{
+		Name:    name,
 		Size:    written,
 		Digests: digests,
-	})
+	}, nil
 }
 
-// receiveFile streams the rest of the request into the library.
+// receiveChunks writes the chunks of the rest of an upload stream to w.
+func receiveChunks(
+	srv grpc.ClientStreamingServer[machine.ContentLibraryServiceUploadRequest, machine.ContentLibraryServiceUploadResponse],
+	w io.Writer,
+	name string,
+) (written uint64, err error) {
+	for {
+		msg, err := srv.Recv()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				return written, nil
+			}
+
+			return 0, err
+		}
+
+		chunk := msg.GetChunk()
+		if chunk == nil {
+			return 0, status.Error(codes.InvalidArgument, "only the first message may carry the upload info")
+		}
+
+		n, err := w.Write(chunk.GetBytes())
+		if err != nil {
+			return 0, status.Errorf(codes.Internal, "failed to write %q: %v", name, err)
+		}
+
+		written += uint64(n)
+	}
+}
+
+// fetch writes the body of a GET of u to w.
 //
-// The contents are staged under a temporary name and only claim the name they were uploaded under
-// once the stream ends, so an interrupted upload leaves no half-written image behind under the name
+// Errors name the URL without its query or credentials: presigned URLs carry their secret there,
+// and gRPC errors end up in logs.
+func fetch(ctx context.Context, u *url.URL, insecureSkipVerify bool, w io.Writer) (uint64, error) {
+	safeURL := (&url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}).String()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return 0, status.Errorf(codes.InvalidArgument, "invalid request for %s", safeURL)
+	}
+
+	// Honors the node's proxy environment and trusted CAs.
+	transport := httpdefaults.PatchTransport(cleanhttp.DefaultTransport())
+	transport.TLSClientConfig.InsecureSkipVerify = insecureSkipVerify //nolint:gosec // explicitly requested by the caller
+
+	defer transport.CloseIdleConnections()
+
+	resp, err := (&http.Client{Transport: transport}).Do(req)
+	if err != nil {
+		if urlErr, ok := errors.AsType[*url.Error](err); ok {
+			err = urlErr.Err
+		}
+
+		return 0, fetchError(ctx, safeURL, err)
+	}
+
+	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		code := codes.Unavailable
+		if resp.StatusCode == http.StatusNotFound {
+			code = codes.NotFound
+		}
+
+		return 0, status.Errorf(code, "failed to fetch %s: %s", safeURL, resp.Status)
+	}
+
+	// A body cut short by the connection fails here with io.ErrUnexpectedEOF when the server
+	// announced its length; only a declared digest catches truncation of one which did not.
+	n, err := io.Copy(w, resp.Body)
+	if err != nil {
+		return 0, fetchError(ctx, safeURL, err)
+	}
+
+	return uint64(n), nil
+}
+
+func fetchError(ctx context.Context, safeURL string, err error) error {
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return status.FromContextError(ctxErr).Err()
+	}
+
+	return status.Errorf(codes.Unavailable, "failed to fetch %s: %v", safeURL, err)
+}
+
+// receiveFile stores what fill writes into the library.
+//
+// The contents are staged under a temporary name and only claim the name they were stored under
+// once fill returns, so an interrupted transfer leaves no half-written image behind under the name
 // it was meant to take. A non-empty dgst is checked before the staged file claims that name, so
 // contents which do not match it are never visible in the library at all.
 //
 //nolint:gocyclo
 func (svc *Service) receiveFile(
-	srv grpc.ClientStreamingServer[machine.ContentLibraryServiceUploadRequest, machine.ContentLibraryServiceUploadResponse],
+	ctx context.Context,
 	root *os.Root,
 	libraryID string,
 	name string,
 	dgst digest.Digest,
+	fill func(io.Writer) (uint64, error),
 ) (written uint64, digests *machine.ContentLibraryServiceUploadDigests, err error) {
 	// Whatever a failure leaves staged is swept by hypervisor.ContentLibraryController when it next
 	// brings the library up.
@@ -406,35 +532,11 @@ func (svc *Service) receiveFile(
 	// over the stream and the hash state, whatever the size of the image.
 	sink := newUploadSink(f)
 
-	for {
-		var msg *machine.ContentLibraryServiceUploadRequest
-
-		msg, err = srv.Recv()
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-
-			return 0, nil, err
-		}
-
-		chunk := msg.GetChunk()
-		if chunk == nil {
-			err = status.Error(codes.InvalidArgument, "only the first message may carry the upload info")
-
-			return 0, nil, err
-		}
-
-		var n int
-
-		if n, err = sink.Write(chunk.GetBytes()); err != nil {
-			return 0, nil, status.Errorf(codes.Internal, "failed to write %q: %v", name, err)
-		}
-
-		written += uint64(n)
+	if written, err = fill(sink); err != nil {
+		return 0, nil, err
 	}
 
-	// The upload has completed, so from here on every outcome reports what the node received,
+	// The transfer has completed, so from here on every outcome reports what the node received,
 	// whether it went on to store it or not.
 	digests = sink.digests()
 
@@ -461,7 +563,7 @@ func (svc *Service) receiveFile(
 		return 0, digests, status.Errorf(codes.Internal, "failed to close %q: %v", name, err)
 	}
 
-	if err = svc.claimName(srv.Context(), root, libraryID, name, tmpName, digests.GetSha256(), stagedInfo); err != nil {
+	if err = svc.claimName(ctx, root, libraryID, name, tmpName, digests.GetSha256(), stagedInfo); err != nil {
 		return 0, digests, err
 	}
 

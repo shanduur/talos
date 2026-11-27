@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"slices"
@@ -1042,4 +1044,89 @@ func TestCASPublicationRefusesCanceledUpload(t *testing.T) {
 	require.Equal(t, codes.Canceled, grpcstatus.Code(err))
 	require.NoFileExists(t, filepath.Join(path, "image.raw"))
 	require.NoDirExists(t, filepath.Join(path, "objects"))
+}
+
+func TestDownload(t *testing.T) {
+	t.Parallel()
+
+	const contents = "talos-images"
+
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/image.raw" {
+			http.NotFound(w, r)
+
+			return
+		}
+
+		fmt.Fprint(w, contents)
+	}))
+	t.Cleanup(srv.Close)
+
+	download := func(svc *contentlibrary.Service, rawURL string, insecure bool, dgst string) (*machine.ContentLibraryServiceUploadResponse, error) {
+		return svc.Download(t.Context(), &machine.ContentLibraryServiceDownloadRequest{
+			LibraryId:          testLibrary,
+			Name:               "image.raw",
+			Url:                rawURL,
+			Digest:             dgst,
+			InsecureSkipVerify: insecure,
+		})
+	}
+
+	t.Run("stored", func(t *testing.T) {
+		t.Parallel()
+
+		svc, path := setup(t, true)
+
+		resp, err := download(svc, srv.URL+"/image.raw", true, digest.SHA256.FromString(contents).String())
+		require.NoError(t, err)
+		assert.Equal(t, uint64(len(contents)), resp.GetSize())
+
+		stored, err := os.ReadFile(filepath.Join(path, "image.raw"))
+		require.NoError(t, err)
+		assert.Equal(t, contents, string(stored))
+	})
+
+	for _, tc := range []struct {
+		name     string
+		url      string
+		insecure bool
+		digest   string
+		code     codes.Code
+	}{
+		{name: "untrusted certificate", url: srv.URL + "/image.raw", code: codes.Unavailable},
+		{name: "not found", url: srv.URL + "/missing.raw", insecure: true, code: codes.NotFound},
+		{name: "digest mismatch", url: srv.URL + "/image.raw", insecure: true, digest: digest.FromString("other").String(), code: codes.DataLoss},
+		{name: "scheme", url: "file:///etc/passwd", code: codes.InvalidArgument},
+		{name: "relative", url: "image.raw", code: codes.InvalidArgument},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			svc, path := setup(t, true)
+
+			_, err := download(svc, tc.url, tc.insecure, tc.digest)
+			require.Equal(t, tc.code, grpcstatus.Code(err), "%v", err)
+
+			_, err = os.Lstat(filepath.Join(path, "image.raw"))
+			assert.ErrorIs(t, err, os.ErrNotExist)
+		})
+	}
+}
+
+// TestDownloadErrorsHideQuery covers presigned URLs: their secret is in the query, and errors end up in logs.
+func TestDownloadErrorsHideQuery(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.NotFoundHandler())
+	t.Cleanup(srv.Close)
+
+	svc, _ := setup(t, true)
+
+	_, err := svc.Download(t.Context(), &machine.ContentLibraryServiceDownloadRequest{
+		LibraryId: testLibrary,
+		Name:      "image.raw",
+		Url:       srv.URL + "/image.raw?X-Amz-Signature=secret",
+	})
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), "secret")
 }

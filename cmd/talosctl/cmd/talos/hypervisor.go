@@ -9,7 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"text/tabwriter"
@@ -192,15 +194,20 @@ func contentLibraryUpload(ctx context.Context, libraryID, filename string) error
 
 	resp, err := c.ContentLibraryUpload(ctx, libraryID, name, contentLibraryUploadCmdFlags.digest, contents)
 
+	return reportContentLibraryStore(resp, err, "uploading to", "uploaded", node, libraryID, contentLibraryUploadCmdFlags.digest)
+}
+
+// reportContentLibraryStore prints the outcome of an upload or a download.
+func reportContentLibraryStore(resp *machine.ContentLibraryServiceUploadResponse, err error, doing, done, node, libraryID, expectedDigest string) error {
 	// Hashes computed on the node
 	if digests := client.ContentLibraryUploadDigests(resp, err); digests != nil {
-		safeout.Printf("Uploaded content's digest: %s\n", digests.GetSha256())
+		safeout.Printf("Stored content's digest: %s\n", digests.GetSha256())
 	}
 
 	if err != nil {
 		safeout.Flush() //nolint:errcheck
 
-		fmt.Fprintln(os.Stderr, color.RedString("error uploading to node %s: %s", safeout.Cell(node), safeout.String(err.Error()))) //nolint:forbidigo // colored by hand, see above
+		fmt.Fprintln(os.Stderr, color.RedString("error %s node %s: %s", doing, safeout.Cell(node), safeout.String(err.Error()))) //nolint:forbidigo // colored by hand, see above
 
 		// Already reported, and reporting it again would print it a second time without the color.
 		common.SuppressErrors = true
@@ -208,19 +215,84 @@ func contentLibraryUpload(ctx context.Context, libraryID, filename string) error
 		return err
 	}
 
-	safeout.Printf("uploaded %s (%s) to the content library %q on node %s\n",
-		resp.GetName(), humanize.Bytes(resp.GetSize()), libraryID, node)
+	safeout.Printf("%s %s (%s) to the content library %q on node %s\n",
+		done, resp.GetName(), humanize.Bytes(resp.GetSize()), libraryID, node)
 
-	if contentLibraryUploadCmdFlags.digest != "" {
+	if expectedDigest != "" {
 		safeout.Flush() //nolint:errcheck
 
 		fmt.Fprintln(os.Stdout, color.GreenString( //nolint:forbidigo // colored by hand, see above
-			"integrity verified: uploaded content's digest matches the provided one (%s)",
-			safeout.Cell(contentLibraryUploadCmdFlags.digest),
+			"integrity verified: stored content's digest matches the provided one (%s)",
+			safeout.Cell(expectedDigest),
 		))
 	}
 
 	return nil
+}
+
+var contentLibraryDownloadCmdFlags struct {
+	name               string
+	digest             string
+	insecureSkipVerify bool
+}
+
+// contentLibraryDownloadCmd represents the hypervisor content-library download command.
+var contentLibraryDownloadCmd = &cobra.Command{
+	Use:     "download <library_id> <url>",
+	Aliases: []string{"dl"},
+	Short:   "Have the node download a file from a URL into a content library",
+	Long: `The node fetches the HTTP(S) URL itself, using its own proxy settings and trusted CAs,
+and stores the contents as an immutable SHA-256 object under a new name.
+An existing name is never overwritten, even when its contents are identical.
+
+The name defaults to the last path element of the URL.
+
+With --digest, the node verifies what it fetched before storing it, and refuses the
+download unless the contents hash to the digest given.
+
+--insecure-skip-verify disables TLS certificate verification. Pair it with --digest:
+without a verified server, the digest is the only check of what was fetched.`,
+	Args: cobra.ExactArgs(2),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return contentLibraryDownload(cmd.Context(), args[0], args[1])
+	},
+}
+
+func contentLibraryDownload(ctx context.Context, libraryID, rawURL string) error {
+	name := contentLibraryDownloadCmdFlags.name
+	if name == "" {
+		u, err := url.Parse(rawURL)
+		if err != nil {
+			return fmt.Errorf("error parsing %q: %w", rawURL, err)
+		}
+
+		name = path.Base(u.Path)
+		if name == "/" || name == "." {
+			return errors.New("--name is required when the URL has no file name in its path")
+		}
+	}
+
+	clientFactory, err := NewClientFactory(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer clientFactory.Close() //nolint:errcheck
+
+	ctx, c, node, err := clientFactory.BuildClientEnforceSingleNode(ctx, "talosctl hypervisor content-library download")
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.ContentLibraryService().Download(ctx, &machine.ContentLibraryServiceDownloadRequest{
+		LibraryId:          libraryID,
+		Name:               name,
+		Digest:             contentLibraryDownloadCmdFlags.digest,
+		Url:                rawURL,
+		InsecureSkipVerify: contentLibraryDownloadCmdFlags.insecureSkipVerify,
+	})
+
+	return reportContentLibraryStore(resp, err, "downloading on", "downloaded", node, libraryID, contentLibraryDownloadCmdFlags.digest)
 }
 
 // contentLibraryDeleteCmd represents the hypervisor content-library delete command.
@@ -303,8 +375,16 @@ func init() {
 	contentLibraryUploadCmd.Flags().StringVar(&contentLibraryUploadCmdFlags.digest, "digest", "",
 		"expected digest of the contents as sha256:<hex>; the upload is refused unless the contents match it")
 
+	contentLibraryDownloadCmd.Flags().StringVar(&contentLibraryDownloadCmdFlags.name, "name", "",
+		"new name within the library (defaults to the last path element of <url>)")
+	contentLibraryDownloadCmd.Flags().StringVar(&contentLibraryDownloadCmdFlags.digest, "digest", "",
+		"expected digest of the contents as sha256:<hex>; the download is refused unless the contents match it")
+	contentLibraryDownloadCmd.Flags().BoolVar(&contentLibraryDownloadCmdFlags.insecureSkipVerify, "insecure-skip-verify", false,
+		"skip TLS certificate verification of the server the node downloads from")
+
 	contentLibraryCmd.AddCommand(contentLibraryListCmd)
 	contentLibraryCmd.AddCommand(contentLibraryUploadCmd)
+	contentLibraryCmd.AddCommand(contentLibraryDownloadCmd)
 	contentLibraryCmd.AddCommand(contentLibraryDeleteCmd)
 
 	hypervisorCmd.AddCommand(contentLibraryCmd)

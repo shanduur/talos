@@ -16,6 +16,10 @@ service ContentLibraryService {
   rpc List(ContentLibraryServiceListRequest) returns (stream ContentLibraryServiceListResponse);
   // Upload a file to a content library.
   rpc Upload(stream ContentLibraryServiceUploadRequest) returns (ContentLibraryServiceUploadResponse);
+  // Download a file from a URL into a content library.
+  //
+  // The node fetches the URL itself, so the contents never pass through the client.
+  rpc Download(ContentLibraryServiceDownloadRequest) returns (ContentLibraryServiceUploadResponse);
   // Delete removes an alias or explicitly deletes a SHA256 object.
   // Object deletion refuses existing aliases unless force is set.
   rpc Delete(ContentLibraryServiceDeleteRequest) returns (ContentLibraryServiceDeleteResponse);
@@ -75,6 +79,23 @@ message ContentLibraryServiceUploadResponse {
   uint64 size = 2;
   // Digests of the contents stored.
   ContentLibraryServiceUploadDigests digests = 3;
+}
+
+message ContentLibraryServiceDownloadRequest {
+  // ID of the content library to download to.
+  string library_id = 1;
+  // Name of the file within the library.
+  string name = 2;
+  // Expected digest of the contents, as "sha256:<hex>".
+  //
+  // Optional: when it is set, the download is rejected unless the contents hash to it.
+  string digest = 3;
+  // HTTP(S) URL to fetch the contents from.
+  string url = 4;
+  // Skip verification of the server's TLS certificate.
+  //
+  // Set digest along with it: without a verified server, the digest is the only check of what was fetched.
+  bool insecure_skip_verify = 5;
 }
 
 message ContentLibraryServiceDeleteRequest {

@@ -11,6 +11,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -202,6 +203,88 @@ func (suite *ContentLibrarySuite) TestUploadDigestMismatch() {
 	digests := client.ContentLibraryUploadDigests(resp, err)
 	suite.Require().NotNil(digests)
 	suite.Assert().Equal(digest.SHA256.FromBytes(contents).String(), digests.GetSha256())
+
+	suite.Assert().Empty(suite.list(ctx, name))
+}
+
+// serveImage serves contents at /image.raw from the test runner, on an address the nodes reach.
+func (suite *ContentLibrarySuite) serveImage(contents []byte, useTLS bool) string {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/image.raw", func(w http.ResponseWriter, _ *http.Request) {
+		w.Write(contents) //nolint:errcheck
+	})
+
+	return suite.ServeOnClusterGateway(suite.T(), mux, useTLS)
+}
+
+func (suite *ContentLibrarySuite) download(ctx context.Context, libraryID, url, dgst string, insecure bool) (*machineapi.ContentLibraryServiceUploadResponse, error) {
+	return suite.Client.ContentLibraryService().Download(ctx, &machineapi.ContentLibraryServiceDownloadRequest{
+		LibraryId:          libraryID,
+		Name:               "image.raw",
+		Url:                url,
+		Digest:             dgst,
+		InsecureSkipVerify: insecure,
+	})
+}
+
+// TestDownload covers the node fetching an image itself: it lands in the library just as an upload
+// of the same contents would.
+func (suite *ContentLibrarySuite) TestDownload() {
+	contents := bytes.Repeat([]byte("talos"), 1024)
+	baseURL := suite.serveImage(contents, false)
+
+	ctx, name, path := suite.provisionLibrary()
+
+	resp, err := suite.download(ctx, name, baseURL+"/image.raw", digest.SHA256.FromBytes(contents).String(), false)
+	suite.Require().NoError(err)
+	suite.Assert().Equal("image.raw", resp.GetName())
+	suite.Assert().Equal(uint64(len(contents)), resp.GetSize())
+	suite.Assert().Equal(digest.SHA256.FromBytes(contents).String(), resp.GetDigests().GetSha256())
+
+	files := suite.list(ctx, name)
+	suite.Require().Len(files, 1)
+	suite.Assert().Equal([]string{"image.raw"}, files[0].GetNames())
+
+	suite.Assert().Equal(string(contents), suite.ReadFile(ctx, filepath.Join(path, "image.raw")))
+}
+
+// TestDownloadTLS covers a server whose certificate the node doesn't trust: refused unless
+// verification is explicitly skipped.
+func (suite *ContentLibrarySuite) TestDownloadTLS() {
+	contents := bytes.Repeat([]byte("talos"), 1024)
+	baseURL := suite.serveImage(contents, true)
+
+	ctx, name, path := suite.provisionLibrary()
+
+	_, err := suite.download(ctx, name, baseURL+"/image.raw", "", false)
+	suite.Require().Equal(codes.Unavailable, status.Code(err), "%v", err)
+	suite.Assert().Empty(suite.list(ctx, name))
+
+	_, err = suite.download(ctx, name, baseURL+"/image.raw", digest.SHA256.FromBytes(contents).String(), true)
+	suite.Require().NoError(err)
+
+	suite.Assert().Equal(string(contents), suite.ReadFile(ctx, filepath.Join(path, "image.raw")))
+}
+
+// TestDownloadFailures covers downloads which must leave the library untouched.
+func (suite *ContentLibrarySuite) TestDownloadFailures() {
+	contents := bytes.Repeat([]byte("talos"), 1024)
+	baseURL := suite.serveImage(contents, false)
+
+	ctx, name, _ := suite.provisionLibrary()
+
+	_, err := suite.download(ctx, name, baseURL+"/missing.raw", "", false)
+	suite.Assert().Equal(codes.NotFound, status.Code(err), "%v", err)
+
+	resp, err := suite.download(ctx, name, baseURL+"/image.raw", digest.FromString("something else").String(), false)
+	suite.Assert().Equal(codes.DataLoss, status.Code(err), "%v", err)
+
+	digests := client.ContentLibraryUploadDigests(resp, err)
+	suite.Require().NotNil(digests)
+	suite.Assert().Equal(digest.SHA256.FromBytes(contents).String(), digests.GetSha256())
+
+	_, err = suite.download(ctx, name, "file:///etc/hosts", "", false)
+	suite.Assert().Equal(codes.InvalidArgument, status.Code(err), "%v", err)
 
 	suite.Assert().Empty(suite.list(ctx, name))
 }

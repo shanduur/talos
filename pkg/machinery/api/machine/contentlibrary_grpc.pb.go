@@ -20,9 +20,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ContentLibraryService_List_FullMethodName   = "/machine.ContentLibraryService/List"
-	ContentLibraryService_Upload_FullMethodName = "/machine.ContentLibraryService/Upload"
-	ContentLibraryService_Delete_FullMethodName = "/machine.ContentLibraryService/Delete"
+	ContentLibraryService_List_FullMethodName     = "/machine.ContentLibraryService/List"
+	ContentLibraryService_Upload_FullMethodName   = "/machine.ContentLibraryService/Upload"
+	ContentLibraryService_Download_FullMethodName = "/machine.ContentLibraryService/Download"
+	ContentLibraryService_Delete_FullMethodName   = "/machine.ContentLibraryService/Delete"
 )
 
 // ContentLibraryServiceClient is the client API for ContentLibraryService service.
@@ -38,6 +39,10 @@ type ContentLibraryServiceClient interface {
 	List(ctx context.Context, in *ContentLibraryServiceListRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ContentLibraryServiceListResponse], error)
 	// Upload a file to a content library.
 	Upload(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ContentLibraryServiceUploadRequest, ContentLibraryServiceUploadResponse], error)
+	// Download a file from a URL into a content library.
+	//
+	// The node fetches the URL itself, so the contents never pass through the client.
+	Download(ctx context.Context, in *ContentLibraryServiceDownloadRequest, opts ...grpc.CallOption) (*ContentLibraryServiceUploadResponse, error)
 	// Delete removes an alias or explicitly deletes a SHA256 object.
 	// Object deletion refuses existing aliases unless force is set.
 	Delete(ctx context.Context, in *ContentLibraryServiceDeleteRequest, opts ...grpc.CallOption) (*ContentLibraryServiceDeleteResponse, error)
@@ -83,6 +88,16 @@ func (c *contentLibraryServiceClient) Upload(ctx context.Context, opts ...grpc.C
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ContentLibraryService_UploadClient = grpc.ClientStreamingClient[ContentLibraryServiceUploadRequest, ContentLibraryServiceUploadResponse]
 
+func (c *contentLibraryServiceClient) Download(ctx context.Context, in *ContentLibraryServiceDownloadRequest, opts ...grpc.CallOption) (*ContentLibraryServiceUploadResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ContentLibraryServiceUploadResponse)
+	err := c.cc.Invoke(ctx, ContentLibraryService_Download_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *contentLibraryServiceClient) Delete(ctx context.Context, in *ContentLibraryServiceDeleteRequest, opts ...grpc.CallOption) (*ContentLibraryServiceDeleteResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ContentLibraryServiceDeleteResponse)
@@ -106,6 +121,10 @@ type ContentLibraryServiceServer interface {
 	List(*ContentLibraryServiceListRequest, grpc.ServerStreamingServer[ContentLibraryServiceListResponse]) error
 	// Upload a file to a content library.
 	Upload(grpc.ClientStreamingServer[ContentLibraryServiceUploadRequest, ContentLibraryServiceUploadResponse]) error
+	// Download a file from a URL into a content library.
+	//
+	// The node fetches the URL itself, so the contents never pass through the client.
+	Download(context.Context, *ContentLibraryServiceDownloadRequest) (*ContentLibraryServiceUploadResponse, error)
 	// Delete removes an alias or explicitly deletes a SHA256 object.
 	// Object deletion refuses existing aliases unless force is set.
 	Delete(context.Context, *ContentLibraryServiceDeleteRequest) (*ContentLibraryServiceDeleteResponse, error)
@@ -124,6 +143,9 @@ func (UnimplementedContentLibraryServiceServer) List(*ContentLibraryServiceListR
 }
 func (UnimplementedContentLibraryServiceServer) Upload(grpc.ClientStreamingServer[ContentLibraryServiceUploadRequest, ContentLibraryServiceUploadResponse]) error {
 	return status.Error(codes.Unimplemented, "method Upload not implemented")
+}
+func (UnimplementedContentLibraryServiceServer) Download(context.Context, *ContentLibraryServiceDownloadRequest) (*ContentLibraryServiceUploadResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Download not implemented")
 }
 func (UnimplementedContentLibraryServiceServer) Delete(context.Context, *ContentLibraryServiceDeleteRequest) (*ContentLibraryServiceDeleteResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Delete not implemented")
@@ -167,6 +189,24 @@ func _ContentLibraryService_Upload_Handler(srv interface{}, stream grpc.ServerSt
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ContentLibraryService_UploadServer = grpc.ClientStreamingServer[ContentLibraryServiceUploadRequest, ContentLibraryServiceUploadResponse]
 
+func _ContentLibraryService_Download_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ContentLibraryServiceDownloadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ContentLibraryServiceServer).Download(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ContentLibraryService_Download_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ContentLibraryServiceServer).Download(ctx, req.(*ContentLibraryServiceDownloadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ContentLibraryService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ContentLibraryServiceDeleteRequest)
 	if err := dec(in); err != nil {
@@ -192,6 +232,10 @@ var ContentLibraryService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "machine.ContentLibraryService",
 	HandlerType: (*ContentLibraryServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Download",
+			Handler:    _ContentLibraryService_Download_Handler,
+		},
 		{
 			MethodName: "Delete",
 			Handler:    _ContentLibraryService_Delete_Handler,

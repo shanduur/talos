@@ -45,6 +45,7 @@ description: Talos gRPC API reference.
 - [machine/contentlibrary.proto](#machine/contentlibrary.proto)
     - [ContentLibraryServiceDeleteRequest](#machine.ContentLibraryServiceDeleteRequest)
     - [ContentLibraryServiceDeleteResponse](#machine.ContentLibraryServiceDeleteResponse)
+    - [ContentLibraryServiceDownloadRequest](#machine.ContentLibraryServiceDownloadRequest)
     - [ContentLibraryServiceListRequest](#machine.ContentLibraryServiceListRequest)
     - [ContentLibraryServiceListResponse](#machine.ContentLibraryServiceListResponse)
     - [ContentLibraryServiceUploadDigests](#machine.ContentLibraryServiceUploadDigests)
@@ -1366,6 +1367,25 @@ InspectService provides auxiliary API to inspect OS internals.
 
 
 
+<a name="machine.ContentLibraryServiceDownloadRequest"></a>
+
+### ContentLibraryServiceDownloadRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| library_id | [string](#string) |  | ID of the content library to download to. |
+| name | [string](#string) |  | Name of the file within the library. |
+| digest | [string](#string) |  | Expected digest of the contents, as "sha256:<hex>".<br><br>Optional: when it is set, the download is rejected unless the contents hash to it. |
+| url | [string](#string) |  | HTTP(S) URL to fetch the contents from. |
+| insecure_skip_verify | [bool](#bool) |  | Skip verification of the server's TLS certificate.<br><br>Set digest along with it: without a verified server, the digest is the only check of what was fetched. |
+
+
+
+
+
+
 <a name="machine.ContentLibraryServiceListRequest"></a>
 
 ### ContentLibraryServiceListRequest
@@ -1487,6 +1507,7 @@ ContentLibraryConfig document and backed by a volume.
 | ----------- | ------------ | ------------- | ------------|
 | List | [ContentLibraryServiceListRequest](#machine.ContentLibraryServiceListRequest) | [ContentLibraryServiceListResponse](#machine.ContentLibraryServiceListResponse) stream | One SHA256 object and the names currently attached to it. |
 | Upload | [ContentLibraryServiceUploadRequest](#machine.ContentLibraryServiceUploadRequest) stream | [ContentLibraryServiceUploadResponse](#machine.ContentLibraryServiceUploadResponse) | Upload a file to a content library. |
+| Download | [ContentLibraryServiceDownloadRequest](#machine.ContentLibraryServiceDownloadRequest) | [ContentLibraryServiceUploadResponse](#machine.ContentLibraryServiceUploadResponse) | Download a file from a URL into a content library.<br><br>The node fetches the URL itself, so the contents never pass through the client. |
 | Delete | [ContentLibraryServiceDeleteRequest](#machine.ContentLibraryServiceDeleteRequest) | [ContentLibraryServiceDeleteResponse](#machine.ContentLibraryServiceDeleteResponse) | Delete removes an alias or explicitly deletes a SHA256 object. Object deletion refuses existing aliases unless force is set. |
 
  <!-- end services -->
